@@ -1,0 +1,38 @@
+PATH
+  remote: .
+  specs:
+    syntax_error_search (0.1.0)
+      parser
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ast (2.4.1)
+    diff-lcs (1.4.4)
+    parser (2.7.2.0)
+      ast (~> 2.4.1)
+    rake (12.3.3)
+    rspec (3.10.0)
+      rspec-core (~> 3.10.0)
+      rspec-expectations (~> 3.10.0)
+      rspec-mocks (~> 3.10.0)
+    rspec-core (3.10.0)
+      rspec-support (~> 3.10.0)
+    rspec-expectations (3.10.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.10.0)
+    rspec-mocks (3.10.0)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.10.0)
+    rspec-support (3.10.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  rake (~> 12.0)
+  rspec (~> 3.0)
+  syntax_error_search!
+
+BUNDLED WITH
+   2.1.4
