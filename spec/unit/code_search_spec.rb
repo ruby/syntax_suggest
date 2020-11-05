@@ -1,40 +1,64 @@
-
 require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
-    it "does not go into an infinite loop" do
-      skip("infinite loop")
-      search = CodeSearch.new(<<~EOM)
-        Foo.call
-          def foo
-            puts "lol"
-            puts "lol"
-        end
-        end
-      EOM
-      search.call
+    # For code that's not perfectly formatted, we ideally want to do our best
+    # These examples represent the results that exist today, but I would like to improve upon them
+    describe "needs improvement" do
+      describe "mis-matched-indentation" do
+        it "stacked ends " do
+          search = CodeSearch.new(<<~EOM)
+            Foo.call
+              def foo
+                puts "lol"
+                puts "lol"
+            end
+            end
+          EOM
+          search.call
 
-      expect(search.invalid_blocks.join).to eq(<<~EOM)
+          # Does not include the line with the error Foo.call
+          expect(search.invalid_blocks.join).to eq(<<~EOM)
+              def foo
+            end
+            end
+          EOM
         end
-      EOM
-    end
 
-    it "handles mis-matched-indentation-but-maybe-not-so-well" do
-      skip("wip")
-      search = CodeSearch.new(<<~EOM)
-        Foo.call
-          def foo
-            puts "lol"
-            puts "lol"
-           end
-        end
-      EOM
-      search.call
+        it "extra space before end" do
+          search = CodeSearch.new(<<~EOM)
+            Foo.call
+              def foo
+                puts "lol"
+                puts "lol"
+               end
+            end
+          EOM
+          search.call
 
-      expect(search.invalid_blocks.join).to eq(<<~EOM)
+          # Does not include the line with the error Foo.call
+          expect(search.invalid_blocks.join).to eq(<<~EOM.indent(3))
+            end
+          EOM
         end
-      EOM
+
+        it "missing space before end" do
+          search = CodeSearch.new(<<~EOM)
+            Foo.call
+              def foo
+                puts "lol"
+                puts "lol"
+             end
+            end
+          EOM
+          search.call
+
+          # Does not include the line with the error Foo.call
+          expect(search.invalid_blocks.join).to eq(<<~EOM)
+            end
+          EOM
+        end
+      end
     end
 
     it "returns syntax error in outer block without inner block" do
