@@ -35,9 +35,7 @@ module SyntaxErrorSearch
     def pop
       return nil if empty?
 
-      if generate_new_block?
-        self << next_block
-      end
+      self << next_block unless @indent_hash.empty?
 
       return @frontier.pop
     end
