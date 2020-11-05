@@ -2,6 +2,24 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
+
+    it "def with missing end" do
+      search = CodeSearch.new(<<~EOM)
+        class OH
+          def hello
+          def hai
+          end
+        end
+      EOM
+      search.call
+
+      expect(search.invalid_blocks.join).to eq(<<~EOM.indent(2))
+        def hello
+        def hai
+        end
+      EOM
+    end
+
     # For code that's not perfectly formatted, we ideally want to do our best
     # These examples represent the results that exist today, but I would like to improve upon them
     describe "needs improvement" do
