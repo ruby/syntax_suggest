@@ -49,8 +49,8 @@ module SyntaxErrorSearch
 
       frontier = CodeFrontier.new(code_lines: code_lines)
       blocks = []
-      blocks << CodeBlock.new(lines: code_lines[1], source: Object.new)
-      blocks << CodeBlock.new(lines: code_lines[5], source: Object.new)
+      blocks << CodeBlock.new(lines: code_lines[1], code_lines: code_lines)
+      blocks << CodeBlock.new(lines: code_lines[5], code_lines: code_lines)
       blocks.each do |b|
         frontier << b
       end

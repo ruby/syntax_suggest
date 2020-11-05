@@ -26,9 +26,8 @@ module SyntaxErrorSearch
   class CodeBlock
     attr_reader :lines
 
-    def initialize(source: nil, code_lines: nil, lines: [])
+    def initialize(code_lines:, lines: [])
       @lines = Array(lines)
-      @source = source
       @code_lines = code_lines
     end
 
@@ -41,7 +40,7 @@ module SyntaxErrorSearch
     end
 
     def code_lines
-      @code_lines || @source.code_lines
+      @code_lines
     end
 
     # This is used for frontier ordering, we are searching from

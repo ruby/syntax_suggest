@@ -35,6 +35,5 @@ end
 
 require_relative "syntax_error_search/code_line"
 require_relative "syntax_error_search/code_block"
-require_relative "syntax_error_search/code_source"
 require_relative "syntax_error_search/code_frontier"
 require_relative "syntax_error_search/code_search"

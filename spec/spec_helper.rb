@@ -28,7 +28,6 @@ class String
   def indent(number)
     self.lines.map do |line|
       if line.chomp.empty?
-
         line
       else
         " " * number + line

@@ -18,10 +18,11 @@ module SyntaxErrorSearch
         end
       EOM
 
-      source = CodeSource.new(source_string)
+      code_lines = code_line_array(source_string)
+
       block = CodeBlock.new(
-        lines: source.code_lines[6],
-        source: source
+        lines: code_lines[6],
+        code_lines: code_lines
       )
 
       block.expand_until_next_boundry
@@ -57,10 +58,10 @@ module SyntaxErrorSearch
         end
       EOM
 
-      source = CodeSource.new(source_string)
+      code_lines = code_line_array(source_string)
       block = CodeBlock.new(
-        lines: source.code_lines[0],
-        source: source
+        lines: code_lines[0],
+        code_lines: code_lines
       )
       block.expand_until_next_boundry
 
@@ -69,10 +70,9 @@ module SyntaxErrorSearch
         end
       EOM
 
-      source = CodeSource.new(source_string)
       block = CodeBlock.new(
-        lines: source.code_lines[3],
-        source: source
+        lines: code_lines[3],
+        code_lines: code_lines
       )
       block.expand_until_next_boundry
 
@@ -93,7 +93,7 @@ module SyntaxErrorSearch
         end
       EOM
 
-      block = CodeBlock.new(source: Object.new, lines: code_lines[1])
+      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
       expect(block.valid?).to be_truthy
     end
 
@@ -104,9 +104,9 @@ module SyntaxErrorSearch
             end
       EOM
 
-      block_0 = CodeBlock.new(source: Object.new, lines: code_lines[0])
-      block_1 = CodeBlock.new(source: Object.new, lines: code_lines[1])
-      block_2 = CodeBlock.new(source: Object.new, lines: code_lines[2])
+      block_0 = CodeBlock.new(code_lines: code_lines, lines: code_lines[0])
+      block_1 = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
+      block_2 = CodeBlock.new(code_lines: code_lines, lines: code_lines[2])
 
       expect(block_0 <=> block_0).to eq(0)
       expect(block_1 <=> block_0).to eq(1)
@@ -115,7 +115,7 @@ module SyntaxErrorSearch
       array = [block_2, block_1, block_0].sort
       expect(array.last).to eq(block_2)
 
-      block = CodeBlock.new(source: "", lines: CodeLine.new(line: " " * 8 + "foo", index: 4))
+      block = CodeBlock.new(code_lines: code_lines, lines: CodeLine.new(line: " " * 8 + "foo", index: 4))
       array.prepend(block)
       expect(array.sort.last).to eq(block)
     end
@@ -127,34 +127,29 @@ module SyntaxErrorSearch
         end
       EOM
 
-      block = CodeBlock.new(source: Object.new, lines: code_lines[1])
+      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
       expect(block.current_indent).to eq(2)
+      expect(block.before_lines).to eq([code_lines[0]])
+      expect(block.before_line).to eq(code_lines[0])
+      expect(block.after_lines).to eq([code_lines[2]])
+      expect(block.after_line).to eq(code_lines[2])
 
-      block = CodeBlock.new(source: Object.new, lines: code_lines[0])
+      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[0])
       expect(block.current_indent).to eq(0)
-
-      # expect(block.document_valid_without?).to be_truthy
-      # expect(block.block_without.lines).to eq([source.code_lines[0], source.code_lines[2]])
-      # expect(block.before_lines).to eq([source.code_lines[0]])
-      # expect(block.before_line).to eq(source.code_lines[0])
-      # expect(block.after_lines).to eq([source.code_lines[2]])
-      # expect(block.after_line).to eq(source.code_lines[2])
     end
 
 
-    it "foo" do
+    it "before lines and after lines" do
       code_lines = code_line_array(<<~EOM)
         def foo
           bar; end
         end
       EOM
 
-      block = CodeBlock.new(source: Object.new, lines: code_lines[1])
+      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
       expect(block.valid?).to be_falsey
-      # expect(block.document_valid_without?).to be_truthy
-      # expect(block.block_without.lines).to eq([source.code_lines[0], source.code_lines[2]])
-      # expect(block.before_lines).to eq([source.code_lines[0]])
-      # expect(block.after_lines).to eq([source.code_lines[2]])
+      expect(block.before_lines).to eq([code_lines[0]])
+      expect(block.after_lines).to eq([code_lines[2]])
     end
   end
 end
