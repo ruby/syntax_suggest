@@ -36,6 +36,8 @@ module SyntaxErrorSearch
 
     def call
       until frontier.holds_all_syntax_errors?
+        frontier << frontier.next_block if frontier.next_block?
+
         block = frontier.pop
 
         if block.valid?

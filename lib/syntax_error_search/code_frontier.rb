@@ -151,6 +151,10 @@ module SyntaxErrorSearch
       end
     end
 
+    def count
+      @frontier.count
+    end
+
     # Returns true if the document is valid with all lines
     # removed. By default it checks all blocks in present in
     # the frontier array, but can be used for arbitrary arrays
@@ -170,9 +174,11 @@ module SyntaxErrorSearch
     def pop
       return nil if empty?
 
-      self << next_block unless @indent_hash.empty?
-
       return @frontier.pop
+    end
+
+    def next_block?
+      !@indent_hash.empty?
     end
 
     def next_block
