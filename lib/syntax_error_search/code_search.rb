@@ -1,4 +1,27 @@
 module SyntaxErrorSearch
+  # Searches code for a syntax error
+  #
+  # The bulk of the heavy lifting is done by the CodeFrontier
+  #
+  # The flow looks like this:
+  #
+  # ## Syntax error detection
+  #
+  # When the frontier holds the syntax error, we can stop searching
+  #
+  #
+  #   search = CodeSearch.new(<<~EOM)
+  #     def dog
+  #       def lol
+  #     end
+  #   EOM
+  #
+  #   search.call
+  #
+  #   search.invalid_blocks.map(&:to_s) # =>
+  #   # => ["def lol\n"]
+  #
+  #
   class CodeSearch
     private; attr_reader :frontier; public
     public; attr_reader :invalid_blocks
@@ -13,6 +36,8 @@ module SyntaxErrorSearch
 
     def call
       until frontier.holds_all_syntax_errors?
+        frontier << frontier.next_block if frontier.next_block?
+
         block = frontier.pop
 
         if block.valid?

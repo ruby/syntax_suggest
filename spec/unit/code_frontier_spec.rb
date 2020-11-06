@@ -16,8 +16,10 @@ module SyntaxErrorSearch
       EOM
 
       frontier = CodeFrontier.new(code_lines: code_lines)
+      frontier << frontier.next_block if frontier.next_block?
 
       until frontier.holds_all_syntax_errors?
+        frontier << frontier.next_block if frontier.next_block?
         block = frontier.pop
 
         if block.valid?
@@ -87,6 +89,8 @@ module SyntaxErrorSearch
       EOM
 
       frontier = CodeFrontier.new(code_lines: code_lines)
+
+      frontier << frontier.next_block if frontier.next_block?
       block = frontier.pop
       expect(block.to_s).to eq(<<~EOM.indent(2))
         end
@@ -110,6 +114,7 @@ module SyntaxErrorSearch
       EOM
 
       frontier = CodeFrontier.new(code_lines: code_lines)
+      frontier << frontier.next_block if frontier.next_block?
       block = frontier.pop
       expect(block.to_s).to eq(<<~EOM.indent(2))
         puts "lol"
@@ -131,6 +136,7 @@ module SyntaxErrorSearch
       EOM
 
       frontier = CodeFrontier.new(code_lines: code_lines)
+      frontier << frontier.next_block if frontier.next_block?
       expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
         puts "lol1"
         puts "lol2"
@@ -140,11 +146,13 @@ module SyntaxErrorSearch
 
       expect(frontier.generate_new_block?).to be_truthy
 
+      frontier << frontier.next_block if frontier.next_block?
       expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
 
         puts "lol4"
       EOM
 
+      frontier << frontier.next_block if frontier.next_block?
       expect(frontier.pop.to_s).to eq(<<~EOM)
         def foo
       EOM
