@@ -14,7 +14,32 @@ module SyntaxErrorSearch
     end
   end
 
+  # This will tell you if the `code_lines` would be valid
+  # if you removed the `without_lines`. In short it's a
+  # way to detect if we've found the lines with syntax errors
+  # in our document yet.
+  #
+  #   code_lines = [
+  #     CodeLine.new(line: "def foo\n",   index: 0)
+  #     CodeLine.new(line: "  def bar\n", index: 1)
+  #     CodeLine.new(line: "end\n",       index: 2)
+  #   ]
+  #
+  #   SyntaxErrorSearch.valid_without?(
+  #     without_lines: code_lines[1],
+  #     code_lines: code_lines
+  #   )                                    # => true
+  #
+  #   SyntaxErrorSearch.valid?(code_lines) # => false
+  def self.valid_without?(without_lines: , code_lines:)
+    lines = code_lines - Array(without_lines).flatten
 
+    if lines.empty?
+      return true
+    else
+      return valid?(lines)
+    end
+  end
   def self.valid?(source)
     source = source.join if source.is_a?(Array)
     source = source.to_s

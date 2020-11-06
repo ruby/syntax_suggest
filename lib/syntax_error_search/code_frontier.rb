@@ -18,17 +18,14 @@ module SyntaxErrorSearch
     # the frontier array, but can be used for arbitrary arrays
     # of codeblocks as well
     def holds_all_syntax_errors?(block_array = @frontier)
-      lines = @code_lines
-      block_array.each do |block|
-        lines -= block.lines
+      without_lines = block_array.map do |block|
+        block.lines
       end
 
-      return true if lines.empty?
-
-      CodeBlock.new(
-        code_lines: @code_lines,
-        lines: lines
-      ).valid?
+      SyntaxErrorSearch.valid_without?(
+        without_lines: without_lines,
+        code_lines: @code_lines
+      )
     end
 
     # Returns a code block with the largest indentation possible
