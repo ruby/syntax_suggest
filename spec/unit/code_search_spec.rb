@@ -2,9 +2,6 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
-
-
-
     it "def with missing end" do
       search = CodeSearch.new(<<~EOM)
         class OH
@@ -26,6 +23,24 @@ module SyntaxErrorSearch
     # These examples represent the results that exist today, but I would like to improve upon them
     describe "needs improvement" do
       describe "missing describe/do line" do
+
+        it "this project" do
+          skip("Lol the results are really bad on this one")
+          search = CodeSearch.new(fixtures_dir.join("this_project_extra_def.rb.txt").read)
+
+          search.call
+
+          blocks = search.invalid_blocks
+          io = StringIO.new
+          display = DisplayInvalidBlocks.new(blocks, io: io, filename: "fake/spec/lol.rb")
+          display.call
+          puts io.string
+
+          expect(display.code_with_lines.strip_control_codes).to eq(<<~EOM)
+            36      def filename
+          EOM
+        end
+
         it "Format Code blocks real world example" do
           search = CodeSearch.new(<<~EOM)
             require 'rails_helper'
@@ -43,7 +58,7 @@ module SyntaxErrorSearch
                     expect(foo.foo.foo).to eq(true)
                   end
                 end
-              end
+              end # here
 
                 context "stuff" do
                   let(:thing) { create(:foo, foo: stuff) }
@@ -66,7 +81,7 @@ module SyntaxErrorSearch
           io = StringIO.new
           display = DisplayInvalidBlocks.new(blocks, io: io, filename: "fake/spec/lol.rb")
           display.call
-          puts io.string
+          # puts io.string
 
           expect(display.code_with_lines.strip_control_codes).to eq(<<~EOM)
              1  require 'rails_helper'

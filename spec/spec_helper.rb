@@ -13,6 +13,18 @@ RSpec.configure do |config|
   end
 end
 
+def spec_dir
+  Pathname(__dir__)
+end
+
+def root_dir
+  spec_dir.join("..")
+end
+
+def fixtures_dir
+  spec_dir.join("fixtures")
+end
+
 def code_line_array(string)
   code_lines = []
   string.lines.each_with_index do |line, index|
