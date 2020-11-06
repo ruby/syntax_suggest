@@ -3,20 +3,6 @@ require_relative "../spec_helper.rb"
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
 
-    class FormatBlocks
-      def initialize(block_array)
-        @blocks = block_array
-        @lines = @blocks.map(&:lines).flatten
-        @digit_count = @lines.last.line_number.to_s.length
-      end
-
-      def to_s
-        @lines.map do |line|
-          number = line.line_number.to_s.rjust(@digit_count)
-          "#{number} #{line}"
-        end.join
-      end
-    end
 
 
     it "def with missing end" do
@@ -76,11 +62,20 @@ module SyntaxErrorSearch
           EOM
           search.call
 
-          out = FormatBlocks.new(search.invalid_blocks).to_s
-          expect(out).to eq(<<~EOM)
-             4   describe "thing" do
-            16   end
-            30   end
+          blocks = search.invalid_blocks
+          io = StringIO.new
+          display = DisplayInvalidBlocks.new(blocks, io: io, filename: "fake/spec/lol.rb")
+          display.call
+          puts io.string
+
+          expect(display.code_with_lines.strip_control_codes).to eq(<<~EOM)
+             1  require 'rails_helper'
+             2
+             3  RSpec.describe AclassNameHere, type: :worker do
+             4    describe "thing" do
+            16    end # here
+            30    end
+            31  end
           EOM
         end
       end
