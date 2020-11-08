@@ -34,7 +34,10 @@ module SyntaxErrorSearch
 
           blocks = search.invalid_blocks
           io = StringIO.new
-          display = DisplayInvalidBlocks.new(blocks, io: io, filename: "fake/spec/lol.rb")
+          display = DisplayInvalidBlocks.new(
+            blocks: blocks,
+            io: io,
+          )
           display.call
           puts io.string
 
@@ -81,7 +84,7 @@ module SyntaxErrorSearch
 
           blocks = search.invalid_blocks
           io = StringIO.new
-          display = DisplayInvalidBlocks.new(blocks, io: io, filename: "fake/spec/lol.rb")
+          display = DisplayInvalidBlocks.new(blocks: blocks, io: io, filename: "fake/spec/lol.rb")
           display.call
           # puts io.string
 

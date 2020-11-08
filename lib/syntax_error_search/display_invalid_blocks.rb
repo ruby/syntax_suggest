@@ -5,15 +5,16 @@ module SyntaxErrorSearch
   class DisplayInvalidBlocks
     attr_reader :filename
 
-    def initialize(block_array, io: $stderr, filename: nil)
+    def initialize(blocks:, io: $stderr, filename: nil, terminal: false)
+      @terminal = terminal
       @filename = filename
       @io = io
-      @blocks = block_array
+      @blocks = Array(blocks)
       @lines = @blocks.map(&:lines).flatten
-      @digit_count = @lines.last.line_number.to_s.length
       @code_lines = @blocks.first.code_lines
+      @digit_count = @code_lines.last.line_number.to_s.length
 
-      @invalid_line_hash = @lines.each_with_object({}) {|line, h| h[line] = true}
+      @invalid_line_hash = @lines.each_with_object({}) {|line, h| h[line] = true  }
     end
 
     def call
@@ -30,35 +31,53 @@ module SyntaxErrorSearch
       @io.puts <<~EOM
         simplified:
 
-        #{code_with_filename(indent: 2)}
+        #{indent(code_block)}
       EOM
+      self
     end
 
+    def indent(string, with: "  ")
+      string.each_line.map {|l| with  + l }.join
+    end
 
-    def code_with_filename(indent: 0)
+    def code_block
       string = String.new("")
       string << "```\n"
       # string << "#".rjust(@digit_count) + " filename: #{filename}\n\n" if filename
       string << code_with_lines
       string << "```\n"
+      string
+    end
 
-      string.each_line.map {|l| " " * indent + l }.join
+    def terminal_end
+      "\e[0m"
+    end
+
+    def terminal_highlight
+      "\e[1;3m" # Bold, italics
     end
 
     def code_with_lines
       @code_lines.map do |line|
         next if line.hidden?
-        number = line.line_number.to_s.rjust(@digit_count)
-        if line.empty?
-          "#{number.to_s}#{line}"
+        string = String.new("")
+        if @invalid_line_hash[line]
+          string << "❯ "
         else
-          string = String.new
-          string << "\e[1;3m" if @invalid_line_hash[line] # Bold, italics
-          string << "#{number.to_s}  "
-          string << line.to_s
-          string << "\e[0m"
-          string
+          string << "  "
         end
+
+        number = line.line_number.to_s.rjust(@digit_count)
+        string << number.to_s
+        if line.empty?
+          string << line.to_s
+        else
+          string << "  "
+          string << terminal_highlight if @terminal && @invalid_line_hash[line] # Bold, italics
+          string << line.to_s
+          string << terminal_end if @terminal
+        end
+        string
       end.join
     end
   end
