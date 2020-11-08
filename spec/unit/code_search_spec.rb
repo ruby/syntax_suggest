@@ -4,6 +4,29 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
+    it "recording" do
+      Dir.mktmpdir do |dir|
+        dir = Pathname(dir)
+        search = CodeSearch.new(<<~EOM, record_dir: "tmp/recordings")
+          class OH
+            def hello
+            def hai
+            end
+          end
+        EOM
+        search.call
+
+        expect(search.record_dir.entries.map(&:to_s)).to include("1-add-1.txt")
+        expect(search.record_dir.join("1-add-1.txt").read).to eq(<<~EOM.indent(2))
+            1  class OH
+          ❯ 2    def hello
+          ❯ 3    def hai
+          ❯ 4    end
+            5  end
+        EOM
+      end
+    end
+
     it "def with missing end" do
       search = CodeSearch.new(<<~EOM)
         class OH

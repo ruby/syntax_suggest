@@ -26,28 +26,66 @@ module SyntaxErrorSearch
   #
   class CodeSearch
     private; attr_reader :frontier; public
-    public; attr_reader :invalid_blocks
+    public; attr_reader :invalid_blocks, :record_dir
 
-    def initialize(string)
+    def initialize(string, record_dir: ENV["SYNTAX_SEARCH_RECORD_DIR"])
+      if record_dir
+        @time = Time.now.strftime('%Y-%m-%d-%H-%M-%s-%N')
+        @record_dir = Pathname(record_dir).join(@time)
+      end
       @code_lines = string.lines.map.with_index do |line, i|
         CodeLine.new(line: line, index: i)
       end
       @frontier = CodeFrontier.new(code_lines: @code_lines)
       @invalid_blocks = []
+      @name_tick = Hash.new {|hash, k| hash[k] = 0 }
+      @tick = 0
+    end
+
+    def record(block:, name: "record")
+      return if !@record_dir
+      @name_tick[name] += 1
+      file = @record_dir.join("#{@tick}-#{name}-#{@name_tick[name]}.txt").tap {|p| p.dirname.mkpath }
+      file.open(mode: "a") do |f|
+        display = DisplayInvalidBlocks.new(
+          blocks: block,
+          terminal: false
+        )
+        f.write(display.indent display.code_with_lines)
+      end
+    end
+
+    def expand_frontier
+      return if !frontier.next_block?
+      block = frontier.next_block
+      record(block: block, name: "add")
+      if block.valid?
+        block.lines.each(&:mark_invisible)
+        return expand_frontier
+      else
+        frontier << block
+      end
+      block
+    end
+
+    def search
+      expand_frontier
+
+      block = frontier.pop
+
+      block.expand_until_next_boundry
+      record(block: block, name: "expand")
+      if block.valid?
+        block.lines.each(&:mark_invisible)
+      else
+        frontier << block
+      end
     end
 
     def call
       until frontier.holds_all_syntax_errors?
-        frontier << frontier.next_block if frontier.next_block?
-
-        block = frontier.pop
-
-        if block.valid?
-          block.lines.each(&:mark_invisible)
-        else
-          block.expand_until_neighbors
-          frontier << block
-        end
+        @tick += 1
+        search
       end
 
       @invalid_blocks.concat(frontier.detect_invalid_blocks )
