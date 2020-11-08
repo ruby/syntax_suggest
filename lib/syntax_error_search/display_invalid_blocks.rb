@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SyntaxErrorSearch
   # Used for formatting invalid blocks
   class DisplayInvalidBlocks

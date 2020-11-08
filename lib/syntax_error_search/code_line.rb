@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SyntaxErrorSearch
   # Represents a single line of code of a given source file
   #

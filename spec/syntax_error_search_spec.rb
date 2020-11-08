@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SyntaxErrorSearch
   RSpec.describe SyntaxErrorSearch do
     it "has a version number" do

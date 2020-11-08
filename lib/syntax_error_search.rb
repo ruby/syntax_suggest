@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "syntax_error_search/version"
 
 require 'parser/current'

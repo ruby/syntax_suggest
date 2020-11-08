@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SyntaxErrorSearch
   # Multiple lines form a singular CodeBlock
   #

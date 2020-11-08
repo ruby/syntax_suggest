@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SyntaxErrorSearch
   # This class is responsible for generating, storing, and sorting code blocks
   #
