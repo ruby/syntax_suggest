@@ -10,7 +10,7 @@ module SyntaxErrorSearch
   # Used for counting spaces
   module SpaceCount
     def self.indent(string)
-      string.split(/\w/).first&.length || 0
+      string.split(/\S/).first&.length || 0
     end
   end
 
