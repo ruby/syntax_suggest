@@ -185,10 +185,13 @@ module SyntaxErrorSearch
       indent = @indent_hash.keys.sort.last
       lines = @indent_hash[indent].first
 
-      CodeBlock.new(
+      block = CodeBlock.new(
         lines: lines,
         code_lines: @code_lines
       ).expand_until_neighbors
+
+      register(block)
+      block
     end
 
     # This method is responsible for determining if a new code
@@ -201,16 +204,21 @@ module SyntaxErrorSearch
       @frontier.last.current_indent <= @indent_hash.keys.sort.last
     end
 
+    def register(block)
+      block.lines.each do |line|
+        @indent_hash[line.indent]&.delete(line)
+      end
+      @indent_hash.select! {|k, v| !v.empty?}
+      self
+    end
+
     # Add a block to the frontier
     #
     # This method ensures the frontier always remains sorted (in indentation order)
     # and that each code block's lines are removed from the indentation hash so we
     # don't re-evaluate the same line multiple times.
     def <<(block)
-      block.lines.each do |line|
-        @indent_hash[line.indent]&.delete(line)
-      end
-      @indent_hash.select! {|k, v| !v.empty?}
+      register(block)
 
       @frontier << block
       @frontier.sort!
