@@ -69,8 +69,6 @@ module SyntaxErrorSearch
     end
 
     def search
-      expand_frontier
-
       block = frontier.pop
 
       block.expand_until_next_boundry
@@ -85,6 +83,8 @@ module SyntaxErrorSearch
     def call
       until frontier.holds_all_syntax_errors?
         @tick += 1
+        expand_frontier
+        break if frontier.holds_all_syntax_errors? # Need to check after every time something is added to frontier
         search
       end
 
