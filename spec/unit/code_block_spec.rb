@@ -4,6 +4,46 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeBlock do
+
+    it "expand until next boundry (indentation)" do
+      source_string = <<~EOM
+        def foo
+          Foo.call
+          end
+        end
+      EOM
+
+      code_lines = code_line_array(source_string)
+
+      scan = IndentScan.new(code_lines: code_lines)
+      neighbors = scan.neighbors_from_top(code_lines[1])
+
+      block = CodeBlock.new(
+        lines: neighbors.last,
+        code_lines: code_lines
+      )
+
+      expect(block.valid?).to be_falsey
+      expect(block.to_s).to eq(<<~EOM.indent(2))
+        end
+      EOM
+
+      frontier = []
+
+      scan.each_neighbor_block(code_lines[1]) do |block|
+        if block.valid?
+          block.lines.map(&:mark_valid)
+        else
+          frontier << block
+        end
+      end
+
+      expect(frontier.join).to eq(<<~EOM.indent(2))
+        Foo.call
+        end
+      EOM
+    end
+
     it "expand until next boundry (indentation)" do
       source_string = <<~EOM
         describe "what" do

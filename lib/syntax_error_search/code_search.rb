@@ -26,12 +26,13 @@ module SyntaxErrorSearch
   #
   class CodeSearch
     private; attr_reader :frontier; public
-    public; attr_reader :invalid_blocks, :record_dir
+    public; attr_reader :invalid_blocks, :record_dir, :code_lines
 
     def initialize(string, record_dir: ENV["SYNTAX_SEARCH_RECORD_DIR"])
       if record_dir
         @time = Time.now.strftime('%Y-%m-%d-%H-%M-%s-%N')
-        @record_dir = Pathname(record_dir).join(@time)
+        @record_dir = Pathname(record_dir).join(@time).tap {|p| p.mkpath }
+        @write_count = 0
       end
       @code_lines = string.lines.map.with_index do |line, i|
         CodeLine.new(line: line, index: i)
@@ -40,13 +41,14 @@ module SyntaxErrorSearch
       @invalid_blocks = []
       @name_tick = Hash.new {|hash, k| hash[k] = 0 }
       @tick = 0
+      @scan = IndentScan.new(code_lines: @code_lines)
     end
 
     def record(block:, name: "record")
       return if !@record_dir
       @name_tick[name] += 1
-      file = @record_dir.join("#{@tick}-#{name}-#{@name_tick[name]}.txt").tap {|p| p.dirname.mkpath }
-      file.open(mode: "a") do |f|
+      filename = "#{@write_count += 1}-#{name}-#{@name_tick[name]}.txt"
+      @record_dir.join(filename).open(mode: "a") do |f|
         display = DisplayInvalidBlocks.new(
           blocks: block,
           terminal: false
@@ -55,37 +57,53 @@ module SyntaxErrorSearch
       end
     end
 
-    def expand_frontier
-      return if !frontier.next_block?
-      block = frontier.next_block
-      record(block: block, name: "add")
+    def push_if_invalid(block, name: )
+      frontier.register(block)
+      record(block: block, name: name)
+
       if block.valid?
         block.lines.each(&:mark_invisible)
-        return expand_frontier
+        frontier << block
       else
         frontier << block
       end
-      block
     end
 
-    def search
+    def add_invalid_blocks
+      max_indent = frontier.next_indent_line&.indent
+
+      while (line = frontier.next_indent_line) && (line.indent == max_indent)
+        neighbors = @scan.neighbors_from_top(frontier.next_indent_line)
+
+        @scan.each_neighbor_block(frontier.next_indent_line) do |block|
+          record(block: block, name: "add")
+          if block.valid?
+            block.lines.each(&:mark_invisible)
+          end
+        end
+
+        block = CodeBlock.new(lines: neighbors, code_lines: @code_lines)
+        push_if_invalid(block, name: "add")
+      end
+    end
+
+    def expand_invalid_block
       block = frontier.pop
+      return unless block
 
       block.expand_until_next_boundry
-      record(block: block, name: "expand")
-      if block.valid?
-        block.lines.each(&:mark_invisible)
-      else
-        frontier << block
-      end
+      push_if_invalid(block, name: "expand")
     end
 
     def call
       until frontier.holds_all_syntax_errors?
         @tick += 1
-        expand_frontier
-        break if frontier.holds_all_syntax_errors? # Need to check after every time something is added to frontier
-        search
+
+        if frontier.expand?
+          expand_invalid_block
+        else
+          add_invalid_blocks
+        end
       end
 
       @invalid_blocks.concat(frontier.detect_invalid_blocks )

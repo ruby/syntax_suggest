@@ -60,6 +60,7 @@ module SyntaxErrorSearch
     def code_with_lines
       @code_lines.map do |line|
         next if line.hidden?
+
         string = String.new("")
         if @invalid_line_hash[line]
           string << "❯ "
