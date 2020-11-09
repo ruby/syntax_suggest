@@ -1,8 +1,58 @@
+# frozen_string_literal: true
+
 require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
+    it "recording" do
+      Dir.mktmpdir do |dir|
+        dir = Pathname(dir)
+        search = CodeSearch.new(<<~EOM, record_dir: dir)
+          class OH
+            def hello
+            def hai
+            end
+          end
+        EOM
+        search.call
+
+        expect(search.record_dir.entries.map(&:to_s)).to include("1-add-1.txt")
+        expect(search.record_dir.join("1-add-1.txt").read).to eq(<<~EOM.indent(2))
+            1  class OH
+          ❯ 2    def hello
+          ❯ 3    def hai
+          ❯ 4    end
+            5  end
+        EOM
+      end
+    end
+
     it "def with missing end" do
+      search = CodeSearch.new(<<~EOM)
+        class OH
+          def hello
+
+          def hai
+            puts "lol"
+          end
+        end
+      EOM
+      search.call
+
+      expect(search.invalid_blocks.join.strip).to eq("def hello")
+
+      search = CodeSearch.new(<<~EOM)
+        class OH
+          def hello
+
+          def hai
+          end
+        end
+      EOM
+      search.call
+
+      expect(search.invalid_blocks.join.strip).to eq("def hello")
+
       search = CodeSearch.new(<<~EOM)
         class OH
           def hello
@@ -23,21 +73,46 @@ module SyntaxErrorSearch
     # These examples represent the results that exist today, but I would like to improve upon them
     describe "needs improvement" do
       describe "missing describe/do line" do
+        it "blerg" do
+          code_lines = code_line_array fixtures_dir.join("this_project_extra_def.rb.txt").read
+          block = CodeBlock.new(
+            lines: code_lines[27],
+            code_lines: code_lines
+          )
+          expect(block.to_s).to eq(<<~EOM.indent(8))
+            file: \#{filename}
+          EOM
+
+          # puts    block.before_line.to_s.inspect
+          # puts    block.before_line.to_s.split(/\S/).inspect
+          # puts    block.before_line.indent
+
+          # puts    block.after_line.to_s.inspect
+          # puts    block.after_line.to_s.split(/\S/).inspect
+          # puts    block.after_line.indent
+
+          # puts block.next_indent
+          # puts block.expand_until_next_boundry
+        end
 
         it "this project" do
-          skip("Lol the results are really bad on this one")
-          search = CodeSearch.new(fixtures_dir.join("this_project_extra_def.rb.txt").read)
+          search = CodeSearch.new(
+            fixtures_dir.join("this_project_extra_def.rb.txt").read,
+          )
 
           search.call
 
           blocks = search.invalid_blocks
           io = StringIO.new
-          display = DisplayInvalidBlocks.new(blocks, io: io, filename: "fake/spec/lol.rb")
+          display = DisplayInvalidBlocks.new(
+            blocks: blocks,
+            io: io,
+          )
           display.call
-          puts io.string
+          # puts io.string
 
-          expect(display.code_with_lines.strip_control_codes).to eq(<<~EOM)
-            36      def filename
+          expect(display.code_with_lines.strip_control_codes).to include(<<~EOM)
+           ❯ 36      def filename
           EOM
         end
 
@@ -79,18 +154,18 @@ module SyntaxErrorSearch
 
           blocks = search.invalid_blocks
           io = StringIO.new
-          display = DisplayInvalidBlocks.new(blocks, io: io, filename: "fake/spec/lol.rb")
+          display = DisplayInvalidBlocks.new(blocks: blocks, io: io, filename: "fake/spec/lol.rb")
           display.call
           # puts io.string
 
           expect(display.code_with_lines.strip_control_codes).to eq(<<~EOM)
-             1  require 'rails_helper'
-             2
-             3  RSpec.describe AclassNameHere, type: :worker do
-             4    describe "thing" do
-            16    end # here
-            30    end
-            31  end
+               1  require 'rails_helper'
+               2
+               3  RSpec.describe AclassNameHere, type: :worker do
+            ❯  4    describe "thing" do
+            ❯ 16    end # here
+            ❯ 30    end
+              31  end
           EOM
         end
       end
@@ -107,8 +182,8 @@ module SyntaxErrorSearch
           EOM
           search.call
 
-          # Does not include the line with the error Foo.call
           expect(search.invalid_blocks.join).to eq(<<~EOM)
+            Foo.call
               def foo
             end
             end
@@ -143,8 +218,8 @@ module SyntaxErrorSearch
           EOM
           search.call
 
-          # Does not include the line with the error Foo.call
           expect(search.invalid_blocks.join).to eq(<<~EOM)
+            Foo.call
             end
           EOM
         end
@@ -196,11 +271,14 @@ module SyntaxErrorSearch
       EOM
       search.call
 
-      expect(search.invalid_blocks.join).to eq(<<~EOM.indent(2))
-        Foo.call
+      expect(search.invalid_blocks.join).to eq(<<~EOM.indent(0))
+        describe "hi" do
+          Foo.call
+          end
         end
-        Bar.call
-        end
+
+          Bar.call
+          end
       EOM
     end
 
