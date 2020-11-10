@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "syntax_error_search"
+require "syntax_search"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -19,6 +19,10 @@ def spec_dir
   Pathname(__dir__)
 end
 
+def lib_dir
+  root_dir.join("lib")
+end
+
 def root_dir
   spec_dir.join("..")
 end
@@ -33,6 +37,12 @@ def code_line_array(string)
     code_lines << SyntaxErrorSearch::CodeLine.new(line: line, index: index)
   end
   code_lines
+end
+
+def run!(cmd)
+  out = `#{cmd} 2>&1`
+  raise "Command: #{cmd} failed: #{out}" unless $?.success?
+  out
 end
 
 # Allows us to write cleaner tests since <<~EOM block quotes

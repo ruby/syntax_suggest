@@ -4,6 +4,26 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe DisplayInvalidBlocks do
+    it "works with valid code" do
+      syntax_string = <<~EOM
+        class OH
+          def hello
+          end
+          def hai
+          end
+        end
+      EOM
+
+      io = StringIO.new
+      display = DisplayInvalidBlocks.new(
+        blocks: CodeSearch.new(syntax_string).call.invalid_blocks,
+        terminal: false,
+        io: io
+      )
+      display.call
+      expect(io.string).to include("Syntax OK")
+    end
+
     it "outputs to io when using `call`" do
       code_lines = code_line_array(<<~EOM)
         class OH

@@ -10,31 +10,25 @@ references:
 jobs:
   "ruby-2-5":
     docker:
-      - image: 'cimg/base:stable'
+      - image: circleci/ruby:2.5
     steps:
       - checkout
-      - ruby/install:
-          version: "2.5"
       - ruby/install-deps
       - <<: *unit
 
   "ruby-2-6":
     docker:
-      - image: 'cimg/base:stable'
+      - image: circleci/ruby:2.6
     steps:
       - checkout
-      - ruby/install:
-          version: "2.6"
       - ruby/install-deps
       - <<: *unit
 
   "ruby-2-7":
     docker:
-      - image: 'cimg/base:stable'
+      - image: circleci/ruby:2.7
     steps:
       - checkout
-      - ruby/install:
-          version: "2.7"
       - ruby/install-deps
       - <<: *unit
 

@@ -1,13 +1,48 @@
 # frozen_string_literal: true
 
-require "syntax_error_search/version"
+require_relative "syntax_search/version"
 
 require 'parser/current'
 require 'tmpdir'
+require 'stringio'
 require 'pathname'
 
 module SyntaxErrorSearch
   class Error < StandardError; end
+  SEARCH_SOURCE_ON_ERROR_DEFAULT = true
+
+  def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
+    raise e if !e.message.include?("expecting end-of-input")
+
+    filename = e.message.split(":").first
+
+    $stderr.sync = true
+    $stderr.puts "Run `$ syntax_search #{filename}` for more options\n"
+
+    if search_source_on_error
+      self.call(
+        source: Pathname(filename).read,
+        filename: filename,
+        terminal: true
+      )
+    end
+
+    $stderr.puts ""
+    $stderr.puts ""
+    raise e
+  end
+
+  def self.call(source: , filename: , terminal: false, record_dir: nil)
+    search = CodeSearch.new(source, record_dir: record_dir).call
+
+    blocks = search.invalid_blocks
+    DisplayInvalidBlocks.new(
+      blocks: blocks,
+      filename: filename,
+      terminal: terminal,
+      io: $stderr
+    ).call
+  end
 
   # Used for counting spaces
   module SpaceCount
@@ -94,8 +129,8 @@ module SyntaxErrorSearch
   end
 end
 
-require_relative "syntax_error_search/code_line"
-require_relative "syntax_error_search/code_block"
-require_relative "syntax_error_search/code_frontier"
-require_relative "syntax_error_search/code_search"
-require_relative "syntax_error_search/display_invalid_blocks"
+require_relative "syntax_search/code_line"
+require_relative "syntax_search/code_block"
+require_relative "syntax_search/code_frontier"
+require_relative "syntax_search/code_search"
+require_relative "syntax_search/display_invalid_blocks"

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    syntax_error_search (0.1.0)
+    syntax_search (0.1.0)
       parser
 
 GEM
@@ -32,7 +32,7 @@ PLATFORMS
 DEPENDENCIES
   rake (~> 12.0)
   rspec (~> 3.0)
-  syntax_error_search!
+  syntax_search!
 
 BUNDLED WITH
    2.1.4

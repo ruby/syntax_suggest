@@ -28,7 +28,7 @@ module SyntaxErrorSearch
   class CodeBlock
     attr_reader :lines
 
-    def initialize(code_lines:, lines: [])
+    def initialize(code_lines: nil, lines: [])
       @lines = Array(lines)
       @code_lines = code_lines
     end
@@ -198,6 +198,14 @@ module SyntaxErrorSearch
 
     def document_valid_without?
       block_without.valid?
+    end
+
+    def valid_without?
+      block_without.valid?
+    end
+
+    def invalid?
+      !valid?
     end
 
     def valid?

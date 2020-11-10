@@ -140,6 +140,39 @@ module SyntaxErrorSearch
   #   ]
   #
   # Once invalid blocks are found and filtered, then they can be passed to a formatter.
+  #
+  #
+  #
+
+  class IndentScan
+    attr_reader :code_lines
+
+    def initialize(code_lines: )
+      @code_lines = code_lines
+    end
+
+    def neighbors_from_top(top_line)
+      code_lines
+        .select {|l| l.index >= top_line.index }
+        .select {|l| l.not_empty? }
+        .select {|l| l.visible? }
+        .take_while {|l| l.indent >= top_line.indent }
+    end
+
+    def each_neighbor_block(top_line)
+      neighbors = neighbors_from_top(top_line)
+
+      until neighbors.empty?
+        lines = [neighbors.pop]
+        while (block = CodeBlock.new(lines: lines, code_lines: code_lines)) && block.invalid? && neighbors.any?
+          lines.prepend neighbors.pop
+        end
+
+        yield block if block
+      end
+    end
+  end
+
   class CodeFrontier
     def initialize(code_lines: )
       @code_lines = code_lines
@@ -183,6 +216,19 @@ module SyntaxErrorSearch
       !@indent_hash.empty?
     end
 
+
+    def indent_hash_indent
+      @indent_hash.keys.sort.last
+    end
+
+    def next_indent_line
+      indent = @indent_hash.keys.sort.last
+      @indent_hash[indent]&.first
+    end
+
+    def generate_blocks
+    end
+
     def next_block
       indent = @indent_hash.keys.sort.last
       lines = @indent_hash[indent].first
@@ -194,6 +240,13 @@ module SyntaxErrorSearch
 
       register(block)
       block
+    end
+
+    def expand?
+      return false if @frontier.empty?
+      return true if @indent_hash.empty?
+
+      @frontier.last.current_indent >= @indent_hash.keys.sort.last
     end
 
     # This method is responsible for determining if a new code
