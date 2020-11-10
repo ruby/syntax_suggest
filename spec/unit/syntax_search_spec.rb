@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../spec_helper.rb"
+
 module SyntaxErrorSearch
   RSpec.describe SyntaxErrorSearch do
     it "has a version number" do
@@ -7,7 +9,7 @@ module SyntaxErrorSearch
     end
 
     def run_ruby(script)
-      `ruby -I#{lib_dir} -rsyntax_error_search/auto #{script} 2>&1`
+      `ruby -I#{lib_dir} -rsyntax_search/auto #{script} 2>&1`
     end
 
     it "detects require error and adds a message" do
@@ -44,7 +46,7 @@ module SyntaxErrorSearch
         dir = Pathname(dir)
         gemfile = dir.join("Gemfile")
         gemfile.write(<<~EOM)
-          gem "syntax_search", path: "#{root_dir}", require: "syntax_error_search/auto"
+          gem "syntax_search", path: "#{root_dir}", require: "syntax_search/auto"
         EOM
         run!("BUNDLE_GEMFILE=#{gemfile} bundle install --local")
         script = dir.join("script.rb")
@@ -78,13 +80,12 @@ module SyntaxErrorSearch
       end
     end
 
-
     it "detects require error and adds a message when executed via bundler auto" do
       Dir.mktmpdir do |dir|
         dir = Pathname(dir)
         gemfile = dir.join("Gemfile")
         gemfile.write(<<~EOM)
-          gem "syntax_search", path: "#{root_dir}", require: "syntax_error_search/fyi"
+          gem "syntax_search", path: "#{root_dir}", require: "syntax_search/fyi"
         EOM
         run!("BUNDLE_GEMFILE=#{gemfile} bundle install --local")
         script = dir.join("script.rb")

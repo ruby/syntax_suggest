@@ -1,4 +1,4 @@
-require_relative "../syntax_error_search"
+require_relative "../syntax_search"
 
 # Monkey patch kernel to ensure that all `require` calls call the same
 # method

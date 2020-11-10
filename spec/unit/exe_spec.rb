@@ -12,7 +12,6 @@ module SyntaxErrorSearch
       run!("#{exe_path} #{cmd}")
     end
 
-
     it "parses valid code" do
       ruby_file = exe_path
       out = exe(ruby_file)

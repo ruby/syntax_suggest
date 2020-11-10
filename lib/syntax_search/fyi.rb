@@ -1,4 +1,4 @@
-require_relative "../syntax_error_search"
+require_relative "../syntax_search"
 
 require_relative "auto.rb"
 

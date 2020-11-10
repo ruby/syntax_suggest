@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "syntax_error_search/version"
+require_relative "syntax_search/version"
 
 require 'parser/current'
 require 'tmpdir'
@@ -124,8 +124,8 @@ module SyntaxErrorSearch
   end
 end
 
-require_relative "syntax_error_search/code_line"
-require_relative "syntax_error_search/code_block"
-require_relative "syntax_error_search/code_frontier"
-require_relative "syntax_error_search/code_search"
-require_relative "syntax_error_search/display_invalid_blocks"
+require_relative "syntax_search/code_line"
+require_relative "syntax_search/code_block"
+require_relative "syntax_search/code_frontier"
+require_relative "syntax_search/code_search"
+require_relative "syntax_search/display_invalid_blocks"

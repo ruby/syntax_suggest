@@ -2,7 +2,7 @@
 
 require 'pathname'
 require "optparse"
-require_relative "../lib/syntax_error_search.rb"
+require_relative "../lib/syntax_search.rb"
 
 options = {}
 options[:terminal] = true
