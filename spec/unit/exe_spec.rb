@@ -12,11 +12,6 @@ module SyntaxErrorSearch
       run!("#{exe_path} #{cmd}")
     end
 
-    def run!(cmd)
-      out = `#{cmd} 2>&1`
-      raise "Command: #{cmd} failed: #{out}" unless $?.success?
-      out
-    end
 
     it "parses valid code" do
       ruby_file = exe_path

@@ -9,6 +9,23 @@ require 'pathname'
 
 module SyntaxErrorSearch
   class Error < StandardError; end
+  SEARCH_SOURCE_ON_ERROR_DEFAULT = true
+
+  def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
+    raise e if !e.message.include?("unexpected `end'")
+
+    filename = e.message.split(":").first
+
+    if search_source_on_error
+      self.call(
+        source: Pathname(filename).read,
+        filename: filename,
+        terminal: true
+      )
+    end
+    $stderr.puts "Run `$ syntax_search #{filename}` for more options\n\n"
+    raise e
+  end
 
   def self.call(source: , filename: , terminal: false, record_dir: nil)
     search = CodeSearch.new(source, record_dir: record_dir).call
