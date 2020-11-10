@@ -12,10 +12,11 @@ module SyntaxErrorSearch
   SEARCH_SOURCE_ON_ERROR_DEFAULT = true
 
   def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
-    raise e if !e.message.include?("unexpected `end'")
+    raise e if !e.message.include?("expecting end-of-input")
 
     filename = e.message.split(":").first
 
+    $stderr.sync = true
     $stderr.puts "Run `$ syntax_search #{filename}` for more options\n"
 
     if search_source_on_error

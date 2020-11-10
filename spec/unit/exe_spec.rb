@@ -15,7 +15,7 @@ module SyntaxErrorSearch
     it "parses valid code" do
       ruby_file = exe_path
       out = exe(ruby_file)
-      expect(out.strip).to eq("Syntax OK")
+      expect(out.strip).to include("Syntax OK")
     end
 
     it "parses invalid code" do
