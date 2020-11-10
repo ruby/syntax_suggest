@@ -11,7 +11,7 @@ What happened? Likely you forgot a `def`, `do`, or maybe you deleted some code a
 What if I told you, that there was a library that helped find your missing `def`s and missing `do`s. What if instead of searching through hundreds of lines of source for the cause of your syntax error, there was a way to highlight just code in the file that contained syntax errors.
 
 ```
-$ syntax_search path/to/file.rb
+$ syntax_search <path/to/file.rb>
 
 SyntaxErrorSearch: A syntax error was detected
 
