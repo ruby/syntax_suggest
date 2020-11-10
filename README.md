@@ -10,34 +10,32 @@ What happened? Likely you forgot a `def`, `do`, or maybe you deleted some code a
 
 What if I told you, that there was a library that helped find your missing `def`s and missing `do`s. What if instead of searching through hundreds of lines of source for the cause of your syntax error, there was a way to highlight just code in the file that contained syntax errors.
 
-```
-$ syntax_search <path/to/file.rb>
+    $ syntax_search <path/to/file.rb>
 
-SyntaxErrorSearch: A syntax error was detected
+    SyntaxErrorSearch: A syntax error was detected
 
-This code has an unmatched `end` this is caused by either
-missing a syntax keyword (`def`,  `do`, etc.) or inclusion
-of an extra `end` line
+    This code has an unmatched `end` this is caused by either
+    missing a syntax keyword (`def`,  `do`, etc.) or inclusion
+    of an extra `end` line
 
-file: path/to/file.rb
-simplified:
+    file: path/to/file.rb
+    simplified:
 
-  ```
-       1  require 'animals'
-       2
-    ❯ 10  defdog
-    ❯ 15  end
-    ❯ 16
-      20  def cat
-      22  end
-  ```
-```
+    ```
+         1  require 'animals'
+         2
+      ❯ 10  defdog
+      ❯ 15  end
+      ❯ 16
+        20  def cat
+        22  end
+    ```
 
 How much would you pay for such a library? A million, a billion, a trillion? Well friends, today is your lucky day because you can use this library today for free!
 
 ## Installation
 
-Add this line to your application's Gemfile:
+To automatically search syntax errors when they happen, add this to your Gemfile:
 
 ```ruby
 gem 'syntax_search', require: "syntax_search/auto"
@@ -47,7 +45,7 @@ And then execute:
 
     $ bundle install
 
-Or install it yourself as:
+To get the CLI and manually search for syntax errors, install the gem:
 
     $ gem install syntax_search
 
