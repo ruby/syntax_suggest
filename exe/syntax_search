@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+require "optparse"
+require_relative "../lib/syntax_error_search.rb"
+
+options = {}
+options[:terminal] = true
+options[:record_dir] = ENV["SYNTAX_SEARCH_RECORD_DIR"]
+
+parser = OptionParser.new do |opts|
+  opts.banner = <<~EOM
+    Usage: syntax_search <file> [options]
+
+    Parses a ruby source file and searches for syntax error(s) unexpected `end', expecting end-of-input.
+
+    Example:
+
+      $ syntax_search dog.rb
+
+      # ...
+
+      ```
+         1  require 'animals'
+         2
+      ❯ 10  defdog
+      ❯ 15  end
+      ❯ 16
+        20  def cat
+        22  end
+      ```
+
+    Env options:
+
+      SYNTAX_SEARCH_RECORD_DIR=<dir>
+
+      When enabled, records the steps used to search for a syntax error to the given directory
+
+    Options:
+  EOM
+
+  opts.on("--help", "Help - displays this message") do |v|
+    puts opts
+    exit
+  end
+
+  opts.on("--record <dir>", "When enabled, records the steps used to search for a syntax error to the given directory") do |v|
+    options[:record_dir] = v
+  end
+
+  opts.on("--no-terminal", "Disable terminal highlighting") do |v|
+    options[:terminal] = false
+  end
+end
+parser.parse!
+
+file = ARGV[0]
+
+if file.nil? || file.empty?
+  # Display help if raw command
+  parser.parse! %w[--help]
+end
+
+file = Pathname(file)
+
+$stderr.puts "Record dir: #{options[:record_dir]}"  if options[:record_dir]
+
+SyntaxErrorSearch.call(
+  source: file.read,
+  filename: file.expand_path,
+  terminal: options[:terminal],
+  record_dir: options[:record_dir]
+)

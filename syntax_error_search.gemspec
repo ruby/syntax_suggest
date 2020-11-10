@@ -3,7 +3,7 @@
 require_relative 'lib/syntax_error_search/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "syntax_error_search"
+  spec.name          = "syntax_search"
   spec.version       = SyntaxErrorSearch::VERSION
   spec.authors       = ["schneems"]
   spec.email         = ["richard.schneeman+foo@gmail.com"]
@@ -13,7 +13,6 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/zombocom/syntax_error_search.git"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
-
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/zombocom/syntax_error_search.git"

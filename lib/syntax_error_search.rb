@@ -1,13 +1,26 @@
 # frozen_string_literal: true
 
-require "syntax_error_search/version"
+require_relative "syntax_error_search/version"
 
 require 'parser/current'
 require 'tmpdir'
+require 'stringio'
 require 'pathname'
 
 module SyntaxErrorSearch
   class Error < StandardError; end
+
+  def self.call(source: , filename: , terminal: false, record_dir: nil)
+    search = CodeSearch.new(source, record_dir: record_dir).call
+
+    blocks = search.invalid_blocks
+    DisplayInvalidBlocks.new(
+      blocks: blocks,
+      filename: filename,
+      terminal: terminal,
+      io: $stderr
+    ).call
+  end
 
   # Used for counting spaces
   module SpaceCount

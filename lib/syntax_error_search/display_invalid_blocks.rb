@@ -9,15 +9,30 @@ module SyntaxErrorSearch
       @terminal = terminal
       @filename = filename
       @io = io
+
       @blocks = Array(blocks)
       @lines = @blocks.map(&:lines).flatten
-      @code_lines = @blocks.first.code_lines
-      @digit_count = @code_lines.last.line_number.to_s.length
+      @code_lines = @blocks.first&.code_lines || []
+      @digit_count = @code_lines.last&.line_number.to_s.length
 
       @invalid_line_hash = @lines.each_with_object({}) {|line, h| h[line] = true  }
     end
 
     def call
+      if @blocks.any?
+        found_invalid_blocks
+      else
+        @io.puts "Syntax OK"
+      end
+      self
+    end
+
+    private def no_invalid_blocks
+      @io.puts <<~EOM
+      EOM
+    end
+
+    private def found_invalid_blocks
       @io.puts <<~EOM
 
         SyntaxErrorSearch: A syntax error was detected
@@ -33,7 +48,6 @@ module SyntaxErrorSearch
 
         #{indent(code_block)}
       EOM
-      self
     end
 
     def indent(string, with: "  ")
