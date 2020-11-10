@@ -16,6 +16,8 @@ module SyntaxErrorSearch
 
     filename = e.message.split(":").first
 
+    $stderr.puts "Run `$ syntax_search #{filename}` for more options\n"
+
     if search_source_on_error
       self.call(
         source: Pathname(filename).read,
@@ -23,7 +25,9 @@ module SyntaxErrorSearch
         terminal: true
       )
     end
-    $stderr.puts "Run `$ syntax_search #{filename}` for more options\n\n"
+
+    $stderr.puts ""
+    $stderr.puts ""
     raise e
   end
 
