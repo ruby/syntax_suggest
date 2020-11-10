@@ -80,7 +80,7 @@ module SyntaxErrorSearch
       end
     end
 
-    it "detects require error and adds a message when executed via bundler auto" do
+    it "detects require error and adds a message when executed via bundler fyi" do
       Dir.mktmpdir do |dir|
         dir = Pathname(dir)
         gemfile = dir.join("Gemfile")
