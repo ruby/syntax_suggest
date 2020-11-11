@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    syntax_search (0.1.0)
+    syntax_search (0.1.1)
       parser
 
 GEM

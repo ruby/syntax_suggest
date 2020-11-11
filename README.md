@@ -45,9 +45,17 @@ And then execute:
 
     $ bundle install
 
+If your application is not calling `Bundler.require` then you must manually add a require:
+
+```ruby
+require "syntax_search/auto"
+```
+
 To get the CLI and manually search for syntax errors, install the gem:
 
     $ gem install syntax_search
+
+This gives you the CLI command `$ syntax_search` for more info run `$ syntax_search --help`.
 
 ## What does it do?
 
