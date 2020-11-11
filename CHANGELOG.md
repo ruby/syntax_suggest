@@ -2,7 +2,7 @@
 
 ## 0.1.1
 
-- Fix error message detection to fire on more rubies ()
+- Fire search on both unexpected end-of-input and unexected end (https://github.com/zombocom/syntax_search/pull/8)
 
 ## 0.1.0
 
