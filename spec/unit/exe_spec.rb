@@ -22,7 +22,7 @@ module SyntaxErrorSearch
       ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
       out = exe("#{ruby_file} --no-terminal")
 
-      expect(out.strip).to include("A syntax error was detected")
+      expect(out.strip).to include("Missing `end` detected")
       expect(out.strip).to include("❯ 36      def filename")
     end
 
@@ -37,7 +37,7 @@ module SyntaxErrorSearch
 
         out = exe("#{ruby_file} --record #{tmp_dir}")
 
-        expect(out.strip).to include("A syntax error was detected")
+        expect(out.strip).to include("Unmatched `end` detected")
         expect(tmp_dir).to_not be_empty
       end
     end
