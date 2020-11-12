@@ -17,7 +17,7 @@ module SyntaxErrorSearch
         search.call
 
         expect(search.record_dir.entries.map(&:to_s)).to include("1-add-1.txt")
-        expect(search.record_dir.join("1-add-1.txt").read).to eq(<<~EOM.indent(2))
+        expect(search.record_dir.join("1-add-1.txt").read).to eq(<<~EOM.indent(4))
             1  class OH
             2    def hello
           ❯ 3    def hai

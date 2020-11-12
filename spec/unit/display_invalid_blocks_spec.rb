@@ -60,13 +60,11 @@ module SyntaxErrorSearch
         terminal: false
       )
       expect(display.code_block).to eq(<<~EOM)
-       ```
          1  class OH
        ❯ 2    def hello
          3    def hai
          4    end
          5  end
-       ```
       EOM
     end
     it "shows terminal characters" do

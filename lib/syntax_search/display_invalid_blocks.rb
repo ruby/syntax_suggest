@@ -64,16 +64,13 @@ module SyntaxErrorSearch
       EOM
     end
 
-    def indent(string, with: "  ")
+    def indent(string, with: "    ")
       string.each_line.map {|l| with  + l }.join
     end
 
     def code_block
       string = String.new("")
-      string << "```\n"
-      # string << "#".rjust(@digit_count) + " filename: #{filename}\n\n" if filename
       string << code_with_lines
-      string << "```\n"
       string
     end
 
