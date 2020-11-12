@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Codeblocks in output are now indented with 4 spaces and "code fences" are removed (https://github.com/zombocom/syntax_search/pull/11)
 - "Unmatched end" and "missing end" not generate different error text instructions (https://github.com/zombocom/syntax_search/pull/10)
 
 ## 0.1.1
