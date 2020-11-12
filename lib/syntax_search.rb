@@ -23,7 +23,7 @@ module SyntaxErrorSearch
       self.call(
         source: Pathname(filename).read,
         filename: filename,
-        terminal: true
+        terminal: true,
       )
     end
 
@@ -40,6 +40,7 @@ module SyntaxErrorSearch
       blocks: blocks,
       filename: filename,
       terminal: terminal,
+      invalid_type: invalid_type(source),
       io: $stderr
     ).call
   end
@@ -122,10 +123,29 @@ module SyntaxErrorSearch
 
     Parser::CurrentRuby.parse(source)
     true
-  rescue Parser::SyntaxError
+  rescue Parser::SyntaxError => e
+    yield e if block_given?
     false
   ensure
     $stderr = stderr if stderr
+  end
+
+  def self.invalid_type(source)
+    message = nil
+    self.valid?(source) do |error|
+      message = error.message
+    end
+
+    case message
+    when nil
+      :none
+    when /token kEND/
+      :unmatched_end
+    when /token \$end/ #
+      :missing_end
+    else
+      raise "Unexpected message #{message}"
+    end
   end
 end
 

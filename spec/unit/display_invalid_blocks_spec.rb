@@ -42,7 +42,7 @@ module SyntaxErrorSearch
       )
       display.call
       expect(io.string).to include("❯ 2    def hello")
-      expect(io.string).to include("A syntax error was detected")
+      expect(io.string).to include("SyntaxSearch")
     end
 
     it " wraps code with github style codeblocks" do

@@ -5,7 +5,7 @@ module SyntaxErrorSearch
   class DisplayInvalidBlocks
     attr_reader :filename
 
-    def initialize(blocks:, io: $stderr, filename: nil, terminal: false)
+    def initialize(blocks:, io: $stderr, filename: nil, terminal: false, invalid_type: :unmatched_end)
       @terminal = terminal
       @filename = filename
       @io = io
@@ -16,6 +16,7 @@ module SyntaxErrorSearch
       @digit_count = @code_lines.last&.line_number.to_s.length
 
       @invalid_line_hash = @lines.each_with_object({}) {|line, h| h[line] = true  }
+      @invalid_type = invalid_type
     end
 
     def call
@@ -33,15 +34,28 @@ module SyntaxErrorSearch
     end
 
     private def found_invalid_blocks
-      @io.puts <<~EOM
+      case @invalid_type
+      when :missing_end
+        @io.puts <<~EOM
 
-        SyntaxErrorSearch: A syntax error was detected
+          SyntaxSearch: Missing `end` detected
 
-        This code has an unmatched `end` this is caused by either
-        missing a syntax keyword (`def`,  `do`, etc.) or inclusion
-        of an extra `end` line
+          This code has a missing `end`. Ensure that all
+          syntax keywords (`def`, `do`, etc.) have a matching `end`.
 
-      EOM
+        EOM
+      when :unmatched_end
+        @io.puts <<~EOM
+
+          SyntaxSearch: Unmatched `end` detected
+
+          This code has an unmatched `end`. Ensure that all `end` lines
+          in your code have a matching syntax keyword  (`def`,  `do`, etc.)
+          and that you don't have any extra `end` lines.
+
+        EOM
+      end
+
       @io.puts("file: #{filename}") if filename
       @io.puts <<~EOM
         simplified:

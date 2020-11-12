@@ -32,7 +32,7 @@ module SyntaxErrorSearch
 
         out = `ruby -I#{lib_dir} -rsyntax_search/auto #{require_rb} 2>&1`
 
-        expect(out).to include("This code has an unmatched")
+        expect(out).to include("Unmatched `end` detected")
         expect(out).to include("Run `$ syntax_search")
         expect($?.success?).to be_falsey
       end
