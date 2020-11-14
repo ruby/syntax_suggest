@@ -25,6 +25,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.0)
+    stackprof (0.2.16)
 
 PLATFORMS
   ruby
@@ -32,6 +33,7 @@ PLATFORMS
 DEPENDENCIES
   rake (~> 12.0)
   rspec (~> 3.0)
+  stackprof
   syntax_search!
 
 BUNDLED WITH

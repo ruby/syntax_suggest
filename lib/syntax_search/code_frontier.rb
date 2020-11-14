@@ -1,178 +1,43 @@
 # frozen_string_literal: true
 
 module SyntaxErrorSearch
-  # This class is responsible for generating, storing, and sorting code blocks
+  # The main function of the frontier is to hold the edges of our search and to
+  # evaluate when we can stop searching.
   #
-  # The search algorithm for finding our syntax errors isn't in this class, but
-  # this is class holds the bulk of the logic for generating, storing, detecting
-  # and filtering invalid code.
+  # ## Knowing where we've been
   #
-  # This is loosely based on the idea of a "frontier" for searching for a path
-  # example: https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+  # Once a code block is generated it is added onto the frontier where it will be
+  # sorted and then the frontier can be filtered. Large blocks that totally contain a
+  # smaller block will cause the smaller block to be evicted.
   #
-  # In this case our path is going from code with a syntax error to code without a
-  # syntax error. We're currently doing that by evaluating individual lines
-  # with respect to indentation and other whitespace (empty lines). As represented
-  # by individual "code blocks".
+  #   CodeFrontier#<<
+  #   CodeFrontier#pop
   #
-  # This class does not just store the frontier that we're searching, but is responsible
-  # for generating new code blocks as well. This is not ideal, but the state of generating
-  # and evaluating paths i.e. codeblocks is very tightly coupled.
+  # ## Knowing where we can go
   #
-  # ## Creation
+  # Internally it keeps track of an "indent hash" which is exposed via `next_indent_line`
+  # when called this will return a line of code with the most indentation.
   #
-  # This example code is re-used in the other sections
+  # This line of code can be used to build a CodeBlock via and then when that code block
+  # is added back to the frontier, then the lines in the code block are removed from the
+  # indent hash so we don't double-create the same block.
   #
-  # Example:
+  #   CodeFrontier#next_indent_line
+  #   CodeFrontier#register_indent_block
   #
-  #   code_lines = [
-  #     CodeLine.new(line: "def cinco\n", index: 0)
-  #     CodeLine.new(line: "  def dog\n", index: 1) # Syntax error 1
-  #     CodeLine.new(line: "  def cat\n", index: 2) # Syntax error 2
-  #     CodeLine.new(line: "end\n",       index: 3)
-  #   ]
+  # ## Knowing when to stop
   #
-  #   frontier = CodeFrontier.new(code_lines: code_lines)
+  # The frontier holds the syntax error when removing all code blocks from the original
+  # source document allows it to be parsed as syntatically valid:
   #
-  #   frontier << frontier.next_block if frontier.next_block?
-  #   frontier << frontier.next_block if frontier.next_block?
+  #   CodeFrontier#holds_all_syntax_errors?
   #
-  #   frontier.holds_all_syntax_errors? # => true
-  #   block = frontier.pop
-  #   frontier.holds_all_syntax_errors? # => false
-  #   frontier << block
-  #   frontier.holds_all_syntax_errors? # => true
+  # ## Filtering false positives
   #
-  #   frontier.detect_invalid_blocks.map(&:to_s) # =>
-  #   [
-  #     "def dog\n",
-  #     "def cat\n"
-  #   ]
+  # Once the search is completed, the frontier will have many blocks that do not contain
+  # the syntax error. To filter to the smallest subset that does call:
   #
-  # ## Block Generation
-  #
-  # Currently code blocks are generated based off of indentation. With the idea that blocks are,
-  # well, indented. Once a code block is added to the frontier or it is expanded, or it is generated
-  # then we also need to remove those lines from our generation code so we don't generate the same block
-  # twice by accident.
-  #
-  # This is block generation is currently done via the "indent_hash" internally by starting at the outer
-  # most indentation.
-  #
-  # Example:
-  #
-  #   ```
-  #   def river
-  #     puts "lol" # <=== Start looking here and expand outwards
-  #   end
-  #   ```
-  #
-  # Generating new code blocks is a little verbose but looks like this:
-  #
-  #   frontier << frontier.next_block if frontier.next_block?
-  #
-  # Once a block is in the frontier, it can be popped off:
-  #
-  #   frontier.pop
-  #   # => <# CodeBlock >
-  #
-  # ## Block (frontier) storage, ordering and retrieval
-  #
-  # Once a block is generated it is stored internally in a frontier array. This is very similar to a search algorithm.
-  # The array is sorted by indentation order, so that when a block is popped off the array, the one with
-  # the largest current indentation is evaluated first.
-  #
-  # For example, if we have these two blocks in the frontier:
-  #
-  #   ```
-  #   # Block A - 0 spaces for indentation
-  #
-  #   def cinco
-  #     puts "lol"
-  #   end
-  #   ```
-  #
-  #   ```
-  #   # Block B - 2 spaces for indentation
-  #
-  #     def river
-  #       puts "hehe"
-  #     end
-  #   ```
-  #
-  # The "Block B" has more current indentation, so it would be evaluated first.
-  #
-  # ## Frontier evaluation (Find the syntax error)
-  #
-  # Another key difference between this and a normal search "frontier" is that we're not checking if
-  # an individual code block meets the goal (turning invalid code to valid code) since there can
-  # be multiple syntax errors and this will require multiple code blocks. To handle this, we're
-  # evaluating all the contents of the frontier at the same time to see if the solution exists in any
-  # of our search blocks.
-  #
-  #   # Using the previously generated frontier
-  #
-  #   frontier << Block.new(lines: code_lines[1], code_lines: code_lines)
-  #   frontier.holds_all_syntax_errors? # => false
-  #
-  #   frontier << Block.new(lines: code_lines[2], code_lines: code_lines)
-  #   frontier.holds_all_syntax_errors? # => true
-  #
-  # ## Detect invalid blocks (Filter for smallest solution)
-  #
-  # After we prove that a solution exists and we've found it to be in our frontier, we can start stop searching.
-  # Once we've done this, we need to search through the existing frontier code blocks to find the minimum combination
-  # of blocks that hold the solution. This is done in: `detect_invalid_blocks`.
-  #
-  #   # Using the previously generated frontier
-  #
-  #   frontier << CodeBlock.new(lines: code_lines[0], code_lines: code_lines)
-  #   frontier << CodeBlock.new(lines: code_lines[1], code_lines: code_lines)
-  #   frontier << CodeBlock.new(lines: code_lines[2], code_lines: code_lines)
-  #   frontier << CodeBlock.new(lines: code_lines[3], code_lines: code_lines)
-  #
-  #   frontier.count # => 4
-  #   frontier.detect_invalid_blocks.length => 2
-  #   frontier.detect_invalid_blocks.map(&:to_s) # =>
-  #   [
-  #     "def dog\n",
-  #     "def cat\n"
-  #   ]
-  #
-  # Once invalid blocks are found and filtered, then they can be passed to a formatter.
-  #
-  #
-  #
-
-  class IndentScan
-    attr_reader :code_lines
-
-    def initialize(code_lines: )
-      @code_lines = code_lines
-    end
-
-    def neighbors_from_top(top_line)
-      code_lines
-        .select {|l| l.index >= top_line.index }
-        .select {|l| l.not_empty? }
-        .select {|l| l.visible? }
-        .take_while {|l| l.indent >= top_line.indent }
-    end
-
-    def each_neighbor_block(top_line)
-      neighbors = neighbors_from_top(top_line)
-
-      until neighbors.empty?
-        lines = [neighbors.pop]
-        while (block = CodeBlock.new(lines: lines, code_lines: code_lines)) && block.invalid? && neighbors.any?
-          lines.prepend neighbors.pop
-        end
-
-        yield block if block
-      end
-    end
-  end
-
+  #   CodeFrontier#detect_invalid_blocks
   class CodeFrontier
     def initialize(code_lines: )
       @code_lines = code_lines
@@ -207,15 +72,8 @@ module SyntaxErrorSearch
 
     # Returns a code block with the largest indentation possible
     def pop
-      return nil if empty?
-
       return @frontier.pop
     end
-
-    def next_block?
-      !@indent_hash.empty?
-    end
-
 
     def indent_hash_indent
       @indent_hash.keys.sort.last
@@ -226,40 +84,25 @@ module SyntaxErrorSearch
       @indent_hash[indent]&.first
     end
 
-    def generate_blocks
-    end
-
-    def next_block
-      indent = @indent_hash.keys.sort.last
-      lines = @indent_hash[indent].first
-
-      block = CodeBlock.new(
-        lines: lines,
-        code_lines: @code_lines
-      ).expand_until_neighbors
-
-      register(block)
-      block
-    end
-
     def expand?
       return false if @frontier.empty?
       return true if @indent_hash.empty?
 
-      @frontier.last.current_indent >= @indent_hash.keys.sort.last
+      frontier_indent = @frontier.last.current_indent
+      hash_indent = @indent_hash.keys.sort.last
+
+      if ENV["DEBUG"]
+        puts "```"
+        puts @frontier.last.to_s
+        puts "```"
+        puts "  @frontier indent: #{frontier_indent}"
+        puts "  @hash indent:     #{hash_indent}"
+      end
+
+      frontier_indent >= hash_indent
     end
 
-    # This method is responsible for determining if a new code
-    # block should be generated instead of evaluating an already
-    # existing block in the frontier
-    def generate_new_block?
-      return false if @indent_hash.empty?
-      return true if @frontier.empty?
-
-      @frontier.last.current_indent <= @indent_hash.keys.sort.last
-    end
-
-    def register(block)
+    def register_indent_block(block)
       block.lines.each do |line|
         @indent_hash[line.indent]&.delete(line)
       end
@@ -273,20 +116,16 @@ module SyntaxErrorSearch
     # and that each code block's lines are removed from the indentation hash so we
     # don't re-evaluate the same line multiple times.
     def <<(block)
-      register(block)
+      register_indent_block(block)
 
+      # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
+      @frontier.reject! {|b|
+        b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
+      }
       @frontier << block
       @frontier.sort!
 
       self
-    end
-
-    def any?
-      !empty?
-    end
-
-    def empty?
-      @frontier.empty? && @indent_hash.empty?
     end
 
     # Example:

@@ -14,11 +14,14 @@ module SyntaxErrorSearch
         end
       EOM
 
+      search = CodeSearch.new(syntax_string)
+      search.call
       io = StringIO.new
       display = DisplayInvalidBlocks.new(
-        blocks: CodeSearch.new(syntax_string).call.invalid_blocks,
+        io: io,
+        blocks: search.invalid_blocks,
         terminal: false,
-        io: io
+        code_lines: search.code_lines,
       )
       display.call
       expect(io.string).to include("Syntax OK")
@@ -34,11 +37,12 @@ module SyntaxErrorSearch
       EOM
 
       io = StringIO.new
-      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
+      block = CodeBlock.new(lines: code_lines[1])
       display = DisplayInvalidBlocks.new(
+        io: io,
         blocks: block,
         terminal: false,
-        io: io
+        code_lines: code_lines,
       )
       display.call
       expect(io.string).to include("❯ 2    def hello")
@@ -54,10 +58,11 @@ module SyntaxErrorSearch
         end
       EOM
 
-      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
+      block = CodeBlock.new(lines: code_lines[1])
       display = DisplayInvalidBlocks.new(
         blocks: block,
-        terminal: false
+        terminal: false,
+        code_lines: code_lines
       )
       expect(display.code_block).to eq(<<~EOM)
          1  class OH
@@ -76,10 +81,11 @@ module SyntaxErrorSearch
         end
       EOM
 
-      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
+      block = CodeBlock.new(lines: code_lines[1])
       display = DisplayInvalidBlocks.new(
         blocks: block,
-        terminal: false
+        terminal: false,
+        code_lines: code_lines
       )
 
       expect(display.code_with_lines).to eq(
@@ -93,10 +99,11 @@ module SyntaxErrorSearch
         ].join($/)
       )
 
-      block = CodeBlock.new(code_lines: code_lines, lines: code_lines[1])
+      block = CodeBlock.new(lines: code_lines[1])
       display = DisplayInvalidBlocks.new(
         blocks: block,
-        terminal: true
+        terminal: true,
+        code_lines: code_lines
       )
 
       expect(display.code_with_lines).to eq(

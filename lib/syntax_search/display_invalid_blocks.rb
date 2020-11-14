@@ -5,14 +5,14 @@ module SyntaxErrorSearch
   class DisplayInvalidBlocks
     attr_reader :filename
 
-    def initialize(blocks:, io: $stderr, filename: nil, terminal: false, invalid_type: :unmatched_end)
+    def initialize(code_lines: ,blocks:, io: $stderr, filename: nil, terminal: false, invalid_type: :unmatched_end)
       @terminal = terminal
       @filename = filename
       @io = io
 
       @blocks = Array(blocks)
       @lines = @blocks.map(&:lines).flatten
-      @code_lines = @blocks.first&.code_lines || []
+      @code_lines = code_lines
       @digit_count = @code_lines.last&.line_number.to_s.length
 
       @invalid_line_hash = @lines.each_with_object({}) {|line, h| h[line] = true  }
