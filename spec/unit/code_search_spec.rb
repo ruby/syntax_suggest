@@ -69,15 +69,15 @@ module SyntaxErrorSearch
 
     describe "real world cases" do
       it "finds hanging def in this project" do
-        search = CodeSearch.new(
-          fixtures_dir.join("this_project_extra_def.rb.txt").read,
-        )
+        source_string = fixtures_dir.join("this_project_extra_def.rb.txt").read
+        search = CodeSearch.new(source_string)
 
         search.call
 
         blocks = search.invalid_blocks
         io = StringIO.new
         display = DisplayInvalidBlocks.new(
+          code_lines: search.code_lines,
           blocks: blocks,
           io: io,
         )
@@ -127,7 +127,12 @@ module SyntaxErrorSearch
 
         blocks = search.invalid_blocks
         io = StringIO.new
-        display = DisplayInvalidBlocks.new(blocks: blocks, io: io, filename: "fake/spec/lol.rb")
+        display = DisplayInvalidBlocks.new(
+          io: io,
+          blocks: blocks,
+          code_lines: search.code_lines,
+          filename: "fake/spec/lol.rb"
+        )
         display.call
         # io.string
 
@@ -135,7 +140,8 @@ module SyntaxErrorSearch
              1  require 'rails_helper'
              2
              3  RSpec.describe AclassNameHere, type: :worker do
-          ❯ 12
+          ❯  4    describe "thing" do
+          ❯ 16    end # line 16 accidental end, but valid block
           ❯ 30    end # mismatched due to 16
             31  end
         EOM
@@ -181,9 +187,9 @@ module SyntaxErrorSearch
           EOM
           search.call
 
-          # TODO improve here, grab the two end instead of one
-          expect(search.invalid_blocks.join).to eq(<<~EOM.indent(3))
-            end # one
+          expect(search.invalid_blocks.join).to eq(<<~EOM)
+            Foo.call
+            end # two
           EOM
         end
 
@@ -271,7 +277,6 @@ module SyntaxErrorSearch
     it "doesn't just return an empty `end`" do
       search = CodeSearch.new(<<~EOM)
         Foo.call
-
         end
       EOM
       search.call

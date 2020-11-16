@@ -40,6 +40,7 @@ module SyntaxErrorSearch
       blocks: blocks,
       filename: filename,
       terminal: terminal,
+      code_lines: search.code_lines,
       invalid_type: invalid_type(source),
       io: $stderr
     ).call
@@ -152,5 +153,9 @@ end
 require_relative "syntax_search/code_line"
 require_relative "syntax_search/code_block"
 require_relative "syntax_search/code_frontier"
-require_relative "syntax_search/code_search"
 require_relative "syntax_search/display_invalid_blocks"
+require_relative "syntax_search/around_block_scan"
+require_relative "syntax_search/block_expand"
+require_relative "syntax_search/parse_blocks_from_indent_line"
+
+require_relative "syntax_search/code_search"

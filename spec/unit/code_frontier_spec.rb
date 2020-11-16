@@ -4,42 +4,6 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeFrontier do
-    it "search example" do
-      code_lines = code_line_array(<<~EOM)
-        describe "lol" do
-          foo
-          end
-        end
-
-        it "lol" do
-          bar
-          end
-        end
-      EOM
-
-      frontier = CodeFrontier.new(code_lines: code_lines)
-      frontier << frontier.next_block if frontier.next_block?
-
-      until frontier.holds_all_syntax_errors?
-        frontier << frontier.next_block if frontier.next_block?
-        block = frontier.pop
-
-        if block.valid?
-          block.lines.each(&:mark_invisible)
-
-        else
-          block.expand_until_neighbors
-          frontier << block
-        end
-      end
-
-      expect(frontier.detect_invalid_blocks.join).to eq(<<~EOM.indent(2))
-        foo
-        end
-        bar
-        end
-      EOM
-    end
     it "detect_bad_blocks" do
       code_lines = code_line_array(<<~EOM)
         describe "lol" do
@@ -53,8 +17,8 @@ module SyntaxErrorSearch
 
       frontier = CodeFrontier.new(code_lines: code_lines)
       blocks = []
-      blocks << CodeBlock.new(lines: code_lines[1], code_lines: code_lines)
-      blocks << CodeBlock.new(lines: code_lines[5], code_lines: code_lines)
+      blocks << CodeBlock.new(lines: code_lines[1])
+      blocks << CodeBlock.new(lines: code_lines[5])
       blocks.each do |b|
         frontier << b
       end
@@ -83,6 +47,46 @@ module SyntaxErrorSearch
       )
     end
 
+    it "doesn't duplicate blocks" do
+      code_lines = code_line_array(<<~EOM)
+        def foo
+          puts "lol"
+          puts "lol"
+          puts "lol"
+        end
+      EOM
+
+      frontier = CodeFrontier.new(code_lines: code_lines)
+      frontier << CodeBlock.new(lines: [code_lines[2]])
+      expect(frontier.count).to eq(1)
+
+      frontier << CodeBlock.new(lines: [code_lines[1],code_lines[2],code_lines[3]])
+      expect(frontier.count).to eq(1)
+      expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
+        puts "lol"
+        puts "lol"
+        puts "lol"
+      EOM
+
+      code_lines = code_line_array(<<~EOM)
+        def foo
+          puts "lol"
+          puts "lol"
+          puts "lol"
+        end
+      EOM
+
+      frontier = CodeFrontier.new(code_lines: code_lines)
+      frontier << CodeBlock.new(lines: [code_lines[2]])
+      expect(frontier.count).to eq(1)
+
+      frontier << CodeBlock.new(lines: [code_lines[3]])
+      expect(frontier.count).to eq(2)
+      expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
+        puts "lol"
+      EOM
+    end
+
     it "detects if multiple syntax errors are found" do
       code_lines = code_line_array(<<~EOM)
         def foo
@@ -92,7 +96,7 @@ module SyntaxErrorSearch
 
       frontier = CodeFrontier.new(code_lines: code_lines)
 
-      frontier << frontier.next_block if frontier.next_block?
+      frontier << CodeBlock.new(lines: code_lines[1])
       block = frontier.pop
       expect(block.to_s).to eq(<<~EOM.indent(2))
         end
@@ -116,7 +120,7 @@ module SyntaxErrorSearch
       EOM
 
       frontier = CodeFrontier.new(code_lines: code_lines)
-      frontier << frontier.next_block if frontier.next_block?
+      frontier << CodeBlock.new(lines: [code_lines[1]])
       block = frontier.pop
       expect(block.to_s).to eq(<<~EOM.indent(2))
         puts "lol"
@@ -124,92 +128,6 @@ module SyntaxErrorSearch
       frontier << block
 
       expect(frontier.holds_all_syntax_errors?).to be_falsey
-    end
-
-    it "generates a block when popping" do
-      code_lines = code_line_array(<<~EOM)
-        def foo
-          puts "lol1"
-          puts "lol2"
-          puts "lol3"
-
-          puts "lol4"
-        end
-      EOM
-
-      frontier = CodeFrontier.new(code_lines: code_lines)
-      frontier << frontier.next_block if frontier.next_block?
-      expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
-        puts "lol1"
-        puts "lol2"
-        puts "lol3"
-
-      EOM
-
-      expect(frontier.generate_new_block?).to be_truthy
-
-      frontier << frontier.next_block if frontier.next_block?
-      expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
-
-        puts "lol4"
-      EOM
-
-      frontier << frontier.next_block if frontier.next_block?
-      expect(frontier.pop.to_s).to eq(<<~EOM)
-        def foo
-      EOM
-    end
-
-    it "generates continuous block lines" do
-      code_lines = code_line_array(<<~EOM)
-        def foo
-          puts "lol1"
-          puts "lol2"
-          puts "lol3"
-
-          puts "lol4"
-        end
-      EOM
-
-      frontier = CodeFrontier.new(code_lines: code_lines)
-      block = frontier.next_block
-      expect(block.to_s).to eq(<<~EOM.indent(2))
-          puts "lol1"
-          puts "lol2"
-          puts "lol3"
-
-      EOM
-
-      expect(frontier.generate_new_block?).to be_truthy
-
-      frontier << block
-
-      block = frontier.next_block
-      expect(block.to_s).to eq(<<~EOM.indent(2))
-
-          puts "lol4"
-      EOM
-      frontier << block
-
-      expect(frontier.generate_new_block?).to be_falsey
-    end
-
-    it "detects empty" do
-      code_lines = code_line_array(<<~EOM)
-        def foo
-          puts "lol"
-        end
-      EOM
-
-      frontier = CodeFrontier.new(code_lines: code_lines)
-
-      expect(frontier.empty?).to be_falsey
-      expect(frontier.any?).to be_truthy
-
-      frontier = CodeFrontier.new(code_lines: [])
-
-      expect(frontier.empty?).to be_truthy
-      expect(frontier.any?).to be_falsey
     end
   end
 end
