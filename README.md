@@ -10,24 +10,25 @@ What happened? Likely you forgot a `def`, `do`, or maybe you deleted some code a
 
 What if I told you, that there was a library that helped find your missing `def`s and missing `do`s. What if instead of searching through hundreds of lines of source for the cause of your syntax error, there was a way to highlight just code in the file that contained syntax errors.
 
-    $ syntax_search <path/to/file.rb>
+    $ syntax_search path/to/file.rb
 
-    SyntaxErrorSearch: A syntax error was detected
+    SyntaxSearch: Unmatched `end` detected
 
-    This code has an unmatched `end` this is caused by either
-    missing a syntax keyword (`def`,  `do`, etc.) or inclusion
-    of an extra `end` line
+    This code has an unmatched `end`. Ensure that all `end` lines
+    in your code have a matching syntax keyword  (`def`,  `do`, etc.)
+    and that you don't have any extra `end` lines.
 
     file: path/to/file.rb
     simplified:
 
-    ```
-         1  require 'animals'
-         2
-      ❯  3  defdog
-      ❯  5  end
-         6
-    ```
+       1  require 'zoo'
+       2
+       3  class Animal
+       4
+    ❯  5    defdog
+    ❯  7    end
+       8
+      12  end
 
 How much would you pay for such a library? A million, a billion, a trillion? Well friends, today is your lucky day because you can use this library today for free!
 
