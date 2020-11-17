@@ -24,11 +24,9 @@ What if I told you, that there was a library that helped find your missing `def`
     ```
          1  require 'animals'
          2
-      ❯ 10  defdog
-      ❯ 15  end
-      ❯ 16
-        20  def cat
-        22  end
+      ❯  3  defdog
+      ❯  5  end
+         6
     ```
 
 How much would you pay for such a library? A million, a billion, a trillion? Well friends, today is your lucky day because you can use this library today for free!
