@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 0.1.3
+
+- Internal refactor (https://github.com/zombocom/syntax_search/pull/13)
+
 ## 0.1.2
 
 - Codeblocks in output are now indented with 4 spaces and "code fences" are removed (https://github.com/zombocom/syntax_search/pull/11)
