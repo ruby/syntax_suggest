@@ -32,7 +32,7 @@ What if I told you, that there was a library that helped find your missing `def`
 
 How much would you pay for such a library? A million, a billion, a trillion? Well friends, today is your lucky day because you can use this library today for free!
 
-## Installation
+## Installation in your codebase
 
 To automatically search syntax errors when they happen, add this to your Gemfile:
 
@@ -49,6 +49,16 @@ If your application is not calling `Bundler.require` then you must manually add 
 ```ruby
 require "syntax_search/auto"
 ```
+
+If you're using rspec add this to your `.rspec` file:
+
+```
+--require syntax_search/auto
+```
+
+> This is needed because people can execute a single test file via `bundle exec rspec path/to/file_spec.rb` and if that file has a syntax error, it won't load `spec_helper.rb` to trigger any requires.
+
+## Install the CLI
 
 To get the CLI and manually search for syntax errors, install the gem:
 
@@ -72,6 +82,10 @@ I would love to get something like this directly in Ruby, but I first need to pr
 We know that source code that does not contain a syntax error can be parsed. We also know that code with a syntax error contains both valid code and invalid code. If you remove the invalid code, then we can programatically determine that the code we removed contained a syntax error. We can do this detection by generating small code blocks and searching for which blocks need to be removed to generate valid source code.
 
 Since there can be multiple syntax errors in a document it's not good enough to check individual code blocks, we've got to check multiple at the same time. We will keep creating and adding new blocks to our search until we detect that our "frontier" (which contains all of our blocks) contains the syntax error. After this, we can stop our search and instead focus on filtering to find the smallest subset of blocks that contain the syntax error.
+
+Here's an example:
+
+![](assets/syntax_search.gif)
 
 ## How is source code broken up into smaller blocks?
 
