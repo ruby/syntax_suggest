@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 0.1.4
+
+- Parser gem replaced with Ripper (https://github.com/zombocom/syntax_search/pull/17)
+
 ## 0.1.3
 
 - Internal refactor (https://github.com/zombocom/syntax_search/pull/13)
