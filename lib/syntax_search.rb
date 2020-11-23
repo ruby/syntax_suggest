@@ -2,10 +2,10 @@
 
 require_relative "syntax_search/version"
 
-require 'parser/current'
 require 'tmpdir'
 require 'stringio'
 require 'pathname'
+require 'ripper'
 
 module SyntaxErrorSearch
   class Error < StandardError; end
@@ -80,6 +80,13 @@ module SyntaxErrorSearch
     end
   end
 
+  def self.invalid?(source)
+    source = source.join if source.is_a?(Array)
+    source = source.to_s
+
+    Ripper.new(source).tap(&:parse).error?
+  end
+
   # Returns truthy if a given input source is valid syntax
   #
   #   SyntaxErrorSearch.valid?(<<~EOM) # => true
@@ -115,38 +122,12 @@ module SyntaxErrorSearch
   # so passing a CodeLine in as an object or as an array
   # will convert it to it's code representation.
   def self.valid?(source)
-    source = source.join if source.is_a?(Array)
-    source = source.to_s
-
-    # Parser writes to stderr even if you catch the error
-    stderr = $stderr
-    $stderr = StringIO.new
-
-    Parser::CurrentRuby.parse(source)
-    true
-  rescue Parser::SyntaxError => e
-    yield e if block_given?
-    false
-  ensure
-    $stderr = stderr if stderr
+    !invalid?(source)
   end
 
-  def self.invalid_type(source)
-    message = nil
-    self.valid?(source) do |error|
-      message = error.message
-    end
 
-    case message
-    when nil
-      :none
-    when /token kEND/
-      :unmatched_end
-    when /token \$end/ #
-      :missing_end
-    else
-      raise "Unexpected message #{message}"
-    end
+  def self.invalid_type(source)
+    WhoDisSyntaxError.new(source).call.error_symbol
   end
 end
 
@@ -159,3 +140,4 @@ require_relative "syntax_search/block_expand"
 require_relative "syntax_search/parse_blocks_from_indent_line"
 
 require_relative "syntax_search/code_search"
+require_relative "syntax_search/who_dis_syntax_error"
