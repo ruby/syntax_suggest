@@ -141,3 +141,4 @@ require_relative "syntax_search/parse_blocks_from_indent_line"
 
 require_relative "syntax_search/code_search"
 require_relative "syntax_search/who_dis_syntax_error"
+require_relative "syntax_search/heredoc_block_parse"
