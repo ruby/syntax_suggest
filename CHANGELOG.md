@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 0.1.5
+
 - Strip out heredocs in documents first (https://github.com/zombocom/syntax_search/pull/19)
 
 ## 0.1.4
