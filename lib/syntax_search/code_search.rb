@@ -28,13 +28,14 @@ module SyntaxErrorSearch
     private; attr_reader :frontier; public
     public; attr_reader :invalid_blocks, :record_dir, :code_lines
 
-    def initialize(string, record_dir: ENV["SYNTAX_SEARCH_RECORD_DIR"])
+    def initialize(source, record_dir: ENV["SYNTAX_SEARCH_RECORD_DIR"])
+      @source = source
       if record_dir
         @time = Time.now.strftime('%Y-%m-%d-%H-%M-%s-%N')
         @record_dir = Pathname(record_dir).join(@time).tap {|p| p.mkpath }
         @write_count = 0
       end
-      @code_lines = string.lines.map.with_index do |line, i|
+      @code_lines = source.lines.map.with_index do |line, i|
         CodeLine.new(line: line, index: i)
       end
       @frontier = CodeFrontier.new(code_lines: @code_lines)
@@ -107,8 +108,19 @@ module SyntaxErrorSearch
       push(block, name: "expand")
     end
 
+
+    def sweep_heredocs
+      HeredocBlockParse.new(
+        source: @source,
+        code_lines: @code_lines
+      ).call.each do |block|
+        push(block, name: "heredoc")
+      end
+    end
+
     # Main search loop
     def call
+      sweep_heredocs
       until frontier.holds_all_syntax_errors?
         @tick += 1
 

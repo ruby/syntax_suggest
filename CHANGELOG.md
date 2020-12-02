@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Strip out heredocs in documents first (https://github.com/zombocom/syntax_search/pull/19)
+
 ## 0.1.4
 
 - Parser gem replaced with Ripper (https://github.com/zombocom/syntax_search/pull/17)

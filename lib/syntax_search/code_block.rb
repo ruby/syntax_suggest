@@ -31,6 +31,10 @@ module SyntaxErrorSearch
       to_s.strip == "end"
     end
 
+    def hidden?
+      @lines.all?(&:hidden?)
+    end
+
     def starts_at
       @starts_at ||= @lines.first&.line_number
     end

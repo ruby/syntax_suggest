@@ -20,7 +20,7 @@ module SyntaxErrorSearch
     end
 
     def call
-      if @blocks.any?
+      if @blocks.any? { |b| !b.hidden? }
         found_invalid_blocks
       else
         @io.puts "Syntax OK"
