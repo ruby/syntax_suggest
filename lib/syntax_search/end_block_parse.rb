@@ -22,7 +22,6 @@ module SyntaxErrorSearch
   class EndBlockParse
     private; attr_reader :code_lines, :lex; public
 
-
     def initialize(source:, code_lines: )
       @code_lines = code_lines
       @lex = LexAll.call(source: source)
@@ -58,6 +57,8 @@ module SyntaxErrorSearch
       end
 
       while (block = CodeBlock.new(lines: lines)) && block.invalid? && neighbors.any?
+        puts "=="
+        puts lines.join
         lines.prepend neighbors.pop
       end
 
