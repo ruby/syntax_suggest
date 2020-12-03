@@ -44,6 +44,7 @@ module SyntaxErrorSearch
       @tick = 0
       @block_expand = BlockExpand.new(code_lines: code_lines)
       @parse_blocks_from_indent_line = ParseBlocksFromIndentLine.new(code_lines: @code_lines)
+      @end_blocks = EndBlockParse.new(source: source, code_lines: code_lines)
     end
 
     # Used for debugging
@@ -108,7 +109,6 @@ module SyntaxErrorSearch
       push(block, name: "expand")
     end
 
-
     def sweep_heredocs
       HeredocBlockParse.new(
         source: @source,
@@ -118,18 +118,20 @@ module SyntaxErrorSearch
       end
     end
 
+    def pop_end
+      block = @end_blocks.pop
+      push(block, name: "pop_end")
+    end
+
     # Main search loop
     def call
       sweep_heredocs
       until frontier.holds_all_syntax_errors?
         @tick += 1
 
-        if frontier.expand?
-          expand_invalid_block
-        else
-          add_invalid_blocks
-        end
+        pop_end
       end
+
 
       @invalid_blocks.concat(frontier.detect_invalid_blocks )
       @invalid_blocks.sort_by! {|block| block.starts_at }

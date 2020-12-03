@@ -18,6 +18,12 @@ module SyntaxErrorSearch
       self
     end
 
+    def invalid_end?
+      call
+      return false if !error?
+      return true if error_symbol != :nope
+    end
+
     def on_parse_error(msg)
       @error = msg
       if @error.match?(/unexpected end-of-input/)

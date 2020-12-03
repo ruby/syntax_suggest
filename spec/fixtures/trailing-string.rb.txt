@@ -1,0 +1,18 @@
+require "rails_helper"
+RSpec.describe TelehealthAppointment, type: :model do
+  describe "#participants_state" do
+    context "timezones workaround" do
+      it "should receive a time in UTC format and return the time with the"\
+        "office's UTC offset substracted from it" do
+        travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
+          office = build(:office)
+        end
+      end
+    end
+  end
+  describe "#past?" do
+    context "more than 15 min have passed since appointment start time" do
+      it "returns true" do
+    end
+  end
+end

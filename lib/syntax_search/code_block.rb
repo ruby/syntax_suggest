@@ -59,6 +59,10 @@ module SyntaxErrorSearch
       !valid?
     end
 
+    def invalid_end?
+      WhoDisSyntaxError.new(self.to_s).invalid_end?
+    end
+
     def valid?
       SyntaxErrorSearch.valid?(self.to_s)
     end
