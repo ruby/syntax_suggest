@@ -158,6 +158,8 @@ module SyntaxErrorSearch
              1  require 'rails_helper'
              2
              3  RSpec.describe AclassNameHere, type: :worker do
+          ❯  4    describe "thing" do
+          ❯ 16    end # line 16 accidental end, but valid block
           ❯ 30    end # mismatched due to 16
             31  end
         EOM
