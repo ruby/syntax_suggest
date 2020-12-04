@@ -7,19 +7,19 @@ module SyntaxErrorSearch
 
     def initialize(source:, code_lines: )
       @code_lines = code_lines
-      @lex = Ripper.lex(source)
+      @lex = LexAll.new(source: source)
     end
 
     def call
       blocks = []
       beginning = []
-      @lex.each do |(line, col), event, *_|
-        case event
+      @lex.each do |lex|
+        case lex.type
         when :on_heredoc_beg
-          beginning << line
+          beginning << lex.line
         when :on_heredoc_end
           start_index = beginning.pop - 1
-          end_index = line - 1
+          end_index = lex.line - 1
           blocks << CodeBlock.new(lines: code_lines[start_index..end_index])
         end
       end
