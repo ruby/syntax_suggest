@@ -4,6 +4,24 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
+    it "handles no spaces between blocks" do
+      search = CodeSearch.new(<<~EOM)
+        context "timezones workaround" do
+          it "should receive a time in UTC format and return the time with the" do
+            travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
+            end
+          end
+        end
+        context "test" do
+          it "should" do
+        end
+      EOM
+
+      search.call
+
+      expect(search.invalid_blocks.join.strip).to eq('it "should" do')
+    end
+
     it "recording" do
       Dir.mktmpdir do |dir|
         dir = Pathname(dir)
@@ -140,8 +158,6 @@ module SyntaxErrorSearch
              1  require 'rails_helper'
              2
              3  RSpec.describe AclassNameHere, type: :worker do
-          ❯  4    describe "thing" do
-          ❯ 16    end # line 16 accidental end, but valid block
           ❯ 30    end # mismatched due to 16
             31  end
         EOM
@@ -227,11 +243,8 @@ module SyntaxErrorSearch
           EOM
           search.call
 
-          # TODO improve here, eliminate inner def foo
           expect(search.invalid_blocks.join).to eq(<<~EOM)
             Foo.call
-              def foo
-            end
             end
           EOM
         end

@@ -4,6 +4,50 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe AroundBlockScan do
+    it "expands indentation" do
+      source_string = <<~EOM
+        def foo
+          if [options.output_format_tty, options.output_format_block].include?(nil)
+            raise("Bad output mode '\#{v}'; each must be one of \#{lookups.output_formats.keys}.")
+          end
+        end
+      EOM
+
+      code_lines = code_line_array(source_string)
+      block = CodeBlock.new(lines: code_lines[2])
+      expand = AroundBlockScan.new(code_lines: code_lines, block: block)
+        .stop_after_kw
+        .scan_adjacent_indent
+
+      expect(expand.code_block.to_s).to eq(<<~EOM.indent(2))
+        if [options.output_format_tty, options.output_format_block].include?(nil)
+          raise("Bad output mode '\#{v}'; each must be one of \#{lookups.output_formats.keys}.")
+        end
+      EOM
+    end
+
+    it "can stop before hitting another end" do
+      source_string = <<~EOM
+        def lol
+        end
+        def foo
+          puts "lol"
+        end
+      EOM
+
+      code_lines = code_line_array(source_string)
+      block = CodeBlock.new(lines: code_lines[3])
+      expand = AroundBlockScan.new(code_lines: code_lines, block: block)
+      expand.stop_after_kw
+      expand.scan_while {true}
+
+      expect(expand.code_block.to_s).to eq(<<~EOM)
+        def foo
+          puts "lol"
+        end
+      EOM
+    end
+
     it "captures multiple empty and hidden lines" do
       source_string = <<~EOM
         def foo
@@ -67,7 +111,7 @@ module SyntaxErrorSearch
       expand = AroundBlockScan.new(code_lines: code_lines, block: block)
       expand.skip(:empty?)
       expand.skip(:hidden?)
-      expand.scan_while {|line| line.indent >= block.current_indent }
+      expand.scan_neighbors
 
       expect(expand.code_block.to_s).to eq(<<~EOM.indent(4))
 

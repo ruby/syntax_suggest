@@ -32,9 +32,11 @@ module SyntaxErrorSearch
       @code_lines = code_lines
       @orig_before_index = block.lines.first.index
       @orig_after_index = block.lines.last.index
+      @orig_indent = block.current_indent
       @skip_array = []
       @after_array = []
       @before_array = []
+      @stop_after_kw = false
     end
 
     def skip(name)
@@ -42,28 +44,58 @@ module SyntaxErrorSearch
       self
     end
 
+    def stop_after_kw
+      @stop_after_kw = true
+      self
+    end
+
     def scan_while(&block)
+      stop_next = false
+
+      kw_count = 0
+      end_count = 0
       @before_index = before_lines.reverse_each.take_while do |line|
+        next false if stop_next
         next true if @skip_array.detect {|meth| line.send(meth) }
+
+        kw_count += 1 if line.is_kw?
+        end_count += 1 if line.is_end?
+        if @stop_after_kw && kw_count > end_count
+          stop_next = true
+        end
 
         block.call(line)
       end.reverse.first&.index
 
+      stop_next = false
+      kw_count = 0
+      end_count = 0
       @after_index = after_lines.take_while do |line|
+        next false if stop_next
         next true if @skip_array.detect {|meth| line.send(meth) }
+
+        kw_count += 1 if line.is_kw?
+        end_count += 1 if line.is_end?
+        if @stop_after_kw && end_count > kw_count
+          stop_next = true
+        end
 
         block.call(line)
       end.last&.index
       self
     end
 
+    def scan_neighbors
+      self.scan_while {|line| line.not_empty? && line.indent >= @orig_indent }
+    end
+
     def scan_adjacent_indent
       before_indent = @code_lines[@orig_before_index.pred]&.indent || 0
       after_indent = @code_lines[@orig_after_index.next]&.indent || 0
 
+
       indent = [before_indent, after_indent].min
-      @before_index = before_index.pred if before_indent >= indent
-      @after_index = after_index.next if after_indent >= indent
+      self.scan_while {|line| line.not_empty? && line.indent >= indent }
 
       self
     end

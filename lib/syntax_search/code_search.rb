@@ -28,7 +28,7 @@ module SyntaxErrorSearch
     private; attr_reader :frontier; public
     public; attr_reader :invalid_blocks, :record_dir, :code_lines
 
-    def initialize(source, record_dir: ENV["SYNTAX_SEARCH_RECORD_DIR"])
+    def initialize(source, record_dir: ENV["SYNTAX_SEARCH_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil)
       @source = source
       if record_dir
         @time = Time.now.strftime('%Y-%m-%d-%H-%M-%s-%N')
@@ -108,7 +108,6 @@ module SyntaxErrorSearch
       push(block, name: "expand")
     end
 
-
     def sweep_heredocs
       HeredocBlockParse.new(
         source: @source,
@@ -118,9 +117,16 @@ module SyntaxErrorSearch
       end
     end
 
+    def sweep_comments
+      @code_lines.select(&:is_comment?).each do |line|
+        line.mark_invisible
+      end
+    end
+
     # Main search loop
     def call
       sweep_heredocs
+      sweep_comments
       until frontier.holds_all_syntax_errors?
         @tick += 1
 
