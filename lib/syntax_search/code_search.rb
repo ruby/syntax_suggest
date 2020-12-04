@@ -108,7 +108,6 @@ module SyntaxErrorSearch
       push(block, name: "expand")
     end
 
-
     def sweep_heredocs
       HeredocBlockParse.new(
         source: @source,
@@ -118,9 +117,16 @@ module SyntaxErrorSearch
       end
     end
 
+    def sweep_comments
+      @code_lines.select(&:is_comment?).each do |line|
+        line.mark_invisible
+      end
+    end
+
     # Main search loop
     def call
       sweep_heredocs
+      sweep_comments
       until frontier.holds_all_syntax_errors?
         @tick += 1
 

@@ -62,6 +62,7 @@ if file.nil? || file.empty?
 end
 
 file = Pathname(file)
+options[:record_dir] = "tmp" if ENV["DEBUG"]
 
 $stderr.puts "Record dir: #{options[:record_dir]}"  if options[:record_dir]
 

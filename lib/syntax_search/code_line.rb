@@ -39,6 +39,37 @@ module SyntaxErrorSearch
       @indent = SpaceCount.indent(line)
       @status = nil # valid, invalid, unknown
       @invalid = false
+
+      @kw_count = 0
+      @end_count = 0
+      @lex = LexAll.new(source: line)
+      @lex.each do |lex|
+        next unless lex.type == :on_kw
+
+        case lex.token
+        when 'def', 'case', 'for', 'begin', 'class', 'module', 'if', 'unless', 'while', 'until' , 'do'
+          @kw_count += 1
+        when 'end'
+          @end_count += 1
+        end
+      end
+
+      @is_comment = true if @lex.detect {|lex| lex.type != :on_sp}&.type == :on_comment
+
+      @is_kw = (@kw_count - @end_count) > 0
+      @is_end = (@end_count - @kw_count) > 0
+    end
+
+    def is_comment?
+      @is_comment
+    end
+
+    def is_kw?
+      @is_kw
+    end
+
+    def is_end?
+      @is_end
     end
 
     def mark_invalid

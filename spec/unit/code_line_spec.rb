@@ -4,6 +4,29 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeLine do
+    it "knows it's a comment" do
+      line = CodeLine.new(line: "   # iama comment", index: 0)
+      expect(line.is_comment?).to be_truthy
+      expect(line.is_end?).to be_falsey
+      expect(line.is_kw?).to be_falsey
+    end
+
+    it "knows it's got an end" do
+      line = CodeLine.new(line: "   end", index: 0)
+
+      expect(line.is_comment?).to be_falsey
+      expect(line.is_end?).to be_truthy
+      expect(line.is_kw?).to be_falsey
+    end
+
+    it "knows it's got a keyword" do
+      line = CodeLine.new(line: "  if", index: 0)
+
+      expect(line.is_comment?).to be_falsey
+      expect(line.is_end?).to be_falsey
+      expect(line.is_kw?).to be_truthy
+    end
+
     it  "can be marked as invalid or valid" do
       code_lines = code_line_array(<<~EOM)
         def foo

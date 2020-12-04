@@ -44,21 +44,16 @@ module SyntaxErrorSearch
 
     def expand_indent(block)
       block = AroundBlockScan.new(code_lines: @code_lines, block: block)
+        .stop_after_kw
         .scan_adjacent_indent
         .code_block
-
-      # Handle if/else/end case
-      if (next_block = expand_neighbors(block, grab_empty: false))
-        return next_block
-      else
-        return block
-      end
     end
 
     def expand_neighbors(block, grab_empty: true)
       scan = AroundBlockScan.new(code_lines: @code_lines, block: block)
         .skip(:hidden?)
-        .scan_while {|line| line.not_empty? && line.indent >= block.current_indent }
+        .stop_after_kw
+        .scan_neighbors
 
       # Slurp up empties
       if grab_empty

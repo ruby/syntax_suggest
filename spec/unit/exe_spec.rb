@@ -27,20 +27,16 @@ module SyntaxErrorSearch
     end
 
     it "handles heredocs" do
-      Dir.mktmpdir do |dir|
-        dir = Pathname(dir)
+      Tempfile.create do |file|
         lines = fixtures_dir.join("rexe.rb").read.lines
         lines.delete_at(85 - 1)
 
-        ruby_file = dir.join("tmp.rb")
-        ruby_file.write(lines.join)
+        Pathname(file.path).write(lines.join)
 
-        out = exe("#{ruby_file} --no-terminal")
+        out = exe("#{file.path} --no-terminal")
         expect(out.strip).to include(<<~EOM.indent(4))
              77    class Lookups
           ❯  78      def input_modes
-          ❯  87      def input_formats
-          ❯  94      end
         EOM
       end
     end

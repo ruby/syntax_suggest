@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Block expansion is now lexically aware of keywords (def/do/end etc.) (https://github.com/zombocom/syntax_search/pull/24)
 - Fix bug where not all of a source is lexed which is used in heredoc detection/removal (https://github.com/zombocom/syntax_search/pull/23)
 
 ## 0.1.5
