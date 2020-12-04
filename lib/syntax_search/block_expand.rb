@@ -44,6 +44,7 @@ module SyntaxErrorSearch
 
     def expand_indent(block)
       block = AroundBlockScan.new(code_lines: @code_lines, block: block)
+        .skip(:hidden?)
         .stop_after_kw
         .scan_adjacent_indent
         .code_block
