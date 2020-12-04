@@ -34,9 +34,12 @@ module SyntaxErrorSearch
         Pathname(file.path).write(lines.join)
 
         out = exe("#{file.path} --no-terminal")
-        expect(out.strip).to include(<<~EOM.indent(4))
+
+        expect(out).to include(<<~EOM.indent(4))
              77    class Lookups
           ❯  78      def input_modes
+            148    end
+            551  end
         EOM
       end
     end

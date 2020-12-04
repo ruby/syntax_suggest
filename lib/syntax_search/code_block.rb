@@ -23,6 +23,10 @@ module SyntaxErrorSearch
       @lines = Array(lines)
     end
 
+    def visible_lines
+      @lines.select(&:visible?).select(&:not_empty?)
+    end
+
     def mark_invisible
       @lines.map(&:mark_invisible)
     end

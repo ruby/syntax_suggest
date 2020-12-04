@@ -85,6 +85,26 @@ module SyntaxErrorSearch
       self
     end
 
+    def on_falling_indent
+      last_indent = @orig_indent
+      before_lines.reverse.each do |line|
+        next if line.empty?
+        if line.indent < last_indent
+          yield line
+          last_indent = line.indent
+        end
+      end
+
+      last_indent = @orig_indent
+      after_lines.each do |line|
+        next if line.empty?
+        if line.indent < last_indent
+          yield line
+          last_indent = line.indent
+        end
+      end
+    end
+
     def scan_neighbors
       self.scan_while {|line| line.not_empty? && line.indent >= @orig_indent }
     end
@@ -92,7 +112,6 @@ module SyntaxErrorSearch
     def scan_adjacent_indent
       before_indent = @code_lines[@orig_before_index.pred]&.indent || 0
       after_indent = @code_lines[@orig_after_index.next]&.indent || 0
-
 
       indent = [before_indent, after_indent].min
       self.scan_while {|line| line.not_empty? && line.indent >= indent }
