@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    syntax_search (0.1.5)
+    syntax_search (0.2.0)
 
 GEM
   remote: https://rubygems.org/
