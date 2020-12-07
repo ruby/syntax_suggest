@@ -9,7 +9,9 @@ module SyntaxErrorSearch
     end
 
     def exe(cmd)
-      run!("#{exe_path} #{cmd}")
+      out = run!("#{exe_path} #{cmd}")
+      puts out if ENV["DEBUG"]
+      out
     end
 
     it "parses valid code" do

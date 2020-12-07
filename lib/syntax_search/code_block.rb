@@ -52,7 +52,11 @@ module SyntaxErrorSearch
     # populate an array with multiple code blocks then call `sort!`
     # on it without having to specify the sorting criteria
     def <=>(other)
-      self.current_indent <=> other.current_indent
+      out = self.current_indent <=> other.current_indent
+      return out if out != 0
+
+      # Stable sort
+      self.starts_at <=> other.starts_at
     end
 
     def current_indent
