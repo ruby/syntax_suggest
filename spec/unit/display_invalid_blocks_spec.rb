@@ -10,15 +10,21 @@ module SyntaxErrorSearch
         end
         class OH
 
+          def nope
+          end
+
           def lol
           end
 
           it "foo"
+            puts "here"
           end
 
           def haha
           end
 
+          def nope
+          end
         end
 
         class Zerg
@@ -35,7 +41,7 @@ module SyntaxErrorSearch
 
       # Finds lines previously hidden
       lines = code_context.call
-      expect(lines.select(&:hidden?).map(&:line_number)).to eq([11, 12])
+      # expect(lines.select(&:hidden?).map(&:line_number)).to eq([11, 12])
 
       out = DisplayCodeWithLineNumbers.new(
         lines: lines,
@@ -43,13 +49,13 @@ module SyntaxErrorSearch
 
       expect(out).to eq(<<~EOM.indent(2))
          3  class OH
-         5    def lol
-         6    end
-         8    it "foo"
+         8    def lol
          9    end
-        11    def haha
-        12    end
-        14  end
+        11    it "foo"
+        13    end
+        15    def haha
+        16    end
+        20  end
       EOM
     end
 

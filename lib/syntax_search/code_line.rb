@@ -68,6 +68,10 @@ module SyntaxErrorSearch
       @is_comment
     end
 
+    def not_comment?
+      !is_comment?
+    end
+
     def is_kw?
       @is_kw
     end
@@ -106,6 +110,8 @@ module SyntaxErrorSearch
     def line_number
       index + 1
     end
+
+    alias :number :line_number
 
     def not_empty?
       !empty?

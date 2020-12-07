@@ -36,11 +36,10 @@ module SyntaxErrorSearch
     def call
       @blocks.each do |block|
         around_lines = AroundBlockScan.new(code_lines: @code_lines, block: block)
-          .stop_after_kw
-          .scan_while {|line| line.empty? || line.indent >= block.current_indent }
-          .code_block
-          .lines
-          .select {|l| l.indent == block.current_indent && ! block.lines.include?(l) }
+          .start_at_next_line
+          .capture_neighbor_context
+
+        around_lines -= block.lines
 
         @lines_to_output.concat(around_lines)
 
@@ -52,7 +51,12 @@ module SyntaxErrorSearch
         end
       end
 
-      return @lines_to_output.uniq.select(&:not_empty?).sort
+      @lines_to_output.select!(&:not_empty?)
+      @lines_to_output.select!(&:not_comment?)
+      @lines_to_output.uniq!
+      @lines_to_output.sort!
+
+      return @lines_to_output
     end
   end
 end
