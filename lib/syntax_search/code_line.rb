@@ -29,7 +29,7 @@ module SyntaxErrorSearch
   # Marking a line as invisible also lets the overall program know
   # that it should not check that area for syntax errors.
   class CodeLine
-    attr_reader :line, :index, :indent
+    attr_reader :line, :index, :indent, :original_line
 
     def initialize(line: , index:)
       @original_line = line.freeze
@@ -60,8 +60,16 @@ module SyntaxErrorSearch
       @is_end = (@end_count - @kw_count) > 0
     end
 
+    def <=>(b)
+      self.index <=> b.index
+    end
+
     def is_comment?
       @is_comment
+    end
+
+    def not_comment?
+      !is_comment?
     end
 
     def is_kw?
@@ -102,6 +110,8 @@ module SyntaxErrorSearch
     def line_number
       index + 1
     end
+
+    alias :number :line_number
 
     def not_empty?
       !empty?

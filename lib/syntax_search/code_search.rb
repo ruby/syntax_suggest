@@ -79,6 +79,14 @@ module SyntaxErrorSearch
       end
     end
 
+    # Removes the block without putting it back in the frontier
+    def sweep(block:, name: )
+      record(block: block, name: name)
+
+      block.lines.each(&:mark_invisible)
+      frontier.register_indent_block(block)
+    end
+
     # Parses the most indented lines into blocks that are marked
     # and added to the frontier
     def add_invalid_blocks
@@ -118,9 +126,10 @@ module SyntaxErrorSearch
     end
 
     def sweep_comments
-      @code_lines.select(&:is_comment?).each do |line|
-        line.mark_invisible
-      end
+      lines = @code_lines.select(&:is_comment?)
+      return if lines.empty?
+      block = CodeBlock.new(lines: lines)
+      sweep(block: block, name: "comments")
     end
 
     # Main search loop

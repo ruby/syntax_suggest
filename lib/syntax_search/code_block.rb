@@ -23,6 +23,10 @@ module SyntaxErrorSearch
       @lines = Array(lines)
     end
 
+    def visible_lines
+      @lines.select(&:visible?).select(&:not_empty?)
+    end
+
     def mark_invisible
       @lines.map(&:mark_invisible)
     end
@@ -48,7 +52,11 @@ module SyntaxErrorSearch
     # populate an array with multiple code blocks then call `sort!`
     # on it without having to specify the sorting criteria
     def <=>(other)
-      self.current_indent <=> other.current_indent
+      out = self.current_indent <=> other.current_indent
+      return out if out != 0
+
+      # Stable sort
+      self.starts_at <=> other.starts_at
     end
 
     def current_indent

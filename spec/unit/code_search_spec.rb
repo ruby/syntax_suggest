@@ -166,7 +166,6 @@ module SyntaxErrorSearch
       end
     end
 
-
     # For code that's not perfectly formatted, we ideally want to do our best
     # These examples represent the results that exist today, but I would like to improve upon them
     describe "needs improvement" do

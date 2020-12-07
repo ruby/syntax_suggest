@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative "capture_code_context"
+require_relative "display_code_with_line_numbers"
+
 module SyntaxErrorSearch
   # Used for formatting invalid blocks
   class DisplayInvalidBlocks
@@ -11,11 +14,10 @@ module SyntaxErrorSearch
       @io = io
 
       @blocks = Array(blocks)
-      @lines = @blocks.map(&:lines).flatten
-      @code_lines = code_lines
-      @digit_count = @code_lines.last&.line_number.to_s.length
 
-      @invalid_line_hash = @lines.each_with_object({}) {|line, h| h[line] = true  }
+      @invalid_lines = @blocks.map(&:lines).flatten
+      @code_lines = code_lines
+
       @invalid_type = invalid_type
     end
 
@@ -70,41 +72,29 @@ module SyntaxErrorSearch
 
     def code_block
       string = String.new("")
-      string << code_with_lines
+      string << code_with_context
       string
     end
 
-    def terminal_end
-      "\e[0m"
-    end
+    def code_with_context
+      lines = CaptureCodeContext.new(
+        blocks: @blocks,
+        code_lines: @code_lines
+      ).call
 
-    def terminal_highlight
-      "\e[1;3m" # Bold, italics
+      DisplayCodeWithLineNumbers.new(
+        lines: lines,
+        terminal: @terminal,
+        highlight_lines: @invalid_lines,
+      ).call
     end
 
     def code_with_lines
-      @code_lines.map do |line|
-        next if line.hidden?
-
-        string = String.new("")
-        if @invalid_line_hash[line]
-          string << "❯ "
-        else
-          string << "  "
-        end
-
-        number = line.line_number.to_s.rjust(@digit_count)
-        string << number.to_s
-        if line.empty?
-          string << line.to_s
-        else
-          string << "  "
-          string << terminal_highlight if @terminal && @invalid_line_hash[line] # Bold, italics
-          string << line.to_s
-          string << terminal_end if @terminal
-        end
-        string
-      end.join
+      DisplayCodeWithLineNumbers.new(
+        lines: @code_lines.select(&:visible?),
+        terminal: @terminal,
+        highlight_lines: @invalid_lines,
+      ).call
     end
   end
 end
