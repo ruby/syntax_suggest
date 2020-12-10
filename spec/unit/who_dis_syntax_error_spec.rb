@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe WhoDisSyntaxError do
     it  "determines the type of syntax error" do
       expect(
@@ -31,11 +31,11 @@ module SyntaxErrorSearch
       EOM
 
       expect(
-        SyntaxErrorSearch.invalid_type(source).error_symbol
+        DeadEnd.invalid_type(source).error_symbol
       ).to eq(:unmatched_syntax)
 
       expect(
-        SyntaxErrorSearch.invalid_type(source).unmatched_symbol
+        DeadEnd.invalid_type(source).unmatched_symbol
       ).to eq(:|)
     end
   end

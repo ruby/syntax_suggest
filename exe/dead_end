@@ -2,39 +2,35 @@
 
 require 'pathname'
 require "optparse"
-require_relative "../lib/syntax_search.rb"
+require_relative "../lib/dead_end.rb"
 
 options = {}
 options[:terminal] = true
-options[:record_dir] = ENV["SYNTAX_SEARCH_RECORD_DIR"]
+options[:record_dir] = ENV["DEAD_END_RECORD_DIR"]
 
 parser = OptionParser.new do |opts|
   opts.banner = <<~EOM
-    Usage: syntax_search <file> [options]
+    Usage: dead_end <file> [options]
 
-    Parses a ruby source file and searches for syntax error(s) unexpected `end', expecting end-of-input.
+    Parses a ruby source file and searches for syntax error(s) such as
+    unexpected `end', expecting end-of-input.
 
     Example:
 
-      $ syntax_search dog.rb
+      $ dead_end dog.rb
 
       # ...
 
-      ```
-         1  require 'animals'
-         2
-      ❯ 10  defdog
-      ❯ 15  end
-      ❯ 16
-        20  def cat
-        22  end
-      ```
+        ❯ 10  defdog
+        ❯ 15  end
+        ❯ 16
 
     Env options:
 
-      SYNTAX_SEARCH_RECORD_DIR=<dir>
+      DEAD_END_RECORD_DIR=<dir>
 
-      When enabled, records the steps used to search for a syntax error to the given directory
+      When enabled, records the steps used to search for a syntax error to the
+      given directory
 
     Options:
   EOM
@@ -66,7 +62,7 @@ options[:record_dir] = "tmp" if ENV["DEBUG"]
 
 $stderr.puts "Record dir: #{options[:record_dir]}"  if options[:record_dir]
 
-SyntaxErrorSearch.call(
+DeadEnd.call(
   source: file.read,
   filename: file.expand_path,
   terminal: options[:terminal],

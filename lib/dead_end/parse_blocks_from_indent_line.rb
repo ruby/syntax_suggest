@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
   # This class is responsible for generating initial code blocks
   # that will then later be expanded.
   #

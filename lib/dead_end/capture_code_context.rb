@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
 
   # Given a block, this method will capture surrounding
   # code to give the user more context for the location of

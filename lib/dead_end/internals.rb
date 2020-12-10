@@ -1,6 +1,9 @@
 # frozen_string_literal: true
+#
+# This is the top level file, but is moved to `internals`
+# so the top level file can instead enable the "automatic" behavior
 
-require_relative "syntax_search/version"
+require_relative "version"
 
 require 'tmpdir'
 require 'stringio'
@@ -8,10 +11,10 @@ require 'pathname'
 require 'ripper'
 require 'timeout'
 
-module SyntaxErrorSearch
+module DeadEnd
   class Error < StandardError; end
   SEARCH_SOURCE_ON_ERROR_DEFAULT = true
-  TIMEOUT_DEFAULT = ENV.fetch("SYNTAX_SEARCH_TIMEOUT", 5).to_i
+  TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 5).to_i
 
   def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
     raise e if !e.message.include?("end-of-input")
@@ -19,7 +22,7 @@ module SyntaxErrorSearch
     filename = e.message.split(":").first
 
     $stderr.sync = true
-    $stderr.puts "Run `$ syntax_search #{filename}` for more options\n"
+    $stderr.puts "Run `$ dead_end #{filename}` for more options\n"
 
     if search_source_on_error
       self.call(
@@ -50,7 +53,7 @@ module SyntaxErrorSearch
       io: $stderr
     ).call
   rescue Timeout::Error
-    $stderr.puts "Syntax search timed out SYNTAX_SEARCH_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
+    $stderr.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
   end
 
   # Used for counting spaces
@@ -71,12 +74,12 @@ module SyntaxErrorSearch
   #     CodeLine.new(line: "end\n",       index: 2)
   #   ]
   #
-  #   SyntaxErrorSearch.valid_without?(
+  #   DeadEnd.valid_without?(
   #     without_lines: code_lines[1],
   #     code_lines: code_lines
   #   )                                    # => true
   #
-  #   SyntaxErrorSearch.valid?(code_lines) # => false
+  #   DeadEnd.valid?(code_lines) # => false
   def self.valid_without?(without_lines: , code_lines:)
     lines = code_lines - Array(without_lines).flatten
 
@@ -96,12 +99,12 @@ module SyntaxErrorSearch
 
   # Returns truthy if a given input source is valid syntax
   #
-  #   SyntaxErrorSearch.valid?(<<~EOM) # => true
+  #   DeadEnd.valid?(<<~EOM) # => true
   #     def foo
   #     end
   #   EOM
   #
-  #   SyntaxErrorSearch.valid?(<<~EOM) # => false
+  #   DeadEnd.valid?(<<~EOM) # => false
   #     def foo
   #       def bar # Syntax error here
   #     end
@@ -110,14 +113,14 @@ module SyntaxErrorSearch
   # You can also pass in an array of lines and they'll be
   # joined before evaluating
   #
-  #   SyntaxErrorSearch.valid?(
+  #   DeadEnd.valid?(
   #     [
   #       "def foo\n",
   #       "end\n"
   #     ]
   #   ) # => true
   #
-  #   SyntaxErrorSearch.valid?(
+  #   DeadEnd.valid?(
   #     [
   #       "def foo\n",
   #       "  def bar\n", # Syntax error here
@@ -138,16 +141,16 @@ module SyntaxErrorSearch
   end
 end
 
-require_relative "syntax_search/code_line"
-require_relative "syntax_search/code_block"
-require_relative "syntax_search/code_frontier"
-require_relative "syntax_search/display_invalid_blocks"
-require_relative "syntax_search/around_block_scan"
-require_relative "syntax_search/block_expand"
-require_relative "syntax_search/parse_blocks_from_indent_line"
+require_relative "code_line"
+require_relative "code_block"
+require_relative "code_frontier"
+require_relative "display_invalid_blocks"
+require_relative "around_block_scan"
+require_relative "block_expand"
+require_relative "parse_blocks_from_indent_line"
 
-require_relative "syntax_search/code_search"
-require_relative "syntax_search/who_dis_syntax_error"
-require_relative "syntax_search/heredoc_block_parse"
-require_relative "syntax_search/lex_all"
-require_relative "syntax_search/trailing_slash_join"
+require_relative "code_search"
+require_relative "who_dis_syntax_error"
+require_relative "heredoc_block_parse"
+require_relative "lex_all"
+require_relative "trailing_slash_join"

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
   # Represents a single line of code of a given source file
   #
   # This object contains metadata about the line such as

@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe AroundBlockScan do
     it "expands indentation" do
       source_string = <<~EOM

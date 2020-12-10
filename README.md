@@ -1,43 +1,27 @@
-# SyntaxSearch
+# DeadEnd
 
-Imagine you're programming, everything is awesome. You write code, it runs. Still awesome. You write more code, you save it, you run it and then:
+An AI powered library to find syntax errors in your source code:
 
-```
-file.rb:333: syntax error, unexpected `end', expecting end-of-input
-```
-
-What happened? Likely you forgot a `def`, `do`, or maybe you deleted some code and missed an `end`. Either way it's an extremely unhelpful error and a very time consuming mistake to track down.
-
-What if I told you, that there was a library that helped find your missing `def`s and missing `do`s. What if instead of searching through hundreds of lines of source for the cause of your syntax error, there was a way to highlight just code in the file that contained syntax errors.
-
-    $ syntax_search path/to/file.rb
-
-    SyntaxSearch: Unmatched `end` detected
+    DeadEnd: Unmatched `end` detected
 
     This code has an unmatched `end`. Ensure that all `end` lines
     in your code have a matching syntax keyword  (`def`,  `do`, etc.)
     and that you don't have any extra `end` lines.
 
-    file: path/to/file.rb
+    file: path/to/dog.rb
     simplified:
 
-       1  require 'zoo'
-       2
-       3  class Animal
-       4
-    ❯  5    defdog
+       3  class Dog
+    ❯  5    defbark
     ❯  7    end
-       8
       12  end
-
-How much would you pay for such a library? A million, a billion, a trillion? Well friends, today is your lucky day because you can use this library today for free!
 
 ## Installation in your codebase
 
 To automatically search syntax errors when they happen, add this to your Gemfile:
 
 ```ruby
-gem 'syntax_search', require: "syntax_search/auto"
+gem 'dead_end'
 ```
 
 And then execute:
@@ -47,13 +31,13 @@ And then execute:
 If your application is not calling `Bundler.require` then you must manually add a require:
 
 ```ruby
-require "syntax_search/auto"
+require "dead_end"
 ```
 
 If you're using rspec add this to your `.rspec` file:
 
 ```
---require syntax_search/auto
+--require dead_end
 ```
 
 > This is needed because people can execute a single test file via `bundle exec rspec path/to/file_spec.rb` and if that file has a syntax error, it won't load `spec_helper.rb` to trigger any requires.
@@ -62,13 +46,40 @@ If you're using rspec add this to your `.rspec` file:
 
 To get the CLI and manually search for syntax errors, install the gem:
 
-    $ gem install syntax_search
+    $ gem install dead_end
 
-This gives you the CLI command `$ syntax_search` for more info run `$ syntax_search --help`.
+This gives you the CLI command `$ dead_end` for more info run `$ dead_end --help`.
 
-## What does it do?
+## What syntax errors does it handle?
 
-When your code triggers a SyntaxError due to an "unexpected `end'" in a file, this library fires to narrow down your search to the most likely offending locations.
+- Missing `end`:
+
+```
+class Dog
+  def bark
+    puts "bark"
+
+  def woof
+    puts "woof"
+  end
+end
+# => scratch.rb:8: syntax error, unexpected end-of-input, expecting `end'
+```
+
+- Unexpected `end`
+
+```
+class Dog
+  def speak
+    @sounds.each |sound| # Note the missing `do` here
+      puts sound
+    end
+  end
+end
+# => scratch.rb:7: syntax error, unexpected `end', expecting end-of-input
+```
+
+As well as unmatched `|` and unmatched `}`. These errors can be time consuming to debug because Ruby often only tells you the last line in the file. The command `ruby -wc path/to/file.rb` can narrow it down a little bit, but this library does a better job.
 
 ## Sounds cool, but why isn't this baked into Ruby directly?
 
@@ -76,6 +87,10 @@ I would love to get something like this directly in Ruby, but I first need to pr
 
 1. Get real world useage and feedback. If we gave you an awful suggestion, let us know! We try to handle lots of cases well, but maybe we could be better.
 2. Prove out demand. If you like this idea, then vote for it by putting it in your Gemfile.
+
+## Artificial Inteligence?
+
+This library uses a goal-seeking algorithm similar to that of a path-finding search. For more information [read the blog post about how it works under the hood](https://schneems.com/2020/12/01/squash-unexpectedend-errors-with-syntaxsearch/).
 
 ## How does it detect syntax error locations?
 
@@ -87,16 +102,6 @@ Here's an example:
 
 ![](assets/syntax_search.gif)
 
-## How is source code broken up into smaller blocks?
-
-By definition source code with a syntax error in it cannot be parsed, so we have to guess how to chunk up the file into smaller pieces. Once we've split up the file we can safely rule out or zoom into a specific piece of code to determine the location of the syntax error. This libary uses indentation and empty lines to make guesses about what might be a "block" of code. Once we've got a chunk of code, we can test it.
-
-At the end of the day we can't say where the syntax error is FOR SURE, but we can get pretty close. It sounds simple when spelled out like this, but it's a very complicated problem. Even when code is not correctly indented/formatted we can still likely tell you where to start searching even if we can't point at the exact problem line or location.
-
-## How does this gem know when a syntax error occured in my code?
-
-Right now the search isn't performed automatically when you get a syntax error. Instead we append a warning message letting you know how to test the file. Eventually we'll enable the seach by default instead of printing a warning message. To do both of these we have to monkeypatch `require` in the same way that bootsnap does.
-
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
@@ -105,7 +110,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/zombocom/syntax_search. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/syntax_search/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/zombocom/dead_end. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/zombocom/dead_end/blob/master/CODE_OF_CONDUCT.md).
 
 
 ## License
@@ -114,4 +119,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the SyntaxErrorSearch project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/zombocom/syntax_search/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the DeadEnd project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/zombocom/dead_end/blob/master/CODE_OF_CONDUCT.md).

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
   # Takes in a source, and returns blocks containing each heredoc
   class HeredocBlockParse
     private; attr_reader :code_lines, :lex; public

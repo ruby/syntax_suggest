@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
   # Searches code for a syntax error
   #
   # The bulk of the heavy lifting is done in:
@@ -28,7 +28,7 @@ module SyntaxErrorSearch
     private; attr_reader :frontier; public
     public; attr_reader :invalid_blocks, :record_dir, :code_lines
 
-    def initialize(source, record_dir: ENV["SYNTAX_SEARCH_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil)
+    def initialize(source, record_dir: ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil)
       @source = source
       if record_dir
         @time = Time.now.strftime('%Y-%m-%d-%H-%M-%s-%N')

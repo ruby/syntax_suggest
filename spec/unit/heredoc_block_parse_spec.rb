@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
 
   RSpec.describe "HeredocBlockParse" do
     it "works" do
@@ -12,7 +12,7 @@ module SyntaxErrorSearch
       expect(blocks[0].to_s).to eq(<<-'EOL')
       @io.puts <<~EOM
 
-        SyntaxErrorSearch: A syntax error was detected
+        DeadEnd: A syntax error was detected
 
         This code has an unmatched `end` this is caused by either
         missing a syntax keyword (`def`,  `do`, etc.) or inclusion

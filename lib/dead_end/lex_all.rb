@@ -1,4 +1,4 @@
-module SyntaxErrorSearch
+module DeadEnd
   # Ripper.lex is not guaranteed to lex the entire source document
   #
   # lex = LexAll.new(source: source)

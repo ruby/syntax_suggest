@@ -2,10 +2,10 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe "exe" do
     def exe_path
-      root_dir.join("exe").join("syntax_search")
+      root_dir.join("exe").join("dead_end")
     end
 
     def exe(cmd)
@@ -30,7 +30,7 @@ module SyntaxErrorSearch
 
     it "handles heredocs" do
       Tempfile.create do |file|
-        lines = fixtures_dir.join("rexe.rb").read.lines
+        lines = fixtures_dir.join("rexe.rb.txt").read.lines
         lines.delete_at(85 - 1)
 
         Pathname(file.path).write(lines.join)

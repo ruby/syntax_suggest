@@ -3,7 +3,7 @@
 require_relative "capture_code_context"
 require_relative "display_code_with_line_numbers"
 
-module SyntaxErrorSearch
+module DeadEnd
   # Used for formatting invalid blocks
   class DisplayInvalidBlocks
     attr_reader :filename
@@ -51,7 +51,7 @@ module SyntaxErrorSearch
       case @invalid_obj.error_symbol
       when :missing_end
         <<~EOM
-          SyntaxSearch: Missing `end` detected
+          DeadEnd: Missing `end` detected
 
           This code has a missing `end`. Ensure that all
           syntax keywords (`def`, `do`, etc.) have a matching `end`.
@@ -60,7 +60,7 @@ module SyntaxErrorSearch
         case @invalid_obj.unmatched_symbol
         when :end
           <<~EOM
-            SyntaxSearch: Unmatched `end` detected
+            DeadEnd: Unmatched `end` detected
 
             This code has an unmatched `end`. Ensure that all `end` lines
             in your code have a matching syntax keyword  (`def`,  `do`, etc.)
@@ -68,7 +68,7 @@ module SyntaxErrorSearch
           EOM
         when :|
           <<~EOM
-            SyntaxSearch: Unmatched `|` character detected
+            DeadEnd: Unmatched `|` character detected
 
             Example:
 
@@ -76,13 +76,13 @@ module SyntaxErrorSearch
           EOM
         when :"}"
           <<~EOM
-            SyntaxSearch: Unmatched `}` character detected
+            DeadEnd: Unmatched `}` character detected
 
             This code has an unmatched `}`. Ensure that opening curl braces are
             closed: `{ }`.
           EOM
         else
-          "SyntaxSearch: Unmatched #{@invalid_obj.unmatched_symbol}` detected"
+          "DeadEnd: Unmatched #{@invalid_obj.unmatched_symbol}` detected"
         end
       end
 

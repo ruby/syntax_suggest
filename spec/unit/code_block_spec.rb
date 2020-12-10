@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe CodeBlock do
     it "can detect if it's valid or not" do
       code_lines = code_line_array(<<~EOM)

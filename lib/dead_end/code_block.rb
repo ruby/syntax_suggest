@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
   # Multiple lines form a singular CodeBlock
   #
   # Source code is made of multiple CodeBlocks.
@@ -68,7 +68,7 @@ module SyntaxErrorSearch
     end
 
     def valid?
-      SyntaxErrorSearch.valid?(self.to_s)
+      DeadEnd.valid?(self.to_s)
     end
 
     def to_s

@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe DisplayInvalidBlocks do
     it "Unmatched | banner" do
       source = <<~EOM
@@ -48,7 +48,7 @@ module SyntaxErrorSearch
         blocks: CodeBlock.new(lines: code_lines),
         invalid_obj: WhoDisSyntaxError.new(source),
       )
-      expect(display.banner).to include("SyntaxSearch: Unmatched `end` detected")
+      expect(display.banner).to include("DeadEnd: Unmatched `end` detected")
     end
 
     it "missing end banner" do
@@ -64,7 +64,7 @@ module SyntaxErrorSearch
         blocks: CodeBlock.new(lines: code_lines),
         invalid_obj: WhoDisSyntaxError.new(source),
       )
-      expect(display.banner).to include("SyntaxSearch: Missing `end` detected")
+      expect(display.banner).to include("DeadEnd: Missing `end` detected")
     end
 
     it "captures surrounding context on same indent" do
@@ -199,7 +199,7 @@ module SyntaxErrorSearch
       )
       display.call
       expect(io.string).to include("❯ 2    def hello")
-      expect(io.string).to include("SyntaxSearch")
+      expect(io.string).to include("DeadEnd")
     end
 
     it " wraps code with github style codeblocks" do

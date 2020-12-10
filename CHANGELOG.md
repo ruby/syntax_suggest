@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 1.0.0
+
+- Gem name changed from `syntax_search` to `dead_end` (https://github.com/zombocom/syntax_search/pull/30)
+- Moved `syntax_search/auto` behavior to top level require (https://github.com/zombocom/syntax_search/pull/30)
 - Error banner now indicates when missing a `|` or `}` in addition to `end` (https://github.com/zombocom/syntax_search/pull/29)
 - Trailing slashes are now handled (joined) before the code search (https://github.com/zombocom/syntax_search/pull/28)
 
