@@ -46,7 +46,7 @@ module SyntaxErrorSearch
       filename: filename,
       terminal: terminal,
       code_lines: search.code_lines,
-      invalid_type: invalid_type(source),
+      invalid_obj: invalid_type(source),
       io: $stderr
     ).call
   rescue Timeout::Error
@@ -134,7 +134,7 @@ module SyntaxErrorSearch
 
 
   def self.invalid_type(source)
-    WhoDisSyntaxError.new(source).call.error_symbol
+    WhoDisSyntaxError.new(source).call
   end
 end
 

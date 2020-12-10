@@ -4,6 +4,69 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe DisplayInvalidBlocks do
+    it "Unmatched | banner" do
+      source = <<~EOM
+        Foo.call do |
+        end
+      EOM
+      code_lines = code_line_array(source)
+
+      display = DisplayInvalidBlocks.new(
+        code_lines: code_lines,
+        blocks: CodeBlock.new(lines: code_lines),
+        invalid_obj: WhoDisSyntaxError.new(source),
+      )
+      expect(display.banner).to include("Unmatched `|` character detected")
+    end
+
+    it "Unmatched } banner" do
+      source = <<~EOM
+        class Cat
+          lol = {
+        end
+      EOM
+      code_lines = code_line_array(source)
+
+      display = DisplayInvalidBlocks.new(
+        code_lines: code_lines,
+        blocks: CodeBlock.new(lines: code_lines),
+        invalid_obj: WhoDisSyntaxError.new(source),
+      )
+      expect(display.banner).to include("Unmatched `}` character detected")
+    end
+
+    it "Unmatched end banner" do
+      source = <<~EOM
+        class Cat
+          end
+        end
+      EOM
+      code_lines = code_line_array(source)
+
+      display = DisplayInvalidBlocks.new(
+        code_lines: code_lines,
+        blocks: CodeBlock.new(lines: code_lines),
+        invalid_obj: WhoDisSyntaxError.new(source),
+      )
+      expect(display.banner).to include("SyntaxSearch: Unmatched `end` detected")
+    end
+
+    it "missing end banner" do
+      source = <<~EOM
+        class Cat
+          def meow
+        end
+      EOM
+      code_lines = code_line_array(source)
+
+      display = DisplayInvalidBlocks.new(
+        code_lines: code_lines,
+        blocks: CodeBlock.new(lines: code_lines),
+        invalid_obj: WhoDisSyntaxError.new(source),
+      )
+      expect(display.banner).to include("SyntaxSearch: Missing `end` detected")
+    end
+
     it "captures surrounding context on same indent" do
       syntax_string = <<~EOM
         class Blerg

@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Error banner now indicates when missing a `|` or `}` in addition to `end` (https://github.com/zombocom/syntax_search/pull/29)
 - Trailing slashes are now handled (joined) before the code search (https://github.com/zombocom/syntax_search/pull/28)
 
 ## 0.2.0
