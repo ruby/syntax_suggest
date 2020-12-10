@@ -1,11 +1,13 @@
 PATH
   remote: .
   specs:
-    syntax_search (0.2.0)
+    syntax_search (0.2.1)
+      dead_end (> 0)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    dead_end (1.0.0)
     diff-lcs (1.4.4)
     rake (12.3.3)
     rspec (3.10.0)

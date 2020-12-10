@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'lib/syntax_search/version'
-
 Gem::Specification.new do |spec|
   spec.name          = "syntax_search"
-  spec.version       = SyntaxErrorSearch::VERSION
+  spec.version       = "0.2.1"
   spec.authors       = ["schneems"]
   spec.email         = ["richard.schneeman+foo@gmail.com"]
 
@@ -25,4 +23,6 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
+
+  spec.add_dependency "dead_end",      "> 0"
 end
