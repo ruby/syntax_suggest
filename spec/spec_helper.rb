@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "syntax_search"
+require "dead_end"
 
 require 'tempfile'
 
@@ -36,7 +36,7 @@ end
 def code_line_array(string)
   code_lines = []
   string.lines.each_with_index do |line, index|
-    code_lines << SyntaxErrorSearch::CodeLine.new(line: line, index: index)
+    code_lines << DeadEnd::CodeLine.new(line: line, index: index)
   end
   code_lines
 end

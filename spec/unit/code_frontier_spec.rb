@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe CodeFrontier do
     it "detect_bad_blocks" do
       code_lines = code_line_array(<<~EOM)

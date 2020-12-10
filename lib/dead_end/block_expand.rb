@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-module SyntaxErrorSearch
+module DeadEnd
   # This class is responsible for taking a code block that exists
   # at a far indentaion and then iteratively increasing the block
   # so that it captures everything within the same indentation block.

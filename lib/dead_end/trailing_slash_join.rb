@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
   # Handles code that contains trailing slashes
   # by turning multiple lines with trailing slash(es) into
   # a single code line

@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe "EndBlockParse" do
     it "finds blocks based on `end` keyword" do
       source = <<~EOM

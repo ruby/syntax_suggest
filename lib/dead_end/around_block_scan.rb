@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 #
-module SyntaxErrorSearch
+module DeadEnd
   # This class is useful for exploring contents before and after
   # a block
   #

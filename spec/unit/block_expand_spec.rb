@@ -3,7 +3,7 @@
 require_relative "../spec_helper.rb"
 
 
-module SyntaxErrorSearch
+module DeadEnd
 
   RSpec.describe BlockExpand do
     it "captures multiple empty and hidden lines" do

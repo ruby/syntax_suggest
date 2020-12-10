@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    syntax_search (0.2.0)
+    dead_end (0.3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -27,10 +27,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dead_end!
   rake (~> 12.0)
   rspec (~> 3.0)
   stackprof
-  syntax_search!
 
 BUNDLED WITH
-   2.1.4
+   2.2.0.rc.1

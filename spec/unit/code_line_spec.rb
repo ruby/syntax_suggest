@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe CodeLine do
     it "trailing slash" do
       code_lines = code_line_array(<<~'EOM')
@@ -63,7 +63,7 @@ module SyntaxErrorSearch
         end
       EOM
 
-      expect(SyntaxErrorSearch.valid?(code_lines)).to be_falsey
+      expect(DeadEnd.valid?(code_lines)).to be_falsey
       expect(code_lines.join).to eq(<<~EOM)
         def foo
           Array(value) |x|
@@ -84,7 +84,7 @@ module SyntaxErrorSearch
         Array(value) |x|
         end
       EOM
-      expect(SyntaxErrorSearch.valid?(code_lines)).to be_falsey
+      expect(DeadEnd.valid?(code_lines)).to be_falsey
     end
 
     it "knows empty lines" do
@@ -96,7 +96,7 @@ module SyntaxErrorSearch
 
       expect(code_lines.map(&:empty?)).to eq([false, true, false])
       expect(code_lines.map(&:not_empty?)).to eq([true, false, true])
-      expect(code_lines.map {|l| SyntaxErrorSearch.valid?(l) }).to eq([true, true, true])
+      expect(code_lines.map {|l| DeadEnd.valid?(l) }).to eq([true, true, true])
     end
 
     it "counts indentations" do

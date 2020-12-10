@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SyntaxErrorSearch
+module DeadEnd
   # The main function of the frontier is to hold the edges of our search and to
   # evaluate when we can stop searching.
   #
@@ -64,7 +64,7 @@ module SyntaxErrorSearch
         block.lines
       end
 
-      SyntaxErrorSearch.valid_without?(
+      DeadEnd.valid_without?(
         without_lines: without_lines,
         code_lines: @code_lines
       )

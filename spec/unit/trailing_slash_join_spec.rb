@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper.rb"
 
-module SyntaxErrorSearch
+module DeadEnd
   RSpec.describe TrailingSlashJoin do
 
     it "formats output" do
