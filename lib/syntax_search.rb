@@ -6,10 +6,12 @@ require 'tmpdir'
 require 'stringio'
 require 'pathname'
 require 'ripper'
+require 'timeout'
 
 module SyntaxErrorSearch
   class Error < StandardError; end
   SEARCH_SOURCE_ON_ERROR_DEFAULT = true
+  TIMEOUT_DEFAULT = ENV.fetch("SYNTAX_SEARCH_TIMEOUT", 5).to_i
 
   def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
     raise e if !e.message.include?("end-of-input")
@@ -32,8 +34,11 @@ module SyntaxErrorSearch
     raise e
   end
 
-  def self.call(source: , filename: , terminal: false, record_dir: nil)
-    search = CodeSearch.new(source, record_dir: record_dir).call
+  def self.call(source: , filename: , terminal: false, record_dir: nil, timeout: TIMEOUT_DEFAULT)
+    search = nil
+    Timeout.timeout(timeout) do
+      search = CodeSearch.new(source, record_dir: record_dir).call
+    end
 
     blocks = search.invalid_blocks
     DisplayInvalidBlocks.new(
@@ -44,6 +49,8 @@ module SyntaxErrorSearch
       invalid_type: invalid_type(source),
       io: $stderr
     ).call
+  rescue Timeout::Error
+    $stderr.puts "Syntax search timed out SYNTAX_SEARCH_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
   end
 
   # Used for counting spaces
@@ -143,3 +150,4 @@ require_relative "syntax_search/code_search"
 require_relative "syntax_search/who_dis_syntax_error"
 require_relative "syntax_search/heredoc_block_parse"
 require_relative "syntax_search/lex_all"
+require_relative "syntax_search/trailing_slash_join"

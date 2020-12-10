@@ -6,6 +6,7 @@
 /pkg/
 /spec/reports/
 /tmp/
+scratch.rb
 
 # rspec failure tracking
 .rspec_status

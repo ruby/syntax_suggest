@@ -35,9 +35,12 @@ module SyntaxErrorSearch
         @record_dir = Pathname(record_dir).join(@time).tap {|p| p.mkpath }
         @write_count = 0
       end
-      @code_lines = source.lines.map.with_index do |line, i|
+      code_lines = source.lines.map.with_index do |line, i|
         CodeLine.new(line: line, index: i)
       end
+
+      @code_lines = TrailingSlashJoin.new(code_lines: code_lines).call
+
       @frontier = CodeFrontier.new(code_lines: @code_lines)
       @invalid_blocks = []
       @name_tick = Hash.new {|hash, k| hash[k] = 0 }

@@ -4,6 +4,20 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeLine do
+    it "trailing slash" do
+      code_lines = code_line_array(<<~'EOM')
+        it "trailing s" \
+           "lash" do
+      EOM
+
+      expect(code_lines.map(&:trailing_slash?)).to eq([true, false])
+
+      code_lines = code_line_array(<<~'EOM')
+        amazing_print: ->(obj)  { obj.ai + "\n" },
+      EOM
+      expect(code_lines.map(&:trailing_slash?)).to eq([false])
+    end
+
     it "knows it's a comment" do
       line = CodeLine.new(line: "   # iama comment", index: 0)
       expect(line.is_comment?).to be_truthy

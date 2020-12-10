@@ -5,6 +5,33 @@ require_relative "../spec_helper.rb"
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
     it "handles no spaces between blocks" do
+      search = CodeSearch.new(<<~'EOM')
+        require "rails_helper"
+        RSpec.describe TelehealthAppointment, type: :model do
+          describe "#participants_state" do
+            context "timezones workaround" do
+              it "should receive a time in UTC format and return the time with the"\
+                "office's UTC offset substracted from it" do
+                travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
+                  office = build(:office)
+                end
+              end
+            end
+          end
+          describe "#past?" do
+            context "more than 15 min have passed since appointment start time" do
+              it "returns true" do # <== HERE
+            end
+          end
+        end
+      EOM
+
+      search.call
+
+      expect(search.invalid_blocks.join.strip).to eq('it "returns true" do # <== HERE')
+    end
+
+    it "handles no spaces between blocks" do
       search = CodeSearch.new(<<~EOM)
         context "timezones workaround" do
           it "should receive a time in UTC format and return the time with the" do
