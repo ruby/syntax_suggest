@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "dead_end"
+require "dead_end/internals" # Don't auto load code to
 
 require 'tempfile'
 

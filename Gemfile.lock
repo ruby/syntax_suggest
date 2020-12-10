@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dead_end (0.3.0)
+    dead_end (1.0.0)
 
 GEM
   remote: https://rubygems.org/
@@ -33,4 +33,4 @@ DEPENDENCIES
   stackprof
 
 BUNDLED WITH
-   2.2.0.rc.1
+   2.1.4

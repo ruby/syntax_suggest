@@ -1,4 +1,4 @@
-require_relative "../dead_end"
+require_relative "../dead_end/internals"
 
 require_relative "auto.rb"
 

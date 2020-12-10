@@ -1,4 +1,4 @@
-require_relative "../dead_end"
+require_relative "../dead_end/internals"
 
 # Monkey patch kernel to ensure that all `require` calls call the same
 # method
