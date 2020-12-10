@@ -8,7 +8,7 @@ module SyntaxErrorSearch
   class DisplayInvalidBlocks
     attr_reader :filename
 
-    def initialize(code_lines: ,blocks:, io: $stderr, filename: nil, terminal: false, invalid_type: :unmatched_end)
+    def initialize(code_lines: ,blocks:, io: $stderr, filename: nil, terminal: false, invalid_obj: WhoDisSyntaxError::Null.new)
       @terminal = terminal
       @filename = filename
       @io = io
@@ -18,7 +18,7 @@ module SyntaxErrorSearch
       @invalid_lines = @blocks.map(&:lines).flatten
       @code_lines = code_lines
 
-      @invalid_type = invalid_type
+      @invalid_obj = invalid_obj
     end
 
     def call
@@ -36,34 +36,56 @@ module SyntaxErrorSearch
     end
 
     private def found_invalid_blocks
-      case @invalid_type
-      when :missing_end
-        @io.puts <<~EOM
-
-          SyntaxSearch: Missing `end` detected
-
-          This code has a missing `end`. Ensure that all
-          syntax keywords (`def`, `do`, etc.) have a matching `end`.
-
-        EOM
-      when :unmatched_end
-        @io.puts <<~EOM
-
-          SyntaxSearch: Unmatched `end` detected
-
-          This code has an unmatched `end`. Ensure that all `end` lines
-          in your code have a matching syntax keyword  (`def`,  `do`, etc.)
-          and that you don't have any extra `end` lines.
-
-        EOM
-      end
-
+      @io.puts
+      @io.puts banner
+      @io.puts
       @io.puts("file: #{filename}") if filename
       @io.puts <<~EOM
         simplified:
 
         #{indent(code_block)}
       EOM
+    end
+
+    def banner
+      case @invalid_obj.error_symbol
+      when :missing_end
+        <<~EOM
+          SyntaxSearch: Missing `end` detected
+
+          This code has a missing `end`. Ensure that all
+          syntax keywords (`def`, `do`, etc.) have a matching `end`.
+        EOM
+      when :unmatched_syntax
+        case @invalid_obj.unmatched_symbol
+        when :end
+          <<~EOM
+            SyntaxSearch: Unmatched `end` detected
+
+            This code has an unmatched `end`. Ensure that all `end` lines
+            in your code have a matching syntax keyword  (`def`,  `do`, etc.)
+            and that you don't have any extra `end` lines.
+          EOM
+        when :|
+          <<~EOM
+            SyntaxSearch: Unmatched `|` character detected
+
+            Example:
+
+              `do |x` should be `do |x|`
+          EOM
+        when :"}"
+          <<~EOM
+            SyntaxSearch: Unmatched `}` character detected
+
+            This code has an unmatched `}`. Ensure that opening curl braces are
+            closed: `{ }`.
+          EOM
+        else
+          "SyntaxSearch: Unmatched #{@invalid_obj.unmatched_symbol}` detected"
+        end
+      end
+
     end
 
     def indent(string, with: "    ")

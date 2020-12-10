@@ -4,6 +4,44 @@ require_relative "../spec_helper.rb"
 
 module SyntaxErrorSearch
   RSpec.describe CodeSearch do
+    it "handles mismatched |" do
+      source = <<~EOM
+        class Blerg
+          Foo.call do |a
+          end # one
+
+          puts lol
+          class Foo
+          end # two
+        end # three
+      EOM
+      search = CodeSearch.new(source)
+      search.call
+
+      expect(search.invalid_blocks.join).to eq(<<~EOM.indent(2))
+        Foo.call do |a
+        end # one
+      EOM
+    end
+
+    it "handles mismatched }" do
+      source = <<~EOM
+        class Blerg
+          Foo.call do {
+
+          puts lol
+          class Foo
+          end # two
+        end # three
+      EOM
+      search = CodeSearch.new(source)
+      search.call
+
+      expect(search.invalid_blocks.join).to eq(<<~EOM.indent(2))
+        Foo.call do {
+      EOM
+    end
+
     it "handles no spaces between blocks" do
       search = CodeSearch.new(<<~'EOM')
         require "rails_helper"
