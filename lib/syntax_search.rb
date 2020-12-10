@@ -50,7 +50,7 @@ module SyntaxErrorSearch
       io: $stderr
     ).call
   rescue Timeout::Error
-    $stderr.puts "Syntax search timed out SYNTAX_SEARCH_TIMEOUT=#{timeout}"
+    $stderr.puts "Syntax search timed out SYNTAX_SEARCH_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
   end
 
   # Used for counting spaces
@@ -150,3 +150,4 @@ require_relative "syntax_search/code_search"
 require_relative "syntax_search/who_dis_syntax_error"
 require_relative "syntax_search/heredoc_block_parse"
 require_relative "syntax_search/lex_all"
+require_relative "syntax_search/trailing_slash_join"

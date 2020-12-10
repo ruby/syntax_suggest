@@ -29,6 +29,8 @@ module SyntaxErrorSearch
   # Marking a line as invisible also lets the overall program know
   # that it should not check that area for syntax errors.
   class CodeLine
+    TRAILING_SLASH = ("\\" + $/).freeze
+
     attr_reader :line, :index, :indent, :original_line
 
     def initialize(line: , index:)
@@ -40,24 +42,34 @@ module SyntaxErrorSearch
       @status = nil # valid, invalid, unknown
       @invalid = false
 
-      @kw_count = 0
-      @end_count = 0
-      @lex = LexAll.new(source: line)
-      @lex.each do |lex|
+      lex_detect!
+    end
+
+    private def lex_detect!
+      lex = LexAll.new(source: line)
+      kw_count = 0
+      end_count = 0
+      lex.each do |lex|
         next unless lex.type == :on_kw
 
         case lex.token
         when 'def', 'case', 'for', 'begin', 'class', 'module', 'if', 'unless', 'while', 'until' , 'do'
-          @kw_count += 1
+          kw_count += 1
         when 'end'
-          @end_count += 1
+          end_count += 1
         end
       end
 
-      @is_comment = true if @lex.detect {|lex| lex.type != :on_sp}&.type == :on_comment
+      @is_kw = (kw_count - end_count) > 0
+      @is_end = (end_count - kw_count) > 0
+      @is_comment = lex.detect {|lex| lex.type != :on_sp}&.type == :on_comment
+      @is_trailing_slash = lex.last.token == TRAILING_SLASH
+    end
 
-      @is_kw = (@kw_count - @end_count) > 0
-      @is_end = (@end_count - @kw_count) > 0
+    alias :original :original_line
+
+    def trailing_slash?
+      @is_trailing_slash
     end
 
     def <=>(b)
@@ -110,7 +122,6 @@ module SyntaxErrorSearch
     def line_number
       index + 1
     end
-
     alias :number :line_number
 
     def not_empty?

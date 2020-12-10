@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Trailing slashes are now handled (joined) before the code search (https://github.com/zombocom/syntax_search/pull/28)
+
 ## 0.2.0
 
 - Simplify large file output so minimal context around the invalid section is shown (https://github.com/zombocom/syntax_search/pull/26)
