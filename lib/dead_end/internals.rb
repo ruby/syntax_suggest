@@ -40,6 +40,7 @@ module DeadEnd
   def self.call(source: , filename: , terminal: false, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     Timeout.timeout(timeout) do
+      record_dir ||= ENV["DEBUG"] ? "tmp" : nil
       search = CodeSearch.new(source, record_dir: record_dir).call
     end
 
