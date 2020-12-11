@@ -40,7 +40,7 @@ module DeadEnd
         .skip(:hidden?)
         .scan_while {|line| line.indent >= target_line.indent }
 
-      neighbors = @code_lines[scan.before_index..scan.after_index]
+      neighbors = scan.code_block.lines
 
       until neighbors.empty?
         lines = [neighbors.pop]
