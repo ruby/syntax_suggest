@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.0.1
+
 - Fix performance issue when evaluating multiple block combinations (https://github.com/zombocom/dead_end/pull/35)
 
 ## 1.0.0
