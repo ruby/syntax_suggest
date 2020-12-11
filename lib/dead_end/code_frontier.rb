@@ -143,7 +143,7 @@ module DeadEnd
     # Given that we know our syntax error exists somewhere in our frontier, we want to find
     # the smallest possible set of blocks that contain all the syntax errors
     def detect_invalid_blocks
-      self.class.combination(@frontier).detect do |block_array|
+      self.class.combination(@frontier.select(&:invalid?)).detect do |block_array|
         holds_all_syntax_errors?(block_array)
       end || []
     end

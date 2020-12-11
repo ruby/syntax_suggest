@@ -53,8 +53,9 @@ module DeadEnd
       invalid_obj: invalid_type(source),
       io: io
     ).call
-  rescue Timeout::Error
+  rescue Timeout::Error => e
     io.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
+    io.puts e.backtrace.first(3).join($/)
   end
 
   # Used for counting spaces

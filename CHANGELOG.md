@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Fix performance issue when evaluating multiple block combinations (https://github.com/zombocom/dead_end/pull/35)
+
 ## 1.0.0
 
 - Gem name changed from `syntax_search` to `dead_end` (https://github.com/zombocom/syntax_search/pull/30)
