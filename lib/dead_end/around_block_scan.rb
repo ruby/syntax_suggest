@@ -153,11 +153,20 @@ module DeadEnd
       self.scan_while {|line| line.not_empty? && line.indent >= @orig_indent }
     end
 
-    def scan_adjacent_indent
-      before_indent = @code_lines[@orig_before_index.pred]&.indent || 0
-      after_indent = @code_lines[@orig_after_index.next]&.indent || 0
+    def next_up
+      @code_lines[before_index.pred]
+    end
 
-      indent = [before_indent, after_indent].min
+    def next_down
+      @code_lines[after_index.next]
+    end
+
+    def scan_adjacent_indent
+      before_after_indent = []
+      before_after_indent << next_up&.indent || 0
+      before_after_indent << next_down&.indent || 0
+
+      indent = before_after_indent.min
       self.scan_while {|line| line.not_empty? && line.indent >= indent }
 
       self
