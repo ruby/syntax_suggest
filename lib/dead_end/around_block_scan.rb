@@ -183,11 +183,11 @@ module DeadEnd
     end
 
     private def before_lines
-      @code_lines[0...@orig_before_index]
+      @code_lines[0...@orig_before_index] || []
     end
 
     private def after_lines
-      @code_lines[@orig_after_index.next..-1]
+      @code_lines[after_index.next..-1] || []
     end
   end
 end

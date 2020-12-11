@@ -206,6 +206,7 @@ module DeadEnd
       code_lines = code_line_array(<<~EOM)
         class OH
           def hello
+
           def hai
           end
         end
@@ -220,9 +221,9 @@ module DeadEnd
       expect(display.code_block).to eq(<<~EOM)
          1  class OH
        ❯ 2    def hello
-         3    def hai
-         4    end
-         5  end
+         4    def hai
+         5    end
+         6  end
       EOM
     end
 
