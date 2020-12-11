@@ -11,8 +11,26 @@ module DeadEnd
     class Null
       def error_symbol; :missing_end; end
       def unmatched_symbol; :end ; end
+      def indentation_lines; []; end
     end
+
     attr_reader :error, :run_once
+
+    def warn(fmt, *args)
+      @indentation_lines = []
+      if fmt.match?(/mismatched indentations/)
+        @indentation_lines << args.last
+      end
+    end
+
+    def indentation_lines
+      call
+      @indentation_lines
+    end
+
+    def indentation_indexes
+      indentation_lines.map {|x| x - 1 }
+    end
 
     # Return options:
     #   - :missing_end
@@ -35,10 +53,23 @@ module DeadEnd
 
     def call
       @run_once ||= begin
-        parse
+        wrap_verbose do
+          parse
+        end
         true
       end
       self
+    end
+
+    # Needed to capture "weak warnings" from the parser
+    # about "mismatched indentations", the same ones seen from
+    # `$ ruby -wc` output.
+    def wrap_verbose
+      verbose = $VERBOSE
+      $VERBOSE = true
+      yield
+    ensure
+      $VERBOSE = verbose if verbose
     end
 
     def on_parse_error(msg)
