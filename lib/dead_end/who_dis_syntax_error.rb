@@ -25,7 +25,7 @@ module DeadEnd
 
     def indentation_lines
       call
-      @indentation_lines
+      @indentation_lines || []
     end
 
     def indentation_indexes

@@ -4,7 +4,7 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe WhoDisSyntaxError do
-    it "indentation lines" do
+    it "indentation lines for keyword 'def'" do
       source = <<~'EOM'
       class Dog       # 1
         def bark      # 2
@@ -21,6 +21,22 @@ module DeadEnd
       ).to eq([1])
     end
 
+    it "indentation lines for keyword 'do'" do
+      source = <<~'EOM'
+      class Dog       # 1
+        Foo.call do   # 2
+          puts "woof" # 3
+      end             # 4
+      EOM
+
+      expect(
+        WhoDisSyntaxError.new(source).call.indentation_lines
+      ).to eq([]) # :( Ruby gives no warnings here
+
+      expect(
+        WhoDisSyntaxError.new(source).call.indentation_indexes
+      ).to eq([])
+    end
 
     it "determines the type of syntax error" do
       expect(
