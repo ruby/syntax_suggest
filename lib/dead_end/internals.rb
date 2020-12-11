@@ -37,7 +37,7 @@ module DeadEnd
     raise e
   end
 
-  def self.call(source: , filename: , terminal: false, record_dir: nil, timeout: TIMEOUT_DEFAULT)
+  def self.call(source: , filename: , terminal: false, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     Timeout.timeout(timeout) do
       search = CodeSearch.new(source, record_dir: record_dir).call
@@ -50,10 +50,10 @@ module DeadEnd
       terminal: terminal,
       code_lines: search.code_lines,
       invalid_obj: invalid_type(source),
-      io: $stderr
+      io: io
     ).call
   rescue Timeout::Error
-    $stderr.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
+    io.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
   end
 
   # Used for counting spaces
