@@ -113,8 +113,8 @@ Rails.application.routes.draw do
   namespace :admin do
     resource :session
 
-  match "/out_of_office(*path)", via: :all, to: redirect { |_params, req|
-    uri = URI(req.path.gsub("out_of_office", "in_office"))
+  match "/foobar(*path)", via: :all, to: redirect { |_params, req|
+    uri = URI(req.path.gsub("foobar", "foobaz"))
     uri.query = req.query_string.presence
     uri.to_s
   }
