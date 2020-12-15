@@ -45,19 +45,19 @@ module DeadEnd
     it "handles no spaces between blocks" do
       search = CodeSearch.new(<<~'EOM')
         require "rails_helper"
-        RSpec.describe TelehealthAppointment, type: :model do
-          describe "#participants_state" do
-            context "timezones workaround" do
-              it "should receive a time in UTC format and return the time with the"\
-                "office's UTC offset substracted from it" do
+        RSpec.describe Foo, type: :model do
+          describe "#bar" do
+            context "context" do
+              it "foos the bar with a foo and then bazes the foo with a bar to"\
+                "fooify the barred bar" do
                 travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
-                  office = build(:office)
+                  foo = build(:foo)
                 end
               end
             end
           end
-          describe "#past?" do
-            context "more than 15 min have passed since appointment start time" do
+          describe "#baz?" do
+            context "baz has barred the foo" do
               it "returns true" do # <== HERE
             end
           end
@@ -71,8 +71,8 @@ module DeadEnd
 
     it "handles no spaces between blocks" do
       search = CodeSearch.new(<<~EOM)
-        context "timezones workaround" do
-          it "should receive a time in UTC format and return the time with the" do
+        context "foo bar" do
+          it "bars the foo" do
             travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
             end
           end

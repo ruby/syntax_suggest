@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Replace some references in tests with foobar style code (https://github.com/zombocom/dead_end/pull/38)
+
 ## 1.0.1
 
 - Fix performance issue when evaluating multiple block combinations (https://github.com/zombocom/dead_end/pull/35)
