@@ -36,9 +36,14 @@ module DeadEnd
     def initialize(line: , index:)
       @original_line = line.freeze
       @line = @original_line
-      @empty = line.strip.empty?
+      if line.strip.empty?
+        @empty = true
+        @indent = 0
+      else
+        @empty = false
+        @indent = SpaceCount.indent(line)
+      end
       @index = index
-      @indent = SpaceCount.indent(line)
       @status = nil # valid, invalid, unknown
       @invalid = false
 

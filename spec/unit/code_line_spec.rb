@@ -96,5 +96,14 @@ module DeadEnd
 
       expect(code_lines.map(&:indent)).to eq([0, 2, 4, 2, 0])
     end
+
+    it "doesn't count empty lines as having an indentation" do
+      code_lines = code_line_array(<<~EOM)
+
+
+      EOM
+
+      expect(code_lines.map(&:indent)).to eq([0, 0])
+    end
   end
 end
