@@ -41,20 +41,6 @@ module DeadEnd
       expect(line.is_kw?).to be_truthy
     end
 
-    it  "can be marked as invalid or valid" do
-      code_lines = code_line_array(<<~EOM)
-        def foo
-          Array(value) |x|
-          end
-        end
-      EOM
-
-      expect(code_lines[0].marked_invalid?).to be_falsey
-      code_lines[0].mark_invalid
-      expect(code_lines[0].marked_invalid?).to be_truthy
-
-    end
-
     it "ignores marked lines" do
       code_lines = code_line_array(<<~EOM)
         def foo

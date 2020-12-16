@@ -92,15 +92,6 @@ module DeadEnd
       @is_end
     end
 
-    def mark_invalid
-      @invalid = true
-      self
-    end
-
-    def marked_invalid?
-      @invalid
-    end
-
     def mark_invisible
       @line = ""
       self
