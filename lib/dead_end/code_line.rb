@@ -77,6 +77,10 @@ module DeadEnd
       @is_trailing_slash
     end
 
+    def indent_index
+      @indent_index ||= [indent, index]
+    end
+
     def <=>(b)
       self.index <=> b.index
     end

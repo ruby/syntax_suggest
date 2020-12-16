@@ -75,7 +75,7 @@ module DeadEnd
       record(block: block, name: name)
 
       if block.valid?
-        block.lines.each(&:mark_invisible)
+        block.mark_invisible
         frontier << block
       else
         frontier << block
@@ -92,7 +92,7 @@ module DeadEnd
 
     # Parses the most indented lines into blocks that are marked
     # and added to the frontier
-    def add_invalid_blocks
+    def visit_new_blocks
       max_indent = frontier.next_indent_line&.indent
 
       while (line = frontier.next_indent_line) && (line.indent == max_indent)
@@ -145,7 +145,7 @@ module DeadEnd
         if frontier.expand?
           expand_invalid_block
         else
-          add_invalid_blocks
+          visit_new_blocks
         end
       end
 

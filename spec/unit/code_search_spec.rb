@@ -445,7 +445,7 @@ module DeadEnd
           puts 'lol'
         end
       EOM
-      search.add_invalid_blocks
+      search.visit_new_blocks
 
       expect(search.code_lines.join).to eq(<<~EOM)
         def foo

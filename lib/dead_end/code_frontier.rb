@@ -10,20 +10,20 @@ module DeadEnd
   # sorted and then the frontier can be filtered. Large blocks that totally contain a
   # smaller block will cause the smaller block to be evicted.
   #
-  #   CodeFrontier#<<
-  #   CodeFrontier#pop
+  #   CodeFrontier#<<(block) # Adds block to frontier
+  #   CodeFrontier#pop # Removes block from frontier
   #
   # ## Knowing where we can go
   #
-  # Internally it keeps track of an "indent hash" which is exposed via `next_indent_line`
+  # Internally it keeps track of "unvisited" lines which is exposed via `next_indent_line`
   # when called this will return a line of code with the most indentation.
   #
-  # This line of code can be used to build a CodeBlock via and then when that code block
-  # is added back to the frontier, then the lines in the code block are removed from the
-  # indent hash so we don't double-create the same block.
+  # This line of code can be used to build a CodeBlock and then when that code block
+  # is added back to the frontier, then the lines are removed from the
+  # "unvisited" so we don't double-create the same block.
   #
-  #   CodeFrontier#next_indent_line
-  #   CodeFrontier#register_indent_block
+  #   CodeFrontier#next_indent_line # Shows next line
+  #   CodeFrontier#register_indent_block(block) # Removes lines from unvisited
   #
   # ## Knowing when to stop
   #
@@ -42,13 +42,7 @@ module DeadEnd
     def initialize(code_lines: )
       @code_lines = code_lines
       @frontier = []
-      @indent_hash = {}
-      code_lines.each do |line|
-        next if line.empty?
-
-        @indent_hash[line.indent] ||= []
-        @indent_hash[line.indent] << line
-      end
+      @unvisited_lines = @code_lines.sort_by(&:indent_index)
     end
 
     def count
@@ -75,38 +69,31 @@ module DeadEnd
       return @frontier.pop
     end
 
-    def indent_hash_indent
-      @indent_hash.keys.sort.last
-    end
-
     def next_indent_line
-      indent = @indent_hash.keys.sort.last
-      @indent_hash[indent]&.first
+      @unvisited_lines.last
     end
 
     def expand?
       return false if @frontier.empty?
-      return true if @indent_hash.empty?
+      return true if @unvisited_lines.empty?
 
       frontier_indent = @frontier.last.current_indent
-      hash_indent = @indent_hash.keys.sort.last
+      unvisited_indent= next_indent_line.indent
 
       if ENV["DEBUG"]
         puts "```"
         puts @frontier.last.to_s
         puts "```"
         puts "  @frontier indent: #{frontier_indent}"
-        puts "  @hash indent:     #{hash_indent}"
+        puts "  @unvisited indent:     #{unvisited_indent}"
       end
 
-      frontier_indent >= hash_indent
+      # Expand all blocks before moving to unvisited lines
+      frontier_indent >= unvisited_indent
     end
 
     def register_indent_block(block)
-      block.lines.each do |line|
-        @indent_hash[line.indent]&.delete(line)
-      end
-      @indent_hash.select! {|k, v| !v.empty?}
+      @unvisited_lines -= block.lines
       self
     end
 
