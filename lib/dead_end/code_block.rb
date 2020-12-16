@@ -17,10 +17,12 @@ module DeadEnd
   #
   #
   class CodeBlock
+    UNSET = Object.new.freeze
     attr_reader :lines
 
     def initialize(lines: [])
       @lines = Array(lines)
+      @valid = UNSET
     end
 
     def visible_lines
@@ -68,7 +70,8 @@ module DeadEnd
     end
 
     def valid?
-      DeadEnd.valid?(self.to_s)
+      return @valid if @valid != UNSET
+      @valid = DeadEnd.valid?(self.to_s)
     end
 
     def to_s
