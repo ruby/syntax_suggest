@@ -36,9 +36,14 @@ module DeadEnd
     def initialize(line: , index:)
       @original_line = line.freeze
       @line = @original_line
-      @empty = line.strip.empty?
+      if line.strip.empty?
+        @empty = true
+        @indent = 0
+      else
+        @empty = false
+        @indent = SpaceCount.indent(line)
+      end
       @index = index
-      @indent = SpaceCount.indent(line)
       @status = nil # valid, invalid, unknown
       @invalid = false
 
@@ -72,6 +77,10 @@ module DeadEnd
       @is_trailing_slash
     end
 
+    def indent_index
+      @indent_index ||= [indent, index]
+    end
+
     def <=>(b)
       self.index <=> b.index
     end
@@ -90,15 +99,6 @@ module DeadEnd
 
     def is_end?
       @is_end
-    end
-
-    def mark_invalid
-      @invalid = true
-      self
-    end
-
-    def marked_invalid?
-      @invalid
     end
 
     def mark_invisible

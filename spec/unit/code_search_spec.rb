@@ -277,7 +277,7 @@ module DeadEnd
 
         it "stacked ends 2" do
           search = CodeSearch.new(<<~EOM)
-            def lol
+            def cat
               blerg
             end
 
@@ -285,7 +285,7 @@ module DeadEnd
             end # one
             end # two
 
-            def lol
+            def dog
             end
           EOM
           search.call
@@ -445,7 +445,7 @@ module DeadEnd
           puts 'lol'
         end
       EOM
-      search.add_invalid_blocks
+      search.visit_new_blocks
 
       expect(search.code_lines.join).to eq(<<~EOM)
         def foo

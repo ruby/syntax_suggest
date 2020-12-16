@@ -1,6 +1,6 @@
 ## HEAD (unreleased)
 
-- Replace some references in tests with foobar style code (https://github.com/zombocom/dead_end/pull/38)
+- Fix bug where empty lines were interpreted to have a zero indentation (https://github.com/zombocom/dead_end/pull/39)
 
 ## 1.0.1
 
