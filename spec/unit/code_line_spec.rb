@@ -4,6 +4,26 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe CodeLine do
+    it "trailing if" do
+      code_lines = code_line_array(<<~'EOM')
+        puts "lol" if foo
+        if foo
+        end
+      EOM
+
+      expect(code_lines.map(&:is_kw?)).to eq([false, true, false])
+    end
+
+    it "trailing unless" do
+      code_lines = code_line_array(<<~'EOM')
+        puts "lol" unless foo
+        unless foo
+        end
+      EOM
+
+      expect(code_lines.map(&:is_kw?)).to eq([false, true, false])
+    end
+
     it "trailing slash" do
       code_lines = code_line_array(<<~'EOM')
         it "trailing s" \
