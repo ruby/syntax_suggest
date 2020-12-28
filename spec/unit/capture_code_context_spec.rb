@@ -4,6 +4,58 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe CaptureCodeContext do
+    it "shows ends of captured block" do
+      lines = fixtures_dir.join("rexe.rb.txt").read.lines
+      lines.delete_at(148 - 1)
+      source = lines.join
+
+      search = CodeSearch.new(source)
+      search.call
+
+      # expect(search.invalid_blocks.join.strip).to eq('class Dog')
+      display = CaptureCodeContext.new(
+        blocks: search.invalid_blocks,
+        code_lines: search.code_lines
+      )
+      lines = display.call
+
+      lines = lines.sort.map(&:original)
+      expect(lines.join).to eq(<<~EOM)
+        class Rexe
+          VERSION = '1.5.1'
+          PROJECT_URL = 'https://github.com/keithrbennett/rexe'
+          class Lookups
+            def format_requires
+          end
+          class CommandLineParser
+          end
+        end
+      EOM
+    end
+
+    it "shows ends of captured block" do
+      source = <<~'EOM'
+        class Dog
+          def bark
+            puts "woof"
+        end
+      EOM
+      search = CodeSearch.new(source)
+      search.call
+
+      expect(search.invalid_blocks.join.strip).to eq('class Dog')
+      display = CaptureCodeContext.new(
+        blocks: search.invalid_blocks,
+        code_lines: search.code_lines
+      )
+      lines = display.call.sort.map(&:original)
+      expect(lines.join).to eq(<<~EOM)
+        class Dog
+          def bark
+        end
+      EOM
+    end
+
     it "captures surrounding context on falling indent" do
       syntax_string = <<~EOM
         class Blerg
@@ -29,7 +81,7 @@ module DeadEnd
         blocks: search.invalid_blocks,
         code_lines: search.code_lines
       )
-      lines = display.call.sort
+      lines = display.call.sort.map(&:original)
       expect(lines.join).to eq(<<~EOM)
         class OH
           def hello
