@@ -163,8 +163,8 @@ module DeadEnd
 
     def scan_adjacent_indent
       before_after_indent = []
-      before_after_indent << next_up&.indent || 0
-      before_after_indent << next_down&.indent || 0
+      before_after_indent << (next_up&.indent || 0)
+      before_after_indent << (next_down&.indent || 0)
 
       indent = before_after_indent.min
       self.scan_while {|line| line.not_empty? && line.indent >= indent }

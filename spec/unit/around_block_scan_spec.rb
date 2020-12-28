@@ -4,6 +4,29 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe AroundBlockScan do
+    it "scan_adjacent_indent works on first or last line" do
+      source_string = <<~EOM
+        def foo
+          if [options.output_format_tty, options.output_format_block].include?(nil)
+            raise("Bad output mode '\#{v}'; each must be one of \#{lookups.output_formats.keys}.")
+          end
+        end
+      EOM
+
+      code_lines = code_line_array(source_string)
+      block = CodeBlock.new(lines: code_lines[4])
+      expand = AroundBlockScan.new(code_lines: code_lines, block: block)
+        .scan_adjacent_indent
+
+      expect(expand.code_block.to_s).to eq(<<~EOM)
+        def foo
+          if [options.output_format_tty, options.output_format_block].include?(nil)
+            raise("Bad output mode '\#{v}'; each must be one of \#{lookups.output_formats.keys}.")
+          end
+        end
+      EOM
+    end
+
     it "expands indentation" do
       source_string = <<~EOM
         def foo
