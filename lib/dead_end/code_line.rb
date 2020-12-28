@@ -65,9 +65,10 @@ module DeadEnd
         end
       end
 
+      @is_comment = lex.detect {|lex| lex.type != :on_sp}&.type == :on_comment
+      return if @is_comment
       @is_kw = (kw_count - end_count) > 0
       @is_end = (end_count - kw_count) > 0
-      @is_comment = lex.detect {|lex| lex.type != :on_sp}&.type == :on_comment
       @is_trailing_slash = lex.last.token == TRAILING_SLASH
     end
 
