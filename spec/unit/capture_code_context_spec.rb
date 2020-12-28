@@ -4,6 +4,52 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe CaptureCodeContext do
+    it "doesn't capture trailing if or unless" do
+      source = <<~'EOM'
+        def call
+
+          # try do
+
+            @options = CommandLineParser.new.parse
+
+            options.requires.each { |r| require!(r) }
+            load_global_config_if_exists
+            options.loads.each { |file| load(file) }
+
+            @user_source_code = ARGV.join(' ')
+            @user_source_code = 'self' if @user_source_code == ''
+
+            @callable = create_callable
+
+            init_rexe_context
+            init_parser_and_formatters
+
+            # This is where the user's source code will be executed; the action will in turn call `execute`.
+            lookup_action(options.input_mode).call unless options.noop
+
+            output_log_entry
+          end # one
+        end # two
+      EOM
+
+      search = CodeSearch.new(source)
+      search.call
+
+      display = CaptureCodeContext.new(
+        blocks: search.invalid_blocks,
+        code_lines: search.code_lines
+      )
+      lines = display.call
+
+      lines = lines.sort.map(&:original)
+
+      expect(lines.join).to eq(<<~EOM)
+        def call
+          end # one
+        end # two
+      EOM
+    end
+
     it "shows ends of captured block" do
       lines = fixtures_dir.join("rexe.rb.txt").read.lines
       lines.delete_at(148 - 1)

@@ -51,25 +51,29 @@ module DeadEnd
     end
 
     private def lex_detect!
-      lex = LexAll.new(source: line)
+      lex_array = LexAll.new(source: line)
       kw_count = 0
       end_count = 0
-      lex.each do |lex|
+      lex_array.each_with_index do |lex, index|
         next unless lex.type == :on_kw
 
         case lex.token
-        when 'def', 'case', 'for', 'begin', 'class', 'module', 'if', 'unless', 'while', 'until' , 'do'
+        when 'if', 'unless', 'while', 'until'
+          # Only count if/unless when it's not a "trailing" if/unless
+          # https://github.com/ruby/ruby/blob/06b44f819eb7b5ede1ff69cecb25682b56a1d60c/lib/irb/ruby-lex.rb#L374-L375
+          kw_count += 1 if !lex.expr_label?
+        when 'def', 'case', 'for', 'begin', 'class', 'module', 'do'
           kw_count += 1
         when 'end'
           end_count += 1
         end
       end
 
-      @is_comment = lex.detect {|lex| lex.type != :on_sp}&.type == :on_comment
+      @is_comment = lex_array.detect {|lex| lex.type != :on_sp}&.type == :on_comment
       return if @is_comment
       @is_kw = (kw_count - end_count) > 0
       @is_end = (end_count - kw_count) > 0
-      @is_trailing_slash = lex.last.token == TRAILING_SLASH
+      @is_trailing_slash = lex_array.last.token == TRAILING_SLASH
     end
 
     alias :original :original_line

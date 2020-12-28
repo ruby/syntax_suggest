@@ -21,7 +21,7 @@ module DeadEnd
         lineno = @lex.last&.first&.first + 1
       end
 
-      @lex.map! {|(line, _), type, token| LexValue.new(line, _, type, token) }
+      @lex.map! {|(line, _), type, token, state| LexValue.new(line, _, type, token, state) }
     end
 
     def each
@@ -47,11 +47,17 @@ module DeadEnd
     #  lex.type # => :on_indent
     #  lex.token # => "describe"
     class LexValue
-      attr_reader :line, :type, :token
-      def initialize(line, _, type, token)
+      attr_reader :line, :type, :token, :state
+
+      def initialize(line, _, type, token, state)
         @line = line
         @type = type
         @token = token
+        @state = state
+      end
+
+      def expr_label?
+        state.allbits?(Ripper::EXPR_LABEL)
       end
     end
   end
