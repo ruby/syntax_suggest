@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.0.2
+
 - Fix bug where empty lines were interpreted to have a zero indentation (https://github.com/zombocom/dead_end/pull/39)
 - Better results when missing "end" comes at the end of a capturing block (such as a class or module definition) (https://github.com/zombocom/dead_end/issues/32)
 
