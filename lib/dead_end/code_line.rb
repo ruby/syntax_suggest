@@ -31,6 +31,12 @@ module DeadEnd
   class CodeLine
     TRAILING_SLASH = ("\\" + $/).freeze
 
+    def self.parse(source)
+      source.lines.map.with_index do |line, index|
+        CodeLine.new(line: line, index: index)
+      end
+    end
+
     attr_reader :line, :index, :indent, :original_line
 
     def initialize(line: , index:)
