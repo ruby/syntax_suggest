@@ -1,6 +1,7 @@
 ## HEAD (unreleased)
 
-- Do not count trailing if/unless as a kewyword (https://github.com/zombocom/dead_end/pull/44)
+- Annotate NoMethodError in non-production environments (https://github.com/zombocom/dead_end/pull/46)
+- Do not count trailing if/unless as a keyword (https://github.com/zombocom/dead_end/pull/44)
 
 ## 1.0.2
 

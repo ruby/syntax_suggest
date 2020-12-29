@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+#
 require_relative "../dead_end/internals"
 
 # Monkey patch kernel to ensure that all `require` calls call the same
@@ -49,3 +51,49 @@ class Object
   end
 end
 
+module DeadEnd
+  IsProduction = -> {
+    ENV["RAILS_ENV"] == "production" || ENV["RACK_ENV"] == "production"
+  }
+end
+
+# Unlike a syntax error, a NoMethodError can occur hundreds or thousands of times and
+# chew up CPU and other resources. Since this is primarilly a "development" optimization
+# we can attempt to disable this behavior in a production context.
+if !DeadEnd::IsProduction.call
+  class NoMethodError
+    def to_s
+      return super if DeadEnd::IsProduction.call
+
+      file, line, _ = backtrace[0].split(":")
+      return super if !File.exist?(file)
+
+      index = line.to_i - 1
+      source = File.read(file)
+      code_lines = DeadEnd::CodeLine.parse(source)
+
+      block = DeadEnd::CodeBlock.new(lines: code_lines[index])
+      lines = DeadEnd::CaptureCodeContext.new(
+        blocks: block,
+        code_lines: code_lines
+      ).call
+
+      message = super.dup
+      message << $/
+      message << $/
+
+      message << DeadEnd::DisplayCodeWithLineNumbers.new(
+        lines: lines,
+        highlight_lines: block.lines,
+        terminal: self.class.to_tty?
+      ).call
+
+      message << $/
+      message
+    rescue => e
+      puts "DeadEnd Internal error: #{e.message}"
+      puts "DeadEnd Internal backtrace: #{e.backtrace}"
+      super
+    end
+  end
+end

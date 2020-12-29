@@ -1,6 +1,6 @@
 # DeadEnd
 
-An AI powered library to find syntax errors in your source code:
+An error in your code forces you to stop. DeadEnd helps you find those errors to get you back on your way faster.
 
     DeadEnd: Unmatched `end` detected
 
@@ -18,7 +18,7 @@ An AI powered library to find syntax errors in your source code:
 
 ## Installation in your codebase
 
-To automatically search syntax errors when they happen, add this to your Gemfile:
+To automatically annotate errors when they happen, add this to your Gemfile:
 
 ```ruby
 gem 'dead_end'
@@ -44,7 +44,7 @@ If you're using rspec add this to your `.rspec` file:
 
 ## Install the CLI
 
-To get the CLI and manually search for syntax errors, install the gem:
+To get the CLI and manually search for syntax errors (but not automatically annotate them), you can manually install the gem:
 
     $ gem install dead_end
 
@@ -54,7 +54,7 @@ This gives you the CLI command `$ dead_end` for more info run `$ dead_end --help
 
 - Missing `end`:
 
-```
+```ruby
 class Dog
   def bark
     puts "bark"
@@ -68,7 +68,7 @@ end
 
 - Unexpected `end`
 
-```
+```ruby
 class Dog
   def speak
     @sounds.each |sound| # Note the missing `do` here
@@ -81,6 +81,21 @@ end
 
 As well as unmatched `|` and unmatched `}`. These errors can be time consuming to debug because Ruby often only tells you the last line in the file. The command `ruby -wc path/to/file.rb` can narrow it down a little bit, but this library does a better job.
 
+## What other errors does it handle?
+
+In addition to syntax errors, the NoMethodError is annotated to show the line where the error occured, and the surrounding context:
+
+```
+scratch.rb:7:in `call': undefined method `upcase' for nil:NilClass (NoMethodError)
+
+
+  1  class Pet
+  6    def call
+❯ 7      puts "Come here #{@neam.upcase}"
+  8    end
+  9  end
+```
+
 ## Sounds cool, but why isn't this baked into Ruby directly?
 
 I would love to get something like this directly in Ruby, but I first need to prove it's useful. The `did_you_mean` functionality started as a gem that was eventually adopted by a bunch of people and then Ruby core liked it enough that they included it in the source. The goal of this gem is to:
@@ -90,7 +105,7 @@ I would love to get something like this directly in Ruby, but I first need to pr
 
 ## Artificial Inteligence?
 
-This library uses a goal-seeking algorithm similar to that of a path-finding search. For more information [read the blog post about how it works under the hood](https://schneems.com/2020/12/01/squash-unexpectedend-errors-with-syntaxsearch/).
+This library uses a goal-seeking algorithm for syntax error detection similar to that of a path-finding search. For more information [read the blog post about how it works under the hood](https://schneems.com/2020/12/01/squash-unexpectedend-errors-with-syntaxsearch/).
 
 ## How does it detect syntax error locations?
 
