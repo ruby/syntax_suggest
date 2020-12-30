@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Safer NoMethodError annotation (https://github.com/zombocom/dead_end/pull/48)
+
 ## 1.1.0
 
 - Annotate NoMethodError in non-production environments (https://github.com/zombocom/dead_end/pull/46)

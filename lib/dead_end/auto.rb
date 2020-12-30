@@ -62,6 +62,8 @@ end
 # we can attempt to disable this behavior in a production context.
 if !DeadEnd::IsProduction.call
   class NoMethodError
+    alias :original_to_s :to_s
+
     def to_s
       return super if DeadEnd::IsProduction.call
 
@@ -91,8 +93,9 @@ if !DeadEnd::IsProduction.call
       message << $/
       message
     rescue => e
-      puts "DeadEnd Internal error: #{e.message}"
-      puts "DeadEnd Internal backtrace: #{e.backtrace}"
+      puts "DeadEnd Internal error: #{e.original_to_s}"
+      puts "DeadEnd Internal backtrace:"
+      puts backtrace.map {|l| "    " + l }.join($/)
       super
     end
   end

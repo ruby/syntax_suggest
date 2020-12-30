@@ -4,6 +4,38 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe "Requires with ruby cli" do
+    it "does not get in an infinite loop when NoMethodError is raised internally" do
+      Dir.mktmpdir do |dir|
+        @tmpdir = Pathname(dir)
+        @script = @tmpdir.join("script.rb")
+        @script.write <<~'EOM'
+          class DeadEnd::DisplayCodeWithLineNumbers
+            def call
+              raise NoMethodError.new("foo")
+            end
+          end
+
+          class Pet
+            def initialize
+              @name = "cinco"
+            end
+
+            def call
+              puts "Come here #{@neam.upcase}"
+            end
+          end
+
+          Pet.new.call
+        EOM
+
+        out = `ruby -I#{lib_dir} -rdead_end/auto #{@script} 2>&1`
+
+        expect(out).to include("DeadEnd Internal error: foo")
+        expect(out).to include("DeadEnd Internal backtrace")
+        expect($?.success?).to be_falsey
+      end
+    end
+
     it "annotates NoMethodError" do
       Dir.mktmpdir do |dir|
         @tmpdir = Pathname(dir)
