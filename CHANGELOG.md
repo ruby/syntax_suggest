@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.1.1
+
 - Safer NoMethodError annotation (https://github.com/zombocom/dead_end/pull/48)
 
 ## 1.1.0
