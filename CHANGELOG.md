@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 1.1.2
+
+- Namespace Kernel method aliases (https://github.com/zombocom/dead_end/pull/51)
+
 ## 1.1.1
 
 - Safer NoMethodError annotation (https://github.com/zombocom/dead_end/pull/48)

@@ -5,27 +5,27 @@ require_relative "../dead_end/internals"
 # Monkey patch kernel to ensure that all `require` calls call the same
 # method
 module Kernel
-  alias_method :original_require, :require
-  alias_method :original_require_relative, :require_relative
-  alias_method :original_load, :load
+  alias_method :dead_end_original_require, :require
+  alias_method :dead_end_original_require_relative, :require_relative
+  alias_method :dead_end_original_load, :load
 
   def load(file, wrap = false)
-    original_load(file)
+    dead_end_original_load(file)
   rescue SyntaxError => e
     DeadEnd.handle_error(e)
   end
 
   def require(file)
-    original_require(file)
+    dead_end_original_require(file)
   rescue SyntaxError => e
     DeadEnd.handle_error(e)
   end
 
   def require_relative(file)
     if Pathname.new(file).absolute?
-      original_require file
+      dead_end_original_require file
     else
-      original_require File.expand_path("../#{file}", caller_locations(1, 1)[0].absolute_path)
+      dead_end_original_require File.expand_path("../#{file}", caller_locations(1, 1)[0].absolute_path)
     end
   rescue SyntaxError => e
     DeadEnd.handle_error(e)
@@ -62,7 +62,7 @@ end
 # we can attempt to disable this behavior in a production context.
 if !DeadEnd::IsProduction.call
   class NoMethodError
-    alias :original_to_s :to_s
+    alias :dead_end_original_to_s :to_s
 
     def to_s
       return super if DeadEnd::IsProduction.call
@@ -93,7 +93,7 @@ if !DeadEnd::IsProduction.call
       message << $/
       message
     rescue => e
-      puts "DeadEnd Internal error: #{e.original_to_s}"
+      puts "DeadEnd Internal error: #{e.dead_end_original_to_s}"
       puts "DeadEnd Internal backtrace:"
       puts backtrace.map {|l| "    " + l }.join($/)
       super
