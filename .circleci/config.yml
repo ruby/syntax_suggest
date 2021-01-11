@@ -32,6 +32,14 @@ jobs:
       - ruby/install-deps
       - <<: *unit
 
+  "ruby-3-0":
+    docker:
+      - image: circleci/ruby:3.0
+    steps:
+      - checkout
+      - ruby/install-deps
+      - <<: *unit
+
 workflows:
   version: 2
   build:
@@ -39,3 +47,4 @@ workflows:
       - "ruby-2-5"
       - "ruby-2-6"
       - "ruby-2-7"
+      - "ruby-3-0"
