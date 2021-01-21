@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 1.1.3
+
+- Add compatibility with zeitwerk (https://github.com/zombocom/dead_end/pull/52)
+
 ## 1.1.2
 
 - Namespace Kernel method aliases (https://github.com/zombocom/dead_end/pull/51)
