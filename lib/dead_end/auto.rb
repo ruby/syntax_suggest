@@ -5,6 +5,8 @@ require_relative "../dead_end/internals"
 # Monkey patch kernel to ensure that all `require` calls call the same
 # method
 module Kernel
+  module_function
+
   alias_method :dead_end_original_require, :require
   alias_method :dead_end_original_require_relative, :require_relative
   alias_method :dead_end_original_load, :load
