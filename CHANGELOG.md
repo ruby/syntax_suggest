@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.1.4
+
 - Avoid including demo gif in built gem (https://github.com/zombocom/dead_end/pull/53)
 
 ## 1.1.3
