@@ -51,6 +51,24 @@ module DeadEnd
       expect(display.banner).to include("DeadEnd: Unmatched `end` detected")
     end
 
+    it "Unmatched unknown banner" do
+      source = <<~EOM
+        class Cat
+          def meow
+            1 *
+          end
+        end
+      EOM
+      code_lines = code_line_array(source)
+
+      display = DisplayInvalidBlocks.new(
+        code_lines: code_lines,
+        blocks: CodeBlock.new(lines: code_lines),
+        invalid_obj: WhoDisSyntaxError.new(source),
+      )
+      expect(display.banner).to include("DeadEnd: Unmatched `unknown` detected")
+    end
+
     it "missing end banner" do
       source = <<~EOM
         class Cat
