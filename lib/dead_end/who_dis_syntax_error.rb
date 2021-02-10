@@ -45,19 +45,20 @@ module DeadEnd
       @error = msg
       @unmatched_symbol = :unknown
 
-      if @error.match?(/unexpected end-of-input/)
+      case @error
+      when /unexpected end-of-input/
         @error_symbol = :missing_end
-      elsif @error.match?(/expecting end-of-input/)
+      when /expecting end-of-input/
         @error_symbol = :unmatched_syntax
         @unmatched_symbol = :end
-      elsif @error.match?(/unexpected `end'/) ||  # Ruby 2.7 & 3.0
-          @error.match?(/unexpected end,/) ||     # Ruby 2.6
-          @error.match?(/unexpected keyword_end/) # Ruby 2.5
-
-        @error_symbol = :unmatched_syntax
+      when /unexpected `end'/,      # Ruby 2.7 and 3.0
+           /unexpected end/,        # Ruby 2.6
+           /unexpected keyword_end/i # Ruby 2.5
 
         match = @error.match(/expecting '(?<unmatched_symbol>.*)'/)
         @unmatched_symbol = match[:unmatched_symbol].to_sym if match
+
+        @error_symbol = :unmatched_syntax
       else
         @error_symbol = :unknown
       end

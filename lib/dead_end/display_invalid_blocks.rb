@@ -82,7 +82,7 @@ module DeadEnd
             closed: `{ }`.
           EOM
         else
-          "DeadEnd: Unmatched #{@invalid_obj.unmatched_symbol}` detected"
+          "DeadEnd: Unmatched `#{@invalid_obj.unmatched_symbol}` detected"
         end
       end
 
