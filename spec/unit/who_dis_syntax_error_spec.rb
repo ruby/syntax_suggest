@@ -4,7 +4,7 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe WhoDisSyntaxError do
-    it  "determines the type of syntax error" do
+    it "determines the type of syntax error to be an unmatched end" do
       expect(
         WhoDisSyntaxError.new("def foo;").call.error_symbol
       ).to eq(:missing_end)
@@ -18,7 +18,7 @@ module DeadEnd
       ).to eq(:end)
     end
 
-    it "" do
+    it "determines the type of syntax error to be an unmatched pipe" do
       source = <<~EOM
         class Blerg
           Foo.call do |a
@@ -37,6 +37,29 @@ module DeadEnd
       expect(
         DeadEnd.invalid_type(source).unmatched_symbol
       ).to eq(:|)
+    end
+
+    it "determines the type of syntax error to be an unmatched bracket" do
+      source = <<~EOM
+        module Hey
+          class Foo
+            def initialize
+              [1,2,3
+            end
+
+            def call
+            end
+          end
+        end
+      EOM
+
+      expect(
+        DeadEnd.invalid_type(source).error_symbol
+      ).to eq(:unmatched_syntax)
+
+      expect(
+        DeadEnd.invalid_type(source).unmatched_symbol
+      ).to eq(:"]")
     end
   end
 end

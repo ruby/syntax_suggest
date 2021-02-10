@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Parse error once and not twice if there's more than one available (https://github.com/zombocom/dead_end/pull/57)
+
 ## 1.1.4
 
 - Avoid including demo gif in built gem (https://github.com/zombocom/dead_end/pull/53)
