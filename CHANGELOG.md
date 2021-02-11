@@ -1,6 +1,8 @@
 ## HEAD (unreleased)
 
-- Parse error once and not twice if there's more than one available (https://github.com/zombocom/dead_end/pull/57)
+## 1.1.5
+
+- Source code with multiple syntax errors will be indentified by their first syntax error (https://github.com/zombocom/dead_end/pull/57)
 
 ## 1.1.4
 
