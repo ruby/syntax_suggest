@@ -42,6 +42,8 @@ module DeadEnd
     end
 
     def on_parse_error(msg)
+      return if @error_symbol && @unmatched_symbol
+
       @error = msg
       @unmatched_symbol = :unknown
 
