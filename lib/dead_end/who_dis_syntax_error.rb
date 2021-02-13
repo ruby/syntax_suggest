@@ -53,9 +53,11 @@ module DeadEnd
       when /expecting end-of-input/
         @error_symbol = :unmatched_syntax
         @unmatched_symbol = :end
-      when /unexpected `end'/,      # Ruby 2.7 and 3.0
-           /unexpected end/,        # Ruby 2.6
-           /unexpected keyword_end/i # Ruby 2.5
+      when /unexpected `end'/,          # Ruby 2.7 and 3.0
+           /unexpected local variable/, #
+           /unexpected end/,            # Ruby 2.6
+           /unexpected tIDENTIFIER/,    #
+           /unexpected keyword_end/i    # Ruby 2.5
 
         match = @error.match(/expecting '(?<unmatched_symbol>.*)'/)
         @unmatched_symbol = match[:unmatched_symbol].to_sym if match

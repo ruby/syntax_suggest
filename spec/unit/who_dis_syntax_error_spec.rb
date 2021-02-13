@@ -18,25 +18,45 @@ module DeadEnd
       ).to eq(:end)
     end
 
-    it "determines the type of syntax error to be an unmatched pipe" do
-      source = <<~EOM
-        class Blerg
-          Foo.call do |a
-          end # one
+    context "determines the type of syntax error to be an unmatched pipe" do
+      it "with unexpected 'end'" do
+        source = <<~EOM
+          class Blerg
+            Foo.call do |a
+            end # one
 
-          puts lol
-          class Foo
-          end # two
-        end # three
-      EOM
+            puts lol
+            class Foo
+            end # two
+          end # three
+        EOM
 
-      expect(
-        DeadEnd.invalid_type(source).error_symbol
-      ).to eq(:unmatched_syntax)
+        expect(
+          DeadEnd.invalid_type(source).error_symbol
+        ).to eq(:unmatched_syntax)
 
-      expect(
-        DeadEnd.invalid_type(source).unmatched_symbol
-      ).to eq(:|)
+        expect(
+          DeadEnd.invalid_type(source).unmatched_symbol
+        ).to eq(:|)
+      end
+
+      it "with unexpected local variable or method" do
+        source = <<~EOM
+          class Blerg
+             [].each do |a
+              puts a
+            end
+          end
+        EOM
+
+        expect(
+          DeadEnd.invalid_type(source).error_symbol
+        ).to eq(:unmatched_syntax)
+
+        expect(
+          DeadEnd.invalid_type(source).unmatched_symbol
+        ).to eq(:|)
+      end
     end
 
     it "determines the type of syntax error to be an unmatched bracket" do
