@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.1.6
+
 - Consider if syntax error caused an unexpected variable instead of end (https://github.com/zombocom/dead_end/pull/58)
 
 ## 1.1.5
