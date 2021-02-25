@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+- Consider if syntax error caused an unexpected variable instead of end (https://github.com/zombocom/dead_end/pull/58)
+
+## 1.1.5
+
 - Parse error once and not twice if there's more than one available (https://github.com/zombocom/dead_end/pull/57)
 
 ## 1.1.4
