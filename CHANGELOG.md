@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Fix sinatra support for `require_relative` (https://github.com/zombocom/dead_end/pull/63)
+
 ## 1.1.6
 
 - Consider if syntax error caused an unexpected variable instead of end (https://github.com/zombocom/dead_end/pull/58)
