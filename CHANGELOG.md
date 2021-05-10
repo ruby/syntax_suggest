@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.1.7
+
 - Fix sinatra support for `require_relative` (https://github.com/zombocom/dead_end/pull/63)
 
 ## 1.1.6
