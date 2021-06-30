@@ -143,6 +143,30 @@ module DeadEnd
       end
     end
 
+    it "blerg" do
+      Dir.mktmpdir do |dir|
+        @tmpdir = Pathname(dir)
+        @script = @tmpdir.join("script.rb")
+        @script.write <<~EOM
+          class PackBuild
+            private; attr_reader :app_dir, :config, :builder, :image_name, :buildpacks; :env_arguments public
+          end
+        EOM
+
+        require_rb = @tmpdir.join("require.rb")
+        require_rb.write <<~EOM
+          require_relative "./script.rb"
+        EOM
+
+        out = `ruby -I#{lib_dir} -rdead_end/auto #{require_rb} 2>&1`
+
+        puts out
+        # expect(out).to_not include("This code has an unmatched")
+        expect(out).to include("Run `$ dead_end")
+        expect($?.success?).to be_falsey
+      end
+    end
+
     it "detects require error and adds a message with fyi mode" do
       Dir.mktmpdir do |dir|
         @tmpdir = Pathname(dir)

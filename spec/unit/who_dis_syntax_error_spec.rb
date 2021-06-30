@@ -4,6 +4,17 @@ require_relative "../spec_helper.rb"
 
 module DeadEnd
   RSpec.describe WhoDisSyntaxError do
+    it "" do
+      expect(
+        WhoDisSyntaxError.new(<<~EOM).call.error_symbol
+          class PackBuild
+            private; attr_reader :app_dir, :config, :builder, :image_name, :buildpacks; :env_arguments public
+          end
+        EOM
+      ).to eq(:unmatched_syntax)
+    end
+
+
     it "determines the type of syntax error to be an unmatched end" do
       expect(
         WhoDisSyntaxError.new("def foo;").call.error_symbol

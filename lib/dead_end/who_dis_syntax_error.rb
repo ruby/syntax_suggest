@@ -50,9 +50,12 @@ module DeadEnd
       case @error
       when /unexpected end-of-input/
         @error_symbol = :missing_end
-      when /expecting end-of-input/
+      when /expecting end-of-input/,
         @unmatched_symbol = :end
         @error_symbol = :unmatched_syntax
+      when /expecting `end'/,
+           /expecting end/
+        @error_symbol = :missing_end
       when /unexpected .* expecting '(?<unmatched_symbol>.*)'/
         @unmatched_symbol = $1.to_sym if $1
         @error_symbol = :unmatched_syntax
