@@ -78,7 +78,7 @@ module DeadEnd
           <<~EOM
             DeadEnd: Unmatched `}` character detected
 
-            This code has an unmatched `}`. Ensure that opening curl braces are
+            This code has an unmatched `}`. Ensure that opening curly braces are
             closed: `{ }`.
           EOM
         else
