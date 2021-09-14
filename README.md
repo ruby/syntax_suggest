@@ -100,7 +100,7 @@ scratch.rb:7:in `call': undefined method `upcase' for nil:NilClass (NoMethodErro
 
 I would love to get something like this directly in Ruby, but I first need to prove it's useful. The `did_you_mean` functionality started as a gem that was eventually adopted by a bunch of people and then Ruby core liked it enough that they included it in the source. The goal of this gem is to:
 
-1. Get real world useage and feedback. If we gave you an awful suggestion, let us know! We try to handle lots of cases well, but maybe we could be better.
+1. Get real world usage and feedback. If we gave you an awful suggestion, let us know! We try to handle lots of cases well, but maybe we could be better.
 2. Prove out demand. If you like this idea, then vote for it by putting it in your Gemfile.
 
 ## Artificial Inteligence?
