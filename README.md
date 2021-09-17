@@ -81,27 +81,9 @@ end
 
 As well as unmatched `|` and unmatched `}`. These errors can be time consuming to debug because Ruby often only tells you the last line in the file. The command `ruby -wc path/to/file.rb` can narrow it down a little bit, but this library does a better job.
 
-## What other errors does it handle?
-
-In addition to syntax errors, the NoMethodError is annotated to show the line where the error occured, and the surrounding context:
-
-```
-scratch.rb:7:in `call': undefined method `upcase' for nil:NilClass (NoMethodError)
-
-
-  1  class Pet
-  6    def call
-❯ 7      puts "Come here #{@neam.upcase}"
-  8    end
-  9  end
-```
-
 ## Sounds cool, but why isn't this baked into Ruby directly?
 
-I would love to get something like this directly in Ruby, but I first need to prove it's useful. The `did_you_mean` functionality started as a gem that was eventually adopted by a bunch of people and then Ruby core liked it enough that they included it in the source. The goal of this gem is to:
-
-1. Get real world usage and feedback. If we gave you an awful suggestion, let us know! We try to handle lots of cases well, but maybe we could be better.
-2. Prove out demand. If you like this idea, then vote for it by putting it in your Gemfile.
+We are now talking about it https://bugs.ruby-lang.org/issues/18159#change-93682.
 
 ## Artificial Inteligence?
 
