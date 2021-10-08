@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.2.0
+
 - Output improvements via less greedy unmatched kw capture https://github.com/zombocom/dead_end/pull/73
 - Remove NoMethodError patching instead use https://github.com/ruby/error_highlight/ (https://github.com/zombocom/dead_end/pull/71)
 
