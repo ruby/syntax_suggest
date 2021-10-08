@@ -8,7 +8,7 @@ module DeadEnd
   class DisplayInvalidBlocks
     attr_reader :filename
 
-    def initialize(code_lines: ,blocks:, io: $stderr, filename: nil, terminal: false, invalid_obj: WhoDisSyntaxError::Null.new)
+    def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: false, invalid_obj: WhoDisSyntaxError::Null.new)
       @terminal = terminal
       @filename = filename
       @io = io
@@ -85,15 +85,14 @@ module DeadEnd
           "DeadEnd: Unmatched `#{@invalid_obj.unmatched_symbol}` detected"
         end
       end
-
     end
 
     def indent(string, with: "    ")
-      string.each_line.map {|l| with  + l }.join
+      string.each_line.map { |l| with + l }.join
     end
 
     def code_block
-      string = String.new("")
+      string = +""
       string << code_with_context
       string
     end
@@ -107,7 +106,7 @@ module DeadEnd
       DisplayCodeWithLineNumbers.new(
         lines: lines,
         terminal: @terminal,
-        highlight_lines: @invalid_lines,
+        highlight_lines: @invalid_lines
       ).call
     end
 
@@ -115,7 +114,7 @@ module DeadEnd
       DisplayCodeWithLineNumbers.new(
         lines: @code_lines.select(&:visible?),
         terminal: @terminal,
-        highlight_lines: @invalid_lines,
+        highlight_lines: @invalid_lines
       ).call
     end
   end

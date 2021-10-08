@@ -1,15 +1,16 @@
 # frozen_string_literal: true
+
 #
 # This is the top level file, but is moved to `internals`
 # so the top level file can instead enable the "automatic" behavior
 
 require_relative "version"
 
-require 'tmpdir'
-require 'stringio'
-require 'pathname'
-require 'ripper'
-require 'timeout'
+require "tmpdir"
+require "stringio"
+require "pathname"
+require "ripper"
+require "timeout"
 
 module DeadEnd
   class Error < StandardError; end
@@ -17,27 +18,27 @@ module DeadEnd
   TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 5).to_i
 
   def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
-    raise e if !e.message.include?("end-of-input")
+    raise e unless e.message.include?("end-of-input")
 
     filename = e.message.split(":").first
 
     $stderr.sync = true
-    $stderr.puts "Run `$ dead_end #{filename}` for more options\n"
+    warn "Run `$ dead_end #{filename}` for more options\n"
 
     if search_source_on_error
-      self.call(
+      call(
         source: Pathname(filename).read,
         filename: filename,
-        terminal: true,
+        terminal: true
       )
     end
 
-    $stderr.puts ""
-    $stderr.puts ""
+    warn ""
+    warn ""
     raise e
   end
 
-  def self.call(source: , filename: , terminal: false, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
+  def self.call(source:, filename:, terminal: false, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     Timeout.timeout(timeout) do
       record_dir ||= ENV["DEBUG"] ? "tmp" : nil
@@ -82,13 +83,13 @@ module DeadEnd
   #   )                                    # => true
   #
   #   DeadEnd.valid?(code_lines) # => false
-  def self.valid_without?(without_lines: , code_lines:)
+  def self.valid_without?(without_lines:, code_lines:)
     lines = code_lines - Array(without_lines).flatten
 
     if lines.empty?
-      return true
+      true
     else
-      return valid?(lines)
+      valid?(lines)
     end
   end
 
@@ -136,7 +137,6 @@ module DeadEnd
   def self.valid?(source)
     !invalid?(source)
   end
-
 
   def self.invalid_type(source)
     WhoDisSyntaxError.new(source).call

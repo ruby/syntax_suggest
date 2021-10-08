@@ -29,7 +29,7 @@ module DeadEnd
   class ParseBlocksFromIndentLine
     attr_reader :code_lines
 
-    def initialize(code_lines: )
+    def initialize(code_lines:)
       @code_lines = code_lines
     end
 
@@ -38,7 +38,7 @@ module DeadEnd
       scan = AroundBlockScan.new(code_lines: code_lines, block: CodeBlock.new(lines: target_line))
         .skip(:empty?)
         .skip(:hidden?)
-        .scan_while {|line| line.indent >= target_line.indent }
+        .scan_while { |line| line.indent >= target_line.indent }
 
       neighbors = scan.code_block.lines
 
@@ -53,4 +53,3 @@ module DeadEnd
     end
   end
 end
-

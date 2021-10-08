@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeBlock do
@@ -26,7 +26,7 @@ module DeadEnd
       block_1 = CodeBlock.new(lines: code_lines[1])
       block_2 = CodeBlock.new(lines: code_lines[2])
 
-      expect(block_0 <=> block_0).to eq(0)
+      expect(block_0 <=> block_0.dup).to eq(0)
       expect(block_1 <=> block_0).to eq(1)
       expect(block_1 <=> block_2).to eq(-1)
 
@@ -35,7 +35,7 @@ module DeadEnd
 
       block = CodeBlock.new(lines: CodeLine.new(line: " " * 8 + "foo", index: 4))
       array.prepend(block)
-      expect(array.sort.last).to eq(block)
+      expect(array.max).to eq(block)
     end
 
     it "knows it's current indentation level" do

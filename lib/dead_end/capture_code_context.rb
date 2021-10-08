@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module DeadEnd
-
   # Given a block, this method will capture surrounding
   # code to give the user more context for the location of
   # the problem.
@@ -26,7 +25,7 @@ module DeadEnd
   class CaptureCodeContext
     attr_reader :code_lines
 
-    def initialize(blocks: , code_lines:)
+    def initialize(blocks:, code_lines:)
       @blocks = Array(blocks)
       @code_lines = code_lines
       @visible_lines = @blocks.map(&:visible_lines).flatten
@@ -45,13 +44,13 @@ module DeadEnd
       @lines_to_output.uniq!
       @lines_to_output.sort!
 
-      return @lines_to_output
+      @lines_to_output
     end
 
     def capture_falling_indent(block)
       AroundBlockScan.new(
         block: block,
-        code_lines: @code_lines,
+        code_lines: @code_lines
       ).on_falling_indent do |line|
         @lines_to_output << line
       end
@@ -95,7 +94,7 @@ module DeadEnd
       # (this would return line 4)
       #
       #   end             # 4
-      matching_end = lines.select {|line| line.indent == block.current_indent && line.is_end? }.first
+      matching_end = lines.find { |line| line.indent == block.current_indent && line.is_end? }
       return unless matching_end
 
       @lines_to_output << matching_end

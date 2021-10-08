@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe TrailingSlashJoin do
-
     it "formats output" do
       code_lines = code_line_array(<<~'EOM')
         context "timezones workaround" do
@@ -23,14 +22,14 @@ module DeadEnd
           lines: out_code_lines.select(&:visible?)
         ).call
       ).to eq(<<~'EOM'.indent(2))
-         1  context "timezones workaround" do
-         2    it "should receive a time in UTC format and return the time with the"\
-         3      "office's UTC offset substracted from it" do
-         4      travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
-         5        office = build(:office)
-         6      end
-         7    end
-         8  end
+        1  context "timezones workaround" do
+        2    it "should receive a time in UTC format and return the time with the"\
+        3      "office's UTC offset substracted from it" do
+        4      travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
+        5        office = build(:office)
+        6      end
+        7    end
+        8  end
       EOM
 
       expect(

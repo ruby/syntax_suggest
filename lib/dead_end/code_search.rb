@@ -25,14 +25,21 @@ module DeadEnd
   #   # => ["def lol\n"]
   #
   class CodeSearch
-    private; attr_reader :frontier; public
-    public; attr_reader :invalid_blocks, :record_dir, :code_lines
+    private
+
+    attr_reader :frontier
+
+    public
+
+    public
+
+    attr_reader :invalid_blocks, :record_dir, :code_lines
 
     def initialize(source, record_dir: ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil)
       @source = source
       if record_dir
-        @time = Time.now.strftime('%Y-%m-%d-%H-%M-%s-%N')
-        @record_dir = Pathname(record_dir).join(@time).tap {|p| p.mkpath }
+        @time = Time.now.strftime("%Y-%m-%d-%H-%M-%s-%N")
+        @record_dir = Pathname(record_dir).join(@time).tap { |p| p.mkpath }
         @write_count = 0
       end
       code_lines = source.lines.map.with_index do |line, i|
@@ -43,7 +50,7 @@ module DeadEnd
 
       @frontier = CodeFrontier.new(code_lines: @code_lines)
       @invalid_blocks = []
-      @name_tick = Hash.new {|hash, k| hash[k] = 0 }
+      @name_tick = Hash.new { |hash, k| hash[k] = 0 }
       @tick = 0
       @block_expand = BlockExpand.new(code_lines: code_lines)
       @parse_blocks_from_indent_line = ParseBlocksFromIndentLine.new(code_lines: @code_lines)
@@ -51,13 +58,13 @@ module DeadEnd
 
     # Used for debugging
     def record(block:, name: "record")
-      return if !@record_dir
+      return unless @record_dir
       @name_tick[name] += 1
       filename = "#{@write_count += 1}-#{name}-#{@name_tick[name]}.txt"
       if ENV["DEBUG"]
         puts "\n\n==== #{filename} ===="
         puts "\n```#{block.starts_at}:#{block.ends_at}"
-        puts "#{block.to_s}"
+        puts block.to_s
         puts "```"
         puts "  block indent:     #{block.current_indent}"
       end
@@ -65,25 +72,21 @@ module DeadEnd
         display = DisplayInvalidBlocks.new(
           blocks: block,
           terminal: false,
-          code_lines: @code_lines,
+          code_lines: @code_lines
         )
-        f.write(display.indent display.code_with_lines)
+        f.write(display.indent(display.code_with_lines))
       end
     end
 
-    def push(block, name: )
+    def push(block, name:)
       record(block: block, name: name)
 
-      if block.valid?
-        block.mark_invisible
-        frontier << block
-      else
-        frontier << block
-      end
+      block.mark_invisible if block.valid?
+      frontier << block
     end
 
     # Removes the block without putting it back in the frontier
-    def sweep(block:, name: )
+    def sweep(block:, name:)
       record(block: block, name: name)
 
       block.lines.each(&:mark_invisible)
@@ -149,8 +152,8 @@ module DeadEnd
         end
       end
 
-      @invalid_blocks.concat(frontier.detect_invalid_blocks )
-      @invalid_blocks.sort_by! {|block| block.starts_at }
+      @invalid_blocks.concat(frontier.detect_invalid_blocks)
+      @invalid_blocks.sort_by! { |block| block.starts_at }
       self
     end
   end

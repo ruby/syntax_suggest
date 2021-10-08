@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-#
+
 module DeadEnd
   # This class is useful for exploring contents before and after
   # a block
@@ -28,7 +28,7 @@ module DeadEnd
   #
   # To grab the next surrounding indentation use AroundBlockScan#scan_adjacent_indent
   class AroundBlockScan
-    def initialize(code_lines: , block:)
+    def initialize(code_lines:, block:)
       @code_lines = code_lines
       @orig_before_index = block.lines.first.index
       @orig_after_index = block.lines.last.index
@@ -56,7 +56,7 @@ module DeadEnd
       end_count = 0
       @before_index = before_lines.reverse_each.take_while do |line|
         next false if stop_next
-        next true if @skip_array.detect {|meth| line.send(meth) }
+        next true if @skip_array.detect { |meth| line.send(meth) }
 
         kw_count += 1 if line.is_kw?
         end_count += 1 if line.is_end?
@@ -65,14 +65,14 @@ module DeadEnd
         end
 
         block.call(line)
-      end.reverse.first&.index
+      end.last&.index
 
       stop_next = false
       kw_count = 0
       end_count = 0
       @after_index = after_lines.take_while do |line|
         next false if stop_next
-        next true if @skip_array.detect {|meth| line.send(meth) }
+        next true if @skip_array.detect { |meth| line.send(meth) }
 
         kw_count += 1 if line.is_kw?
         end_count += 1 if line.is_end?
@@ -89,7 +89,7 @@ module DeadEnd
       lines = []
       kw_count = 0
       end_count = 0
-      before_lines.reverse.each do |line|
+      before_lines.reverse_each do |line|
         next if line.empty?
         break if line.indent < @orig_indent
         next if line.indent != @orig_indent
@@ -124,14 +124,14 @@ module DeadEnd
 
         lines << line
       end
-      lines.select! {|line| !line.is_comment? }
+      lines.select! { |line| !line.is_comment? }
 
       lines
     end
 
     def on_falling_indent
       last_indent = @orig_indent
-      before_lines.reverse.each do |line|
+      before_lines.reverse_each do |line|
         next if line.empty?
         if line.indent < last_indent
           yield line
@@ -150,7 +150,7 @@ module DeadEnd
     end
 
     def scan_neighbors
-      self.scan_while {|line| line.not_empty? && line.indent >= @orig_indent }
+      scan_while { |line| line.not_empty? && line.indent >= @orig_indent }
     end
 
     def next_up
@@ -167,13 +167,14 @@ module DeadEnd
       before_after_indent << (next_down&.indent || 0)
 
       indent = before_after_indent.min
-      self.scan_while {|line| line.not_empty? && line.indent >= indent }
+      scan_while { |line| line.not_empty? && line.indent >= indent }
 
       self
     end
 
     def start_at_next_line
-      before_index; after_index
+      before_index
+      after_index
       @before_index -= 1
       @after_index += 1
       self
@@ -196,7 +197,7 @@ module DeadEnd
     end
 
     private def after_lines
-      @code_lines[after_index.next..-1] || []
+      @code_lines[after_index.next..] || []
     end
   end
 end

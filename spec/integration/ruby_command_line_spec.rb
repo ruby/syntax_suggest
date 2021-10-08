@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "Requires with ruby cli" do
@@ -16,7 +16,6 @@ module DeadEnd
         kernel_methods_array = `ruby #{@script} 2>&1`.strip.lines.map(&:strip)
         methods = (dead_end_methods_array - kernel_methods_array).sort
         expect(methods).to eq(["dead_end_original_load", "dead_end_original_require", "dead_end_original_require_relative", "timeout"])
-
 
         @script.write <<~'EOM'
           puts Kernel.private_methods

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CaptureCodeContext do
@@ -88,7 +88,7 @@ module DeadEnd
       search = CodeSearch.new(source)
       search.call
 
-      expect(search.invalid_blocks.join.strip).to eq('class Dog')
+      expect(search.invalid_blocks.join.strip).to eq("class Dog")
       display = CaptureCodeContext.new(
         blocks: search.invalid_blocks,
         code_lines: search.code_lines
@@ -176,7 +176,7 @@ module DeadEnd
       # expect(lines.select(&:hidden?).map(&:line_number)).to eq([11, 12])
 
       out = DisplayCodeWithLineNumbers.new(
-        lines: lines,
+        lines: lines
       ).call
 
       expect(out).to eq(<<~EOM.indent(2))

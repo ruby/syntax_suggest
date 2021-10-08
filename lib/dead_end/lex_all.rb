@@ -8,20 +8,20 @@ module DeadEnd
   class LexAll
     include Enumerable
 
-    def initialize(source: )
+    def initialize(source:)
       @lex = Ripper.lex(source)
-      lineno = @lex.last&.first&.first + 1
+      lineno = @lex.last.first.first + 1
       source_lines = source.lines
       last_lineno = source_lines.count
 
       until lineno >= last_lineno
-        lines = source_lines[lineno..-1]
+        lines = source_lines[lineno..]
 
-        @lex.concat(Ripper.lex(lines.join, '-', lineno + 1))
-        lineno = @lex.last&.first&.first + 1
+        @lex.concat(Ripper.lex(lines.join, "-", lineno + 1))
+        lineno = @lex.last.first.first + 1
       end
 
-      @lex.map! {|(line, _), type, token, state| LexValue.new(line, _, type, token, state) }
+      @lex.map! { |(line, _), type, token, state| LexValue.new(line, type, token, state) }
     end
 
     def each
@@ -49,7 +49,7 @@ module DeadEnd
     class LexValue
       attr_reader :line, :type, :token, :state
 
-      def initialize(line, _, type, token, state)
+      def initialize(line, type, token, state)
         @line = line
         @type = type
         @token = token
