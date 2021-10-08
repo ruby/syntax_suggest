@@ -25,7 +25,7 @@ module DeadEnd
           lol = {
         end
       EOM
-      code_lines = code_line_array(source)
+      code_lines = CleanDocument.new(source: source).call.lines
 
       display = DisplayInvalidBlocks.new(
         code_lines: code_lines,
@@ -109,13 +109,15 @@ module DeadEnd
     end
 
     it "outputs to io when using `call`" do
-      code_lines = code_line_array(<<~EOM)
+      source = <<~EOM
         class OH
           def hello
           def hai
           end
         end
       EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
 
       io = StringIO.new
       block = CodeBlock.new(lines: code_lines[1])
@@ -131,7 +133,7 @@ module DeadEnd
     end
 
     it " wraps code with github style codeblocks" do
-      code_lines = code_line_array(<<~EOM)
+      source = <<~EOM
         class OH
           def hello
 
@@ -140,6 +142,7 @@ module DeadEnd
         end
       EOM
 
+      code_lines = CleanDocument.new(source: source).call.lines
       block = CodeBlock.new(lines: code_lines[1])
       display = DisplayInvalidBlocks.new(
         blocks: block,

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module DeadEnd
-  # Determines what type of syntax error is in the source
+  # Determines what type of syntax error that is in the source
   #
   # Example:
   #

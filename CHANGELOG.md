@@ -1,5 +1,8 @@
 ## HEAD (unreleased)
 
+- Logically consecutive lines (such as chained methods are now joined) (https://github.com/zombocom/dead_end/pull/78)
+- Output improvement for cases where the only line is an single `end` (https://github.com/zombocom/dead_end/pull/78)
+
 ## 1.2.0
 
 - Output improvements via less greedy unmatched kw capture https://github.com/zombocom/dead_end/pull/73

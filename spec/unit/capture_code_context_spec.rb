@@ -4,10 +4,36 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CaptureCodeContext do
-    it "doesn't capture trailing if or unless" do
+    it "handles ambiguous end" do
+      source = <<~'EOM'
+        def call          # 1
+            puts "lol"    # 2
+          end # one       # 3
+        end # two         # 4
+      EOM
+
+      search = CodeSearch.new(source)
+      search.call
+
+      display = CaptureCodeContext.new(
+        blocks: search.invalid_blocks,
+        code_lines: search.code_lines
+      )
+      lines = display.call
+
+      lines = lines.sort.map(&:original)
+
+      expect(lines.join).to eq(<<~EOM)
+        def call          # 1
+          end # one       # 3
+        end # two         # 4
+      EOM
+    end
+
+    it "finds internal end associated with missing do" do
       source = <<~'EOM'
         def call
-          # try do
+          trydo
 
             @options = CommandLineParser.new.parse
 
@@ -44,6 +70,7 @@ module DeadEnd
 
       expect(lines.join).to eq(<<~EOM)
         def call
+          trydo
           end # one
         end # two
       EOM
@@ -57,7 +84,6 @@ module DeadEnd
       search = CodeSearch.new(source)
       search.call
 
-      # expect(search.invalid_blocks.join.strip).to eq('class Dog')
       display = CaptureCodeContext.new(
         blocks: search.invalid_blocks,
         code_lines: search.code_lines
@@ -71,8 +97,6 @@ module DeadEnd
           PROJECT_URL = 'https://github.com/keithrbennett/rexe'
           class Lookups
             def format_requires
-          end
-          class CommandLineParser
           end
         end
       EOM
@@ -148,9 +172,8 @@ module DeadEnd
           def lol
           end
 
-          it "foo"
             puts "here"
-          end
+          end # here
 
           def haha
           end
@@ -171,9 +194,7 @@ module DeadEnd
         code_lines: search.code_lines
       )
 
-      # Finds lines previously hidden
       lines = code_context.call
-      # expect(lines.select(&:hidden?).map(&:line_number)).to eq([11, 12])
 
       out = DisplayCodeWithLineNumbers.new(
         lines: lines
@@ -183,11 +204,8 @@ module DeadEnd
          3  class OH
          8    def lol
          9    end
-        11    it "foo"
-        13    end
-        15    def haha
-        16    end
-        20  end
+        12    end # here
+        19  end
       EOM
     end
   end

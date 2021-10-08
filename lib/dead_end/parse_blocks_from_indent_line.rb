@@ -4,7 +4,7 @@ module DeadEnd
   # This class is responsible for generating initial code blocks
   # that will then later be expanded.
   #
-  # The biggest concern when guessing about code blocks, is accidentally
+  # The biggest concern when guessing code blocks, is accidentally
   # grabbing one that contains only an "end". In this example:
   #
   #   def dog

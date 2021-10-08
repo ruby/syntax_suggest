@@ -33,12 +33,8 @@ def fixtures_dir
   spec_dir.join("fixtures")
 end
 
-def code_line_array(string)
-  code_lines = []
-  string.lines.each_with_index do |line, index|
-    code_lines << DeadEnd::CodeLine.new(line: line, index: index)
-  end
-  code_lines
+def code_line_array(source)
+  DeadEnd::CleanDocument.new(source: source).call.lines
 end
 
 def run!(cmd)
