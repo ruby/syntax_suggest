@@ -67,50 +67,61 @@ module DeadEnd
       @lines_to_output.concat(around_lines)
     end
 
-    # Problems heredocs are back in play
+    # When there is an invalid with a keyword
+    # right before an end, it's unclear where
+    # the correct code should be.
+    #
+    # Take this example:
+    #
+    #   class Dog       # 1
+    #     def bark      # 2
+    #       puts "woof" # 3
+    #   end             # 4
+    #
+    # However due to https://github.com/zombocom/dead_end/issues/32
+    # the problem line will be identified as:
+    #
+    #  ❯ class Dog       # 1
+    #
+    # Because lines 2, 3, and 4 are technically valid code and are expanded
+    # first, deemed valid, and hidden. We need to un-hide the matching end
+    # line 4. Also work backwards and if there's a mis-matched keyword, show it
+    # too
     def capture_last_end_same_indent(block)
       start_index = block.visible_lines.first.index
       lines = @code_lines[start_index..block.lines.last.index]
-      kw_end_lines = lines.select {|line| line.indent == block.current_indent && (line.is_end? || line.is_kw?) }
 
-
-      # TODO handle case of heredocs showing up here
+      # Find first end with same indent
+      # (this would return line 4)
       #
-      # Due to https://github.com/zombocom/dead_end/issues/32
-      # There's a special case where a keyword right before the last
-      # end of a valid block accidentally ends up identifying that the problem
-      # was with the block instead of before it. To handle that
-      # special case, we can re-parse back through the internals of blocks
-      # and if they have mis-matched keywords and ends show the last one
-      end_lines = kw_end_lines.select(&:is_end?)
-      end_lines.each_with_index  do |end_line, i|
-        start_index = i.zero? ? 0 : end_lines[i-1].index
-        end_index = end_line.index - 1
-        lines = @code_lines[start_index..end_index]
+      #   end             # 4
+      matching_end = lines.select {|line| line.indent == block.current_indent && line.is_end? }.first
+      return unless matching_end
 
-        stop_next = false
-        kw_count = 0
-        end_count = 0
-        lines = lines.reverse.take_while do |line|
-          next false if stop_next
+      @lines_to_output << matching_end
 
-          end_count += 1 if line.is_end?
-          kw_count += 1 if line.is_kw?
+      lines = @code_lines[start_index..matching_end.index]
 
-          stop_next = true if !kw_count.zero? && kw_count >= end_count
-          true
-        end.reverse
+      # Work backwards from the end to
+      # see if there are mis-matched
+      # keyword/end pairs
+      #
+      # Return the first mis-matched keyword
+      # this would find line 2
+      #
+      #     def bark      # 2
+      #       puts "woof" # 3
+      #   end             # 4
+      end_count = 0
+      kw_count = 0
+      kw_line = lines.reverse.detect do |line|
+        end_count += 1 if line.is_end?
+        kw_count += 1 if line.is_kw?
 
-        next unless kw_count > end_count
-
-        lines = lines.select {|line| line.is_kw? || line.is_end? }
-
-        next if lines.empty?
-
-        @lines_to_output << end_line
-        @lines_to_output << lines.first
-        @lines_to_output << lines.last
+        !kw_count.zero? && kw_count >= end_count
       end
+      return unless kw_line
+      @lines_to_output << kw_line
     end
   end
 end
