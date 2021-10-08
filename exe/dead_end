@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'pathname'
+require "pathname"
 require "optparse"
-require_relative "../lib/dead_end.rb"
+require_relative "../lib/dead_end"
 
 options = {}
 options[:terminal] = true
@@ -60,7 +60,7 @@ end
 file = Pathname(file)
 options[:record_dir] = "tmp" if ENV["DEBUG"]
 
-$stderr.puts "Record dir: #{options[:record_dir]}"  if options[:record_dir]
+warn "Record dir: #{options[:record_dir]}" if options[:record_dir]
 
 DeadEnd.call(
   source: file.read,

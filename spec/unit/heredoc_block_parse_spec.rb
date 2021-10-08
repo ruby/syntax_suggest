@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
-
   RSpec.describe "HeredocBlockParse" do
     it "works" do
       source = fixtures_dir.join("this_project_extra_def.rb.txt").read

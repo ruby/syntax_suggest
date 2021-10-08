@@ -39,7 +39,7 @@ module DeadEnd
 
     attr_reader :line, :index, :indent, :original_line
 
-    def initialize(line: , index:)
+    def initialize(line:, index:)
       @original_line = line.freeze
       @line = @original_line
       if line.strip.empty?
@@ -64,25 +64,25 @@ module DeadEnd
         next unless lex.type == :on_kw
 
         case lex.token
-        when 'if', 'unless', 'while', 'until'
+        when "if", "unless", "while", "until"
           # Only count if/unless when it's not a "trailing" if/unless
           # https://github.com/ruby/ruby/blob/06b44f819eb7b5ede1ff69cecb25682b56a1d60c/lib/irb/ruby-lex.rb#L374-L375
-          kw_count += 1 if !lex.expr_label?
-        when 'def', 'case', 'for', 'begin', 'class', 'module', 'do'
+          kw_count += 1 unless lex.expr_label?
+        when "def", "case", "for", "begin", "class", "module", "do"
           kw_count += 1
-        when 'end'
+        when "end"
           end_count += 1
         end
       end
 
-      @is_comment = lex_array.detect {|lex| lex.type != :on_sp}&.type == :on_comment
+      @is_comment = lex_array.detect { |lex| lex.type != :on_sp }&.type == :on_comment
       return if @is_comment
       @is_kw = (kw_count - end_count) > 0
       @is_end = (end_count - kw_count) > 0
       @is_trailing_slash = lex_array.last.token == TRAILING_SLASH
     end
 
-    alias :original :original_line
+    alias_method :original, :original_line
 
     def trailing_slash?
       @is_trailing_slash
@@ -92,8 +92,8 @@ module DeadEnd
       @indent_index ||= [indent, index]
     end
 
-    def <=>(b)
-      self.index <=> b.index
+    def <=>(other)
+      index <=> other.index
     end
 
     def is_comment?
@@ -133,7 +133,7 @@ module DeadEnd
     def line_number
       index + 1
     end
-    alias :number :line_number
+    alias_method :number, :line_number
 
     def not_empty?
       !empty?
@@ -144,7 +144,7 @@ module DeadEnd
     end
 
     def to_s
-      self.line
+      line
     end
   end
 end

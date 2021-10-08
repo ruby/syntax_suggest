@@ -23,10 +23,10 @@ module DeadEnd
     TERMINAL_HIGHLIGHT = "\e[1;3m" # Bold, italics
     TERMINAL_END = "\e[0m"
 
-    def initialize(lines: , highlight_lines: [], terminal: false)
+    def initialize(lines:, highlight_lines: [], terminal: false)
       @lines = Array(lines).sort
       @terminal = terminal
-      @highlight_line_hash = Array(highlight_lines).each_with_object({}) {|line, h| h[line] = true  }
+      @highlight_line_hash = Array(highlight_lines).each_with_object({}) { |line, h| h[line] = true }
       @digit_count = @lines.last&.line_number.to_s.length
     end
 
@@ -48,12 +48,12 @@ module DeadEnd
       end.join
     end
 
-    private def format(contents: , number: , highlight: false, empty:)
-      string = String.new("")
-      if highlight
-        string << "❯ "
+    private def format(contents:, number:, empty:, highlight: false)
+      string = +""
+      string << if highlight
+        "❯ "
       else
-        string << "  "
+        "  "
       end
 
       string << number.rjust(@digit_count).to_s

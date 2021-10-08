@@ -9,8 +9,13 @@ module DeadEnd
   #   # => :missing_end
   class WhoDisSyntaxError < Ripper
     class Null
-      def error_symbol; :missing_end; end
-      def unmatched_symbol; :end ; end
+      def error_symbol
+        :missing_end
+      end
+
+      def unmatched_symbol
+        :end
+      end
     end
     attr_reader :error, :run_once
 
@@ -56,9 +61,9 @@ module DeadEnd
       when /unexpected .* expecting '(?<unmatched_symbol>.*)'/
         @unmatched_symbol = $1.to_sym if $1
         @error_symbol = :unmatched_syntax
-      when /unexpected `end'/,          # Ruby 2.7 and 3.0
-           /unexpected end/,            # Ruby 2.6
-           /unexpected keyword_end/i    # Ruby 2.5
+      when /unexpected `end'/, # Ruby 2.7 and 3.0
+           /unexpected end/, # Ruby 2.6
+           /unexpected keyword_end/i # Ruby 2.5
 
         @error_symbol = :unmatched_syntax
       else

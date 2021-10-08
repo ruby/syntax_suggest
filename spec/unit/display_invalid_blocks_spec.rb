@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe DisplayInvalidBlocks do
@@ -14,7 +14,7 @@ module DeadEnd
       display = DisplayInvalidBlocks.new(
         code_lines: code_lines,
         blocks: CodeBlock.new(lines: code_lines),
-        invalid_obj: WhoDisSyntaxError.new(source),
+        invalid_obj: WhoDisSyntaxError.new(source)
       )
       expect(display.banner).to include("Unmatched `|` character detected")
     end
@@ -30,7 +30,7 @@ module DeadEnd
       display = DisplayInvalidBlocks.new(
         code_lines: code_lines,
         blocks: CodeBlock.new(lines: code_lines),
-        invalid_obj: WhoDisSyntaxError.new(source),
+        invalid_obj: WhoDisSyntaxError.new(source)
       )
       expect(display.banner).to include("Unmatched `}` character detected")
     end
@@ -46,7 +46,7 @@ module DeadEnd
       display = DisplayInvalidBlocks.new(
         code_lines: code_lines,
         blocks: CodeBlock.new(lines: code_lines),
-        invalid_obj: WhoDisSyntaxError.new(source),
+        invalid_obj: WhoDisSyntaxError.new(source)
       )
       expect(display.banner).to include("DeadEnd: Unmatched `end` detected")
     end
@@ -64,7 +64,7 @@ module DeadEnd
       display = DisplayInvalidBlocks.new(
         code_lines: code_lines,
         blocks: CodeBlock.new(lines: code_lines),
-        invalid_obj: WhoDisSyntaxError.new(source),
+        invalid_obj: WhoDisSyntaxError.new(source)
       )
       expect(display.banner).to include("DeadEnd: Unmatched `unknown` detected")
     end
@@ -80,7 +80,7 @@ module DeadEnd
       display = DisplayInvalidBlocks.new(
         code_lines: code_lines,
         blocks: CodeBlock.new(lines: code_lines),
-        invalid_obj: WhoDisSyntaxError.new(source),
+        invalid_obj: WhoDisSyntaxError.new(source)
       )
       expect(display.banner).to include("DeadEnd: Missing `end` detected")
     end
@@ -102,7 +102,7 @@ module DeadEnd
         io: io,
         blocks: search.invalid_blocks,
         terminal: false,
-        code_lines: search.code_lines,
+        code_lines: search.code_lines
       )
       display.call
       expect(io.string).to include("Syntax OK")
@@ -123,7 +123,7 @@ module DeadEnd
         io: io,
         blocks: block,
         terminal: false,
-        code_lines: code_lines,
+        code_lines: code_lines
       )
       display.call
       expect(io.string).to include("❯ 2    def hello")
@@ -147,11 +147,11 @@ module DeadEnd
         code_lines: code_lines
       )
       expect(display.code_block).to eq(<<~EOM)
-         1  class OH
-       ❯ 2    def hello
-         4    def hai
-         5    end
-         6  end
+          1  class OH
+        ❯ 2    def hello
+          4    def hai
+          5    end
+          6  end
       EOM
     end
 
@@ -192,7 +192,7 @@ module DeadEnd
       expect(display.code_with_lines).to eq(
         [
           "  1  class OH",
-         ["❯ 2  ", DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT, "  def hello"].join,
+          ["❯ 2  ", DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT, "  def hello"].join,
           "  3    def hai",
           "  4    end",
           "  5  end",

@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-#
+
 require_relative "../dead_end/internals"
 
 # Monkey patch kernel to ensure that all `require` calls call the same
@@ -40,6 +40,7 @@ end
 # am I doing something different?
 class Object
   private
+
   def load(path, wrap = false)
     Kernel.load(path, wrap)
   rescue SyntaxError => e
@@ -52,4 +53,3 @@ class Object
     DeadEnd.handle_error(e)
   end
 end
-

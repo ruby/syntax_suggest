@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe AroundBlockScan do
@@ -62,7 +62,7 @@ module DeadEnd
       block = CodeBlock.new(lines: code_lines[3])
       expand = AroundBlockScan.new(code_lines: code_lines, block: block)
       expand.stop_after_kw
-      expand.scan_while {true}
+      expand.scan_while { true }
 
       expect(expand.code_block.to_s).to eq(<<~EOM)
         def foo
@@ -106,7 +106,7 @@ module DeadEnd
       code_lines = code_line_array(source_string)
       block = CodeBlock.new(lines: code_lines[3])
       expand = AroundBlockScan.new(code_lines: code_lines, block: block)
-      expand.scan_while {|line| line.not_empty? }
+      expand.scan_while { |line| line.not_empty? }
 
       expect(expand.code_block.to_s).to eq(<<~EOM.indent(4))
         puts "lol"

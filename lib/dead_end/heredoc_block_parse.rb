@@ -3,9 +3,13 @@
 module DeadEnd
   # Takes in a source, and returns blocks containing each heredoc
   class HeredocBlockParse
-    private; attr_reader :code_lines, :lex; public
+    private
 
-    def initialize(source:, code_lines: )
+    attr_reader :code_lines, :lex
+
+    public
+
+    def initialize(source:, code_lines:)
       @code_lines = code_lines
       @lex = LexAll.new(source: source)
     end

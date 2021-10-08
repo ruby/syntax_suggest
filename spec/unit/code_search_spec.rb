@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeSearch do
@@ -162,13 +162,13 @@ module DeadEnd
         display = DisplayInvalidBlocks.new(
           code_lines: search.code_lines,
           blocks: blocks,
-          io: io,
+          io: io
         )
         display.call
         # puts io.string
 
         expect(display.code_with_lines.strip_control_codes).to include(<<~EOM)
-         ❯ 36      def filename
+          ❯ 36      def filename
         EOM
       end
 
@@ -381,10 +381,10 @@ module DeadEnd
       search.call
 
       expect(search.invalid_blocks.join).to eq(<<~EOM.indent(2))
-          Foo.call
-          end
-          Bar.call
-          end
+        Foo.call
+        end
+        Bar.call
+        end
       EOM
     end
 

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module DeadEnd
   # This class is responsible for taking a code block that exists
   # at a far indentaion and then iteratively increasing the block
@@ -30,7 +31,7 @@ module DeadEnd
   #      end
   #
   class BlockExpand
-    def initialize(code_lines: )
+    def initialize(code_lines:)
       @code_lines = code_lines
     end
 
@@ -43,7 +44,7 @@ module DeadEnd
     end
 
     def expand_indent(block)
-      block = AroundBlockScan.new(code_lines: @code_lines, block: block)
+      AroundBlockScan.new(code_lines: @code_lines, block: block)
         .skip(:hidden?)
         .stop_after_kw
         .scan_adjacent_indent
@@ -59,15 +60,15 @@ module DeadEnd
       # Slurp up empties
       if grab_empty
         scan = AroundBlockScan.new(code_lines: @code_lines, block: scan.code_block)
-          .scan_while {|line| line.empty? || line.hidden? }
+          .scan_while { |line| line.empty? || line.hidden? }
       end
 
       new_block = scan.code_block
 
       if block.lines == new_block.lines
-        return nil
+        nil
       else
-        return new_block
+        new_block
       end
     end
   end

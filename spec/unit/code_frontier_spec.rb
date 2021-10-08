@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeFrontier do
@@ -31,7 +31,7 @@ module DeadEnd
         CodeFrontier.combination([:a, :b, :c, :d])
       ).to eq(
         [
-          [:a],[:b],[:c],[:d],
+          [:a], [:b], [:c], [:d],
           [:a, :b],
           [:a, :c],
           [:a, :d],
@@ -60,7 +60,7 @@ module DeadEnd
       frontier << CodeBlock.new(lines: [code_lines[2]])
       expect(frontier.count).to eq(1)
 
-      frontier << CodeBlock.new(lines: [code_lines[1],code_lines[2],code_lines[3]])
+      frontier << CodeBlock.new(lines: [code_lines[1], code_lines[2], code_lines[3]])
       expect(frontier.count).to eq(1)
       expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
         puts "lol"

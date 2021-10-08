@@ -27,7 +27,7 @@ module DeadEnd
       @trailing_lines = []
       @code_lines.select(&:trailing_slash?).each do |trailing|
         stop_next = false
-        lines = @code_lines[trailing.index..-1].take_while do |line|
+        lines = @code_lines[trailing.index..].take_while do |line|
           next false if stop_next
 
           if !line.trailing_slash?
@@ -47,7 +47,7 @@ module DeadEnd
         lines.each(&:mark_invisible)
       end
 
-      return @code_lines_dup
+      @code_lines_dup
     end
   end
 end

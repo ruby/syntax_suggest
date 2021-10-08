@@ -39,7 +39,7 @@ module DeadEnd
   #
   #   CodeFrontier#detect_invalid_blocks
   class CodeFrontier
-    def initialize(code_lines: )
+    def initialize(code_lines:)
       @code_lines = code_lines
       @frontier = []
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
@@ -66,7 +66,7 @@ module DeadEnd
 
     # Returns a code block with the largest indentation possible
     def pop
-      return @frontier.pop
+      @frontier.pop
     end
 
     def next_indent_line
@@ -78,7 +78,7 @@ module DeadEnd
       return true if @unvisited_lines.empty?
 
       frontier_indent = @frontier.last.current_indent
-      unvisited_indent= next_indent_line.indent
+      unvisited_indent = next_indent_line.indent
 
       if ENV["DEBUG"]
         puts "```"
@@ -106,7 +106,7 @@ module DeadEnd
       register_indent_block(block)
 
       # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
-      @frontier.reject! {|b|
+      @frontier.reject! { |b|
         b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
       }
       @frontier << block

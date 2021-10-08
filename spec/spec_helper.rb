@@ -3,7 +3,7 @@
 require "bundler/setup"
 require "dead_end/internals" # Don't auto load code to
 
-require 'tempfile'
+require "tempfile"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -52,7 +52,7 @@ end
 # sometimes.
 class String
   def indent(number)
-    self.lines.map do |line|
+    lines.map do |line|
       if line.chomp.empty?
         line
       else
@@ -62,8 +62,6 @@ class String
   end
 
   def strip_control_codes
-    self.gsub(/\e\[[^\x40-\x7E]*[\x40-\x7E]/, "")
+    gsub(/\e\[[^\x40-\x7E]*[\x40-\x7E]/, "")
   end
 end
-
-

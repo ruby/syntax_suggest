@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
-
+require_relative "../spec_helper"
 
 module DeadEnd
-
   RSpec.describe BlockExpand do
     it "captures multiple empty and hidden lines" do
       source_string = <<~EOM
@@ -116,8 +114,6 @@ module DeadEnd
           puts "haha"
         end
       EOM
-
-      block = expansion.call(block)
     end
 
     it "expand until next boundry (indentation)" do
@@ -161,7 +157,6 @@ module DeadEnd
         end
       EOM
     end
-
 
     it "expand until next boundry (empty lines)" do
       source_string = <<~EOM

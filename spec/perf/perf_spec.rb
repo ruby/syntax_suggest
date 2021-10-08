@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require_relative "../spec_helper.rb"
+require_relative "../spec_helper"
 require "benchmark"
 
 module DeadEnd
   RSpec.describe "perf" do
     it "doesnt timeout" do
-      source = fixtures_dir.join("routes.txt.rb").read
+      source = fixtures_dir.join("routes.rb.txt").read
 
       io = StringIO.new
       bench = Benchmark.measure do
         DeadEnd.call(
           io: io,
           source: source,
-          filename: "none",
+          filename: "none"
         )
       end
 

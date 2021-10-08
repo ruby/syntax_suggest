@@ -54,11 +54,11 @@ module DeadEnd
     # populate an array with multiple code blocks then call `sort!`
     # on it without having to specify the sorting criteria
     def <=>(other)
-      out = self.current_indent <=> other.current_indent
+      out = current_indent <=> other.current_indent
       return out if out != 0
 
       # Stable sort
-      self.starts_at <=> other.starts_at
+      starts_at <=> other.starts_at
     end
 
     def current_indent
@@ -71,7 +71,7 @@ module DeadEnd
 
     def valid?
       return @valid if @valid != UNSET
-      @valid = DeadEnd.valid?(self.to_s)
+      @valid = DeadEnd.valid?(to_s)
     end
 
     def to_s
