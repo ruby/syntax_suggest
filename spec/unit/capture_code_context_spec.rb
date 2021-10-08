@@ -7,7 +7,6 @@ module DeadEnd
     it "doesn't capture trailing if or unless" do
       source = <<~'EOM'
         def call
-
           # try do
 
             @options = CommandLineParser.new.parse
