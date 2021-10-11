@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dead_end (1.2.0)
+    dead_end (2.0.0)
 
 GEM
   remote: https://rubygems.org/
