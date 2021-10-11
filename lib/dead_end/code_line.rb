@@ -4,44 +4,47 @@ module DeadEnd
   # Represents a single line of code of a given source file
   #
   # This object contains metadata about the line such as
-  # amount of indentation. An if it is empty or not.
+  # amount of indentation, if it is empty or not, and
+  # lexical data, such as if it has an `end` or a keyword
+  # in it.
   #
-  # While a given search for syntax errors is being performed
-  # state about the search can be stored in individual lines such
-  # as :valid or :invalid.
-  #
-  # Visibility of lines can be toggled on and off.
+  # Visibility of lines can be toggled off. Marking a line as invisible
+  # indicates that it should not be used for syntax checks.
+  # It's functionally the same as commenting it out.
   #
   # Example:
   #
-  #   line = CodeLine.new(line: "def foo\n", index: 0)
-  #   line.line_number => 1
+  #   line = CodeLine.from_source("def foo\n").first
+  #   line.number => 1
   #   line.empty? # => false
   #   line.visible? # => true
   #   line.mark_invisible
   #   line.visible? # => false
   #
-  # A CodeBlock is made of multiple CodeLines
-  #
-  # Marking a line as invisible indicates that it should not be used
-  # for syntax checks. It's essentially the same as commenting it out
-  #
-  # Marking a line as invisible also lets the overall program know
-  # that it should not check that area for syntax errors.
   class CodeLine
     TRAILING_SLASH = ("\\" + $/).freeze
 
-    def self.parse(source)
+    # Returns an array of CodeLine objects
+    # from the source string
+    def self.from_source(source)
+      lex_array_for_line = LexAll.new(source: source).each_with_object(Hash.new { |h, k| h[k] = [] }) { |lex, hash| hash[lex.line] << lex }
       source.lines.map.with_index do |line, index|
-        CodeLine.new(line: line, index: index)
+        CodeLine.new(
+          line: line,
+          index: index,
+          lex: lex_array_for_line[index + 1]
+        )
       end
     end
 
-    attr_reader :line, :index, :indent, :original_line
+    attr_reader :line, :index, :lex, :line_number, :indent
+    def initialize(line:, index:, lex:)
+      @lex = lex
+      @line = line
+      @index = index
+      @original = line.freeze
+      @line_number = @index + 1
 
-    def initialize(line:, index:)
-      @original_line = line.freeze
-      @line = @original_line
       if line.strip.empty?
         @empty = true
         @indent = 0
@@ -49,102 +52,148 @@ module DeadEnd
         @empty = false
         @indent = SpaceCount.indent(line)
       end
-      @index = index
-      @status = nil # valid, invalid, unknown
-      @invalid = false
 
-      lex_detect!
-    end
-
-    private def lex_detect!
-      lex_array = LexAll.new(source: line)
       kw_count = 0
       end_count = 0
-      lex_array.each_with_index do |lex, index|
-        next unless lex.type == :on_kw
-
-        case lex.token
-        when "if", "unless", "while", "until"
-          # Only count if/unless when it's not a "trailing" if/unless
-          # https://github.com/ruby/ruby/blob/06b44f819eb7b5ede1ff69cecb25682b56a1d60c/lib/irb/ruby-lex.rb#L374-L375
-          kw_count += 1 unless lex.expr_label?
-        when "def", "case", "for", "begin", "class", "module", "do"
-          kw_count += 1
-        when "end"
-          end_count += 1
-        end
+      @lex.each do |lex|
+        kw_count += 1 if lex.is_kw?
+        end_count += 1 if lex.is_end?
       end
 
-      @is_comment = lex_array.detect { |lex| lex.type != :on_sp }&.type == :on_comment
-      return if @is_comment
       @is_kw = (kw_count - end_count) > 0
       @is_end = (end_count - kw_count) > 0
-      @is_trailing_slash = lex_array.last.token == TRAILING_SLASH
     end
 
-    alias_method :original, :original_line
-
-    def trailing_slash?
-      @is_trailing_slash
-    end
-
+    # Used for stable sort via indentation level
+    #
+    # Ruby's sort is not "stable" meaning that when
+    # multiple elements have the same value, they are
+    # not guaranteed to return in the same order they
+    # were put in.
+    #
+    # So when multiple code lines have the same indentation
+    # level, they're sorted by their index value which is unique
+    # and consistent.
+    #
+    # This is mostly needed for consistency of the test suite
     def indent_index
       @indent_index ||= [indent, index]
     end
+    alias_method :number, :line_number
 
-    def <=>(other)
-      index <=> other.index
-    end
-
-    def is_comment?
-      @is_comment
-    end
-
-    def not_comment?
-      !is_comment?
-    end
-
+    # Returns true if the code line is determined
+    # to contain a keyword that matches with an `end`
+    #
+    # For example: `def`, `do`, `begin`, `ensure`, etc.
     def is_kw?
       @is_kw
     end
 
+    # Returns true if the code line is determined
+    # to contain an `end` keyword
     def is_end?
       @is_end
     end
 
+    # Used to hide lines
+    #
+    # The search alorithm will group lines into blocks
+    # then if those blocks are determined to represent
+    # valid code they will be hidden
     def mark_invisible
       @line = ""
-      self
     end
 
-    def mark_visible
-      @line = @original_line
-      self
-    end
-
+    # Means the line was marked as "invisible"
+    # Confusingly, "empty" lines are visible...they
+    # just don't contain any source code other than a newline ("\n").
     def visible?
       !line.empty?
     end
 
+    # Opposite or `visible?` (note: different than `empty?`)
     def hidden?
       !visible?
     end
 
-    def line_number
-      index + 1
-    end
-    alias_method :number, :line_number
-
-    def not_empty?
-      !empty?
-    end
-
+    # An `empty?` line is one that was originally left
+    # empty in the source code, while a "hidden" line
+    # is one that we've since marked as "invisible"
     def empty?
       @empty
     end
 
+    # Opposite of `empty?` (note: different than `visible?`)
+    def not_empty?
+      !empty?
+    end
+
+    # Renders the given line
+    #
+    # Also allows us to represent source code as
+    # an array of code lines.
+    #
+    # When we have an array of code line elements
+    # calling `join` on the array will call `to_s`
+    # on each element, which essentially converts
+    # it back into it's original source string.
     def to_s
       line
+    end
+
+    # When the code line is marked invisible
+    # we retain the original value of it's line
+    # this is useful for debugging and for
+    # showing extra context
+    #
+    # DisplayCodeWithLineNumbers will render
+    # all lines given to it, not just visible
+    # lines, it uses the original method to
+    # obtain them.
+    attr_reader :original
+
+    # Comparison operator, needed for equality
+    # and sorting
+    def <=>(other)
+      index <=> other.index
+    end
+
+    # [Not stable API]
+    #
+    # Lines that have a `on_ignored_nl` type token and NOT
+    # a `BEG` type seem to be a good proxy for the ability
+    # to join multiple lines into one.
+    #
+    # This predicate method is used to determine when those
+    # two criteria have been met.
+    #
+    # The one known case this doesn't handle is:
+    #
+    #     Ripper.lex <<~EOM
+    #       a &&
+    #        b ||
+    #        c
+    #     EOM
+    #
+    # For some reason this introduces `on_ignore_newline` but with BEG type
+    def ignore_newline_not_beg?
+      lex_value = lex.detect { |l| l.type == :on_ignored_nl }
+      !!(lex_value && !lex_value.expr_beg?)
+    end
+
+    # Determines if the given line has a trailing slash
+    #
+    #     lines = CodeLine.from_source(<<~EOM)
+    #       it "foo" \
+    #     EOM
+    #     expect(lines.first.trailing_slash?).to eq(true)
+    #
+    def trailing_slash?
+      last = @lex.last
+      return false unless last
+      return false unless last.type == :on_sp
+
+      last.token == TRAILING_SLASH
     end
   end
 end

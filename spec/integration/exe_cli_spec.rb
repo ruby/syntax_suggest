@@ -39,13 +39,9 @@ module DeadEnd
 
         expect(out).to include(<<~EOM.indent(4))
              16  class Rexe
-             40    class Options < Struct.new(
-             71    end
           ❯  77    class Lookups
           ❯  78      def input_modes
           ❯ 148    end
-            152    class CommandLineParser
-            418    end
             551  end
         EOM
       end

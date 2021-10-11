@@ -418,13 +418,13 @@ module DeadEnd
     it "finds a naked end" do
       search = CodeSearch.new(<<~EOM)
         def foo
-          end
-        end
+          end # one
+        end # two
       EOM
       search.call
 
       expect(search.invalid_blocks.join).to eq(<<~EOM.indent(2))
-        end
+        end # one
       EOM
     end
 

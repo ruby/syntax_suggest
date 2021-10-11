@@ -3,11 +3,19 @@
 module DeadEnd
   # Searches code for a syntax error
   #
+  # There are three main phases in the algorithm:
+  #
+  # 1. Sanitize/format input source
+  # 2. Search for invalid blocks
+  # 3. Format invalid blocks into something meaninful
+  #
+  # This class handles the part.
+  #
   # The bulk of the heavy lifting is done in:
   #
   #  - CodeFrontier (Holds information for generating blocks and determining if we can stop searching)
   #  - ParseBlocksFromLine (Creates blocks into the frontier)
-  #  - BlockExpand (Expands existing blocks to search more code
+  #  - BlockExpand (Expands existing blocks to search more code)
   #
   # ## Syntax error detection
   #
@@ -31,28 +39,24 @@ module DeadEnd
 
     public
 
-    public
-
     attr_reader :invalid_blocks, :record_dir, :code_lines
 
     def initialize(source, record_dir: ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil)
-      @source = source
       if record_dir
         @time = Time.now.strftime("%Y-%m-%d-%H-%M-%s-%N")
         @record_dir = Pathname(record_dir).join(@time).tap { |p| p.mkpath }
         @write_count = 0
       end
-      code_lines = source.lines.map.with_index do |line, i|
-        CodeLine.new(line: line, index: i)
-      end
 
-      @code_lines = TrailingSlashJoin.new(code_lines: code_lines).call
+      @tick = 0
+      @source = source
+      @name_tick = Hash.new { |hash, k| hash[k] = 0 }
+      @invalid_blocks = []
+
+      @code_lines = CleanDocument.new(source: source).call.lines
 
       @frontier = CodeFrontier.new(code_lines: @code_lines)
-      @invalid_blocks = []
-      @name_tick = Hash.new { |hash, k| hash[k] = 0 }
-      @tick = 0
-      @block_expand = BlockExpand.new(code_lines: code_lines)
+      @block_expand = BlockExpand.new(code_lines: @code_lines)
       @parse_blocks_from_indent_line = ParseBlocksFromIndentLine.new(code_lines: @code_lines)
     end
 
@@ -63,10 +67,10 @@ module DeadEnd
       filename = "#{@write_count += 1}-#{name}-#{@name_tick[name]}.txt"
       if ENV["DEBUG"]
         puts "\n\n==== #{filename} ===="
-        puts "\n```#{block.starts_at}:#{block.ends_at}"
+        puts "\n```#{block.starts_at}..#{block.ends_at}"
         puts block.to_s
         puts "```"
-        puts "  block indent:     #{block.current_indent}"
+        puts "  block indent:      #{block.current_indent}"
       end
       @record_dir.join(filename).open(mode: "a") do |f|
         display = DisplayInvalidBlocks.new(
@@ -122,26 +126,8 @@ module DeadEnd
       push(block, name: "expand")
     end
 
-    def sweep_heredocs
-      HeredocBlockParse.new(
-        source: @source,
-        code_lines: @code_lines
-      ).call.each do |block|
-        push(block, name: "heredoc")
-      end
-    end
-
-    def sweep_comments
-      lines = @code_lines.select(&:is_comment?)
-      return if lines.empty?
-      block = CodeBlock.new(lines: lines)
-      sweep(block: block, name: "comments")
-    end
-
     # Main search loop
     def call
-      sweep_heredocs
-      sweep_comments
       until frontier.holds_all_syntax_errors?
         @tick += 1
 

@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-#
 # This is the top level file, but is moved to `internals`
-# so the top level file can instead enable the "automatic" behavior
+# so the top level require can instead enable the "automatic" behavior
 
 require_relative "version"
 
@@ -145,14 +144,13 @@ end
 
 require_relative "code_line"
 require_relative "code_block"
-require_relative "code_frontier"
-require_relative "display_invalid_blocks"
-require_relative "around_block_scan"
-require_relative "block_expand"
-require_relative "parse_blocks_from_indent_line"
-
 require_relative "code_search"
-require_relative "who_dis_syntax_error"
-require_relative "heredoc_block_parse"
+require_relative "code_frontier"
+require_relative "clean_document"
+
 require_relative "lex_all"
-require_relative "trailing_slash_join"
+require_relative "block_expand"
+require_relative "around_block_scan"
+require_relative "who_dis_syntax_error"
+require_relative "display_invalid_blocks"
+require_relative "parse_blocks_from_indent_line"

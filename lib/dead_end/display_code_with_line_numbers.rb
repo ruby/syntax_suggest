@@ -7,7 +7,6 @@ module DeadEnd
   # even if it is "marked invisible" any filtering of
   # output should be done before calling this class.
   #
-  #
   #   DisplayCodeWithLineNumbers.new(
   #     lines: lines,
   #     highlight_lines: [lines[2], lines[3]]

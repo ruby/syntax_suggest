@@ -9,10 +9,10 @@ module DeadEnd
   #
   # Example:
   #
-  #   def dog
-  #     puts "bark"
-  #     puts "bark"
-  #   end
+  #   def dog         # 1
+  #     puts "bark"   # 2
+  #     puts "bark"   # 3
+  #   end             # 4
   #
   #   scan = AroundBlockScan.new(
   #     code_lines: code_lines
@@ -22,7 +22,7 @@ module DeadEnd
   #   scan.scan_while { true }
   #
   #   puts scan.before_index # => 0
-  #   puts scan.after_index # => 3
+  #   puts scan.after_index  # => 3
   #
   # Contents can also be filtered using AroundBlockScan#skip
   #
@@ -109,8 +109,6 @@ module DeadEnd
       kw_count = 0
       end_count = 0
       after_lines.each do |line|
-        # puts "line: #{line.number} #{line.original_line}, indent: #{line.indent}, #{line.empty?} #{line.indent == @orig_indent}"
-
         next if line.empty?
         break if line.indent < @orig_indent
         next if line.indent != @orig_indent
@@ -124,7 +122,6 @@ module DeadEnd
 
         lines << line
       end
-      lines.select! { |line| !line.is_comment? }
 
       lines
     end

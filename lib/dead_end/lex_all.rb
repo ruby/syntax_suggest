@@ -24,6 +24,10 @@ module DeadEnd
       @lex.map! { |(line, _), type, token, state| LexValue.new(line, type, token, state) }
     end
 
+    def to_a
+      @lex
+    end
+
     def each
       return @lex.each unless block_given?
       @lex.each do |x|
@@ -31,34 +35,14 @@ module DeadEnd
       end
     end
 
+    def [](index)
+      @lex[index]
+    end
+
     def last
       @lex.last
     end
-
-    # Value object for accessing lex values
-    #
-    # This lex:
-    #
-    #   [1, 0], :on_ident, "describe", CMDARG
-    #
-    # Would translate into:
-    #
-    #  lex.line # => 1
-    #  lex.type # => :on_indent
-    #  lex.token # => "describe"
-    class LexValue
-      attr_reader :line, :type, :token, :state
-
-      def initialize(line, type, token, state)
-        @line = line
-        @type = type
-        @token = token
-        @state = state
-      end
-
-      def expr_label?
-        state.allbits?(Ripper::EXPR_LABEL)
-      end
-    end
   end
 end
+
+require_relative "lex_value"
