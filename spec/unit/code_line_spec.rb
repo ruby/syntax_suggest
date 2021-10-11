@@ -4,6 +4,17 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeLine do
+    it "supports endless method definitions" do
+      skip("Unsupported ruby version") unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3")
+
+      line = CodeLine.from_source(<<~'EOM').first
+        def square(x) = x * x
+      EOM
+
+      expect(line.is_kw?).to be_falsey
+      expect(line.is_end?).to be_falsey
+    end
+
     it "retains original line value, after being marked invisible" do
       line = CodeLine.from_source(<<~'EOM').first
         puts "lol"

@@ -60,6 +60,8 @@ module DeadEnd
         end_count += 1 if lex.is_end?
       end
 
+      kw_count -= oneliner_method_count
+
       @is_kw = (kw_count - end_count) > 0
       @is_end = (end_count - kw_count) > 0
     end
@@ -194,6 +196,38 @@ module DeadEnd
       return false unless last.type == :on_sp
 
       last.token == TRAILING_SLASH
+    end
+
+    # Endless method detection
+    #
+    # From https://github.com/ruby/irb/commit/826ae909c9c93a2ddca6f9cfcd9c94dbf53d44ab
+    # Detecting a "oneliner" seems to need a state machine.
+    # This can be done by looking mostly at the "state" (last value):
+    #
+    #   ENDFN -> BEG (token = '=' ) -> END
+    #
+    private def oneliner_method_count
+      oneliner_count = 0
+      in_oneliner_def = nil
+
+      @lex.each do |lex|
+        if in_oneliner_def.nil?
+          in_oneliner_def = :ENDFN if lex.state.allbits?(Ripper::EXPR_ENDFN)
+        elsif lex.state.allbits?(Ripper::EXPR_ENDFN)
+          # Continue
+        elsif lex.state.allbits?(Ripper::EXPR_BEG)
+          in_oneliner_def = :BODY if lex.token == "="
+        elsif lex.state.allbits?(Ripper::EXPR_END)
+          # We found an endless method, count it
+          oneliner_count += 1 if in_oneliner_def == :BODY
+
+          in_oneliner_def = nil
+        else
+          in_oneliner_def = nil
+        end
+      end
+
+      oneliner_count
     end
   end
 end

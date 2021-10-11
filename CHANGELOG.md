@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Support "endless" oneline method definitions for Ruby 3+ (https://github.com/zombocom/dead_end/pull/80)
 - Reduce timeout to 1 second (https://github.com/zombocom/dead_end/pull/79)
 - Logically consecutive lines (such as chained methods are now joined) (https://github.com/zombocom/dead_end/pull/78)
 - Output improvement for cases where the only line is an single `end` (https://github.com/zombocom/dead_end/pull/78)
