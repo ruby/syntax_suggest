@@ -37,8 +37,10 @@ module DeadEnd
 
     private def found_invalid_blocks
       @io.puts
-      @io.puts banner
-      @io.puts
+      if banner
+        @io.puts banner
+        @io.puts
+      end
       @io.puts("file: #{filename}") if filename
       @io.puts <<~EOM
         simplified:

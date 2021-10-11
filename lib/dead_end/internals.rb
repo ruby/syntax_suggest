@@ -32,8 +32,6 @@ module DeadEnd
       )
     end
 
-    warn ""
-    warn ""
     raise e
   end
 
