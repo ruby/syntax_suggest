@@ -4,6 +4,25 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "Library only integration to test regressions and improvements" do
+    it "returns good results on routes.rb" do
+      source = fixtures_dir.join("routes.rb.txt").read
+
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source,
+        filename: "none"
+      )
+
+      expect(io.string).to include(<<~'EOM'.indent(4))
+           1  Rails.application.routes.draw do
+        ❯ 113    namespace :admin do
+        ❯ 116    match "/foobar(*path)", via: :all, to: redirect { |_params, req|
+        ❯ 120    }
+          121  end
+      EOM
+    end
+
     it "handles multi-line-methods issues/64" do
       source = fixtures_dir.join("webmock.rb.txt").read
 

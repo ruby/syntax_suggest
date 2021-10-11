@@ -14,7 +14,7 @@ require "timeout"
 module DeadEnd
   class Error < StandardError; end
   SEARCH_SOURCE_ON_ERROR_DEFAULT = true
-  TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 5).to_i
+  TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 1).to_i
 
   def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
     raise e unless e.message.include?("end-of-input")
