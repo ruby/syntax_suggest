@@ -21,11 +21,15 @@ module DeadEnd
       @invalid_obj = invalid_obj
     end
 
+    def document_ok?
+      @blocks.none? { |b| !b.hidden? }
+    end
+
     def call
-      if @blocks.any? { |b| !b.hidden? }
-        found_invalid_blocks
-      else
+      if document_ok?
         @io.puts "Syntax OK"
+      else
+        found_invalid_blocks
       end
       self
     end

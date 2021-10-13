@@ -64,9 +64,15 @@ options[:record_dir] = "tmp" if ENV["DEBUG"]
 
 warn "Record dir: #{options[:record_dir]}" if options[:record_dir]
 
-DeadEnd.call(
+display = DeadEnd.call(
   source: file.read,
   filename: file.expand_path,
   terminal: options[:terminal],
   record_dir: options[:record_dir]
 )
+
+if display.document_ok?
+  exit(0)
+else
+  exit(1)
+end
