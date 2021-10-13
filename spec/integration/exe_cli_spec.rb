@@ -9,7 +9,7 @@ module DeadEnd
     end
 
     def exe(cmd)
-      out = run!("#{exe_path} #{cmd}")
+      out = run!("#{exe_path} #{cmd}", raise_on_nonzero_exit: false)
       puts out if ENV["DEBUG"]
       out
     end
@@ -18,6 +18,7 @@ module DeadEnd
       ruby_file = exe_path
       out = exe(ruby_file)
       expect(out.strip).to include("Syntax OK")
+      expect($?.success?).to be_truthy
     end
 
     it "parses invalid code" do
@@ -26,6 +27,8 @@ module DeadEnd
 
       expect(out.strip).to include("Missing `end` detected")
       expect(out.strip).to include("❯ 36      def filename")
+
+      expect($?.success?).to be_falsey
     end
 
     it "handles heredocs" do

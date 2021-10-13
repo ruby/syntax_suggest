@@ -37,9 +37,9 @@ def code_line_array(source)
   DeadEnd::CleanDocument.new(source: source).call.lines
 end
 
-def run!(cmd)
+def run!(cmd, raise_on_nonzero_exit: true)
   out = `#{cmd} 2>&1`
-  raise "Command: #{cmd} failed: #{out}" unless $?.success?
+  raise "Command: #{cmd} failed: #{out}" if !$?.success? && raise_on_nonzero_exit
   out
 end
 
