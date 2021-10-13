@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Let -v respond with gem version instead of 'unknown' (https://github.com/zombocom/dead_end/pull/82)
+
 ## 2.0.0
 
 - Support "endless" oneline method definitions for Ruby 3+ (https://github.com/zombocom/dead_end/pull/80)

@@ -62,5 +62,10 @@ module DeadEnd
         expect(tmp_dir).to_not be_empty
       end
     end
+
+    it "prints the version" do
+      out = exe("-v")
+      expect(out.strip).to include(DeadEnd::VERSION)
+    end
   end
 end
