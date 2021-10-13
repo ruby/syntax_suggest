@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Handle mismatched end when using rescue without begin (https://github.com/zombocom/dead_end/pull/83)
 - Let -v respond with gem version instead of 'unknown' (https://github.com/zombocom/dead_end/pull/82)
 
 ## 2.0.0
