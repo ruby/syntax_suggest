@@ -82,27 +82,45 @@ module DeadEnd
       end
     end
 
-    it "determines the type of syntax error to be an unmatched bracket" do
-      source = <<~EOM
-        module Hey
-          class Foo
-            def initialize
-              [1,2,3
-            end
+    context "determines the type of syntax error to be an unmatched bracket" do
+      it "with missing bracket" do
+        source = <<~EOM
+          module Hey
+            class Foo
+              def initialize
+                [1,2,3
+              end
 
-            def call
+              def call
+              end
             end
           end
-        end
-      EOM
+        EOM
 
-      expect(
-        DeadEnd.invalid_type(source).error_symbol
-      ).to eq(:unmatched_syntax)
+        expect(
+          DeadEnd.invalid_type(source).error_symbol
+        ).to eq(:unmatched_syntax)
 
-      expect(
-        DeadEnd.invalid_type(source).unmatched_symbol
-      ).to eq(:"]")
+        expect(
+          DeadEnd.invalid_type(source).unmatched_symbol
+        ).to eq(:"]")
+      end
+
+      it "with naked bracket" do
+        source = <<~EOM
+          def initialize
+            ]
+          end
+        EOM
+
+        expect(
+          DeadEnd.invalid_type(source).error_symbol
+        ).to eq(:unexpected_syntax)
+
+        expect(
+          DeadEnd.invalid_type(source).unmatched_symbol
+        ).to eq(:"]")
+      end
     end
   end
 end

@@ -61,6 +61,9 @@ module DeadEnd
       when /unexpected .* expecting ['`]?(?<unmatched_symbol>[^']*)/
         @unmatched_symbol = $1.to_sym if $1
         @error_symbol = :unmatched_syntax
+      when /unexpected '(?<unmatched_symbol>.*)'/
+        @unmatched_symbol = $1.to_sym if $1
+        @error_symbol = :unexpected_syntax
       when /unexpected `end'/, # Ruby 2.7 and 3.0
            /unexpected end/, # Ruby 2.6
            /unexpected keyword_end/i # Ruby 2.5
