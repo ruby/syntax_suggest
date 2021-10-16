@@ -28,6 +28,8 @@ module DeadEnd
     end
 
     it "Unmatched } banner" do
+      skip("Unsupported ruby version") unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.7")
+
       source = <<~EOM
         def foo
           lol = }
