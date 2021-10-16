@@ -2,7 +2,7 @@
 
 module DeadEnd
   class Banner
-    CHARACTERS = { :"}" => :"{", :"]" => :"[", :")" => :"(" }
+    CHARACTERS = {"}": :"{", "]": :"[", ")": :"("}
     ALL_CHARACTERS = CHARACTERS.keys + CHARACTERS.values
     attr_reader :invalid_obj
 
