@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dead_end (2.0.0)
+    dead_end (2.0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -60,4 +60,4 @@ DEPENDENCIES
   standard
 
 BUNDLED WITH
-   2.2.27
+   2.2.29

@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 2.0.1
+
 - Reintroduce Ruby 2.5 support (https://github.com/zombocom/dead_end/pull/90)
 - Support naked braces/brackets/parens, invert labels on banner (https://github.com/zombocom/dead_end/pull/89)
 - Handle mismatched end when using rescue without begin (https://github.com/zombocom/dead_end/pull/83)
