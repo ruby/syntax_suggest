@@ -63,10 +63,12 @@ module DeadEnd
         if $1
           character = $1.to_sym
           @unmatched_symbol = CHARACTERS[character] || character
+          @unmatched_symbol = :end if @unmatched_symbol == :keyword_end
         end
         @error_symbol = :unmatched_syntax
       when /unexpected '(?<unmatched_symbol>.*)'/
-        @unmatched_symbol = $1.to_sym if $1
+        @unmatched_symbol = $1.to_sym
+        @unmatched_symbol = :end if @unmatched_symbol == :keyword_end
         @error_symbol = :unmatched_syntax
       when /unexpected `end'/, # Ruby 2.7 and 3.0
            /unexpected end/, # Ruby 2.6

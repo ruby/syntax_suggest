@@ -231,7 +231,7 @@ module DeadEnd
     #
     def join_consecutive!
       consecutive_groups = @document.select(&:ignore_newline_not_beg?).map do |code_line|
-        take_while_including(code_line.index..) do |line|
+        take_while_including(code_line.index..-1) do |line|
           line.ignore_newline_not_beg?
         end
       end
@@ -252,7 +252,7 @@ module DeadEnd
     #     expect(lines[1].to_s).to eq("")
     def join_trailing_slash!
       trailing_groups = @document.select(&:trailing_slash?).map do |code_line|
-        take_while_including(code_line.index..) { |x| x.trailing_slash? }
+        take_while_including(code_line.index..-1) { |x| x.trailing_slash? }
       end
       join_groups(trailing_groups)
       self
@@ -286,7 +286,7 @@ module DeadEnd
         )
 
         # Hide the rest of the lines
-        lines[1..].each do |line|
+        lines[1..-1].each do |line|
           # The above lines already have newlines in them, if add more
           # then there will be double newline, use an empty line instead
           @document[line.index] = CodeLine.new(line: "", index: line.index, lex: [])
@@ -300,7 +300,7 @@ module DeadEnd
     # Like `take_while` except when it stops
     # iterating, it also returns the line
     # that caused it to stop
-    def take_while_including(range = 0..)
+    def take_while_including(range = 0..-1)
       take_next_and_stop = false
       @document[range].take_while do |line|
         next if take_next_and_stop

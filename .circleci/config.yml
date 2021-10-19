@@ -13,6 +13,14 @@ references:
       command: bundle exec standardrb
 
 jobs:
+  "ruby-2-5":
+    docker:
+      - image: circleci/ruby:2.5
+    steps:
+      - checkout
+      - ruby/install-deps
+      - <<: *unit
+
   "ruby-2-6":
     docker:
       - image: circleci/ruby:2.6
@@ -49,6 +57,7 @@ workflows:
   version: 2
   build:
     jobs:
+      - "ruby-2-5"
       - "ruby-2-6"
       - "ruby-2-7"
       - "ruby-3-0"
