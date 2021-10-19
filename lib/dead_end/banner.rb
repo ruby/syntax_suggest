@@ -39,7 +39,7 @@ module DeadEnd
           <<~EOM
             DeadEnd: Unmatched `#{unmatched_symbol}` character detected
 
-            It appears a `#{missing_character}` is missing.
+            It appears a `#{missing_character}` might be missing.
           EOM
         else
           "DeadEnd: Unmatched `#{unmatched_symbol}` detected"
