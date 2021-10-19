@@ -103,7 +103,7 @@ module DeadEnd
 
         expect(
           DeadEnd.invalid_type(source).unmatched_symbol
-        ).to eq(:"]")
+        ).to eq(:"[")
       end
 
       it "with naked bracket" do
@@ -115,7 +115,7 @@ module DeadEnd
 
         expect(
           DeadEnd.invalid_type(source).error_symbol
-        ).to eq(:unexpected_syntax)
+        ).to eq(:unmatched_syntax)
 
         expect(
           DeadEnd.invalid_type(source).unmatched_symbol
