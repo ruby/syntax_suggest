@@ -62,7 +62,7 @@ module DeadEnd
       when /unexpected .* expecting ['`]?(?<unmatched_symbol>[^']*)/
         if $1
           character = $1.to_sym
-          @unmatched_symbol = CHARACTERS[character] || CHARACTERS.key(character) || character
+          @unmatched_symbol = CHARACTERS[character] || character
         end
         @error_symbol = :unmatched_syntax
       when /unexpected '(?<unmatched_symbol>.*)'/
