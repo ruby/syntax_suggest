@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Reintroduce Ruby 2.5 support (https://github.com/zombocom/dead_end/pull/90)
 - Support naked braces/brackets/parens, invert labels on banner (https://github.com/zombocom/dead_end/pull/89)
 - Handle mismatched end when using rescue without begin (https://github.com/zombocom/dead_end/pull/83)
 - CLI returns non-zero exit code when syntax error is found (https://github.com/zombocom/dead_end/pull/86)

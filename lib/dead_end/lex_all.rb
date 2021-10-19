@@ -15,7 +15,7 @@ module DeadEnd
       last_lineno = source_lines.count
 
       until lineno >= last_lineno
-        lines = source_lines[lineno..]
+        lines = source_lines[lineno..-1]
 
         @lex.concat(Ripper.lex(lines.join, "-", lineno + 1))
         lineno = @lex.last.first.first + 1

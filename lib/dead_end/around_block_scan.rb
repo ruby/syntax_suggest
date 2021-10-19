@@ -194,7 +194,7 @@ module DeadEnd
     end
 
     private def after_lines
-      @code_lines[after_index.next..] || []
+      @code_lines[after_index.next..-1] || []
     end
   end
 end
