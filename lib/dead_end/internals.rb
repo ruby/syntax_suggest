@@ -28,14 +28,13 @@ module DeadEnd
       call(
         source: Pathname(filename).read,
         filename: filename,
-        terminal: true
       )
     end
 
     raise e
   end
 
-  def self.call(source:, filename:, terminal: false, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
+  def self.call(source:, filename:, terminal: nil, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     Timeout.timeout(timeout) do
       record_dir ||= ENV["DEBUG"] ? "tmp" : nil
