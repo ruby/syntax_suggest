@@ -12,6 +12,10 @@ require "ripper"
 require "timeout"
 
 module DeadEnd
+  # Used to indicate a default value that cannot
+  # be confused with another input
+  DEFAULT_VALUE = Object.new.freeze
+
   class Error < StandardError; end
   SEARCH_SOURCE_ON_ERROR_DEFAULT = true
   TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 1).to_i
@@ -27,14 +31,14 @@ module DeadEnd
     if search_source_on_error
       call(
         source: Pathname(filename).read,
-        filename: filename,
+        filename: filename
       )
     end
 
     raise e
   end
 
-  def self.call(source:, filename:, terminal: nil, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
+  def self.call(source:, filename:, terminal: DEFAULT_VALUE, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     Timeout.timeout(timeout) do
       record_dir ||= ENV["DEBUG"] ? "tmp" : nil

@@ -27,6 +27,50 @@ module DeadEnd
       expect(io.string).to include("Syntax OK")
     end
 
+    it "selectively prints to terminal if input is a tty by default" do
+      source = <<~EOM
+        class OH
+          def hello
+          def hai
+          end
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+
+      io = StringIO.new
+      def io.isatty
+        true
+      end
+
+      block = CodeBlock.new(lines: code_lines[1])
+      display = DisplayInvalidBlocks.new(
+        io: io,
+        blocks: block,
+        code_lines: code_lines
+      )
+      display.call
+      expect(io.string).to include([
+        "❯ 2  ",
+        DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT,
+        "  def hello"
+      ].join)
+
+      io = StringIO.new
+      def io.isatty
+        false
+      end
+
+      block = CodeBlock.new(lines: code_lines[1])
+      display = DisplayInvalidBlocks.new(
+        io: io,
+        blocks: block,
+        code_lines: code_lines
+      )
+      display.call
+      expect(io.string).to include("❯ 2    def hello")
+    end
+
     it "outputs to io when using `call`" do
       source = <<~EOM
         class OH

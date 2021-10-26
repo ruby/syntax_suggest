@@ -50,17 +50,15 @@ module DeadEnd
       end
     end
 
-    describe "terminal coloring" do
-      # When ruby sub shells it is not a interactive shell and dead_end will
-      # default to no coloring.
+    # When ruby sub shells it is not a interactive shell and dead_end will
+    # default to no coloring. Colors/bold can be forced with `--terminal`
+    # flag
+    it "passing --terminal will force color codes" do
+      ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
+      out = exe("#{ruby_file} --terminal")
 
-      it "passing --terminal will force color codes" do
-        ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
-        out = exe("#{ruby_file} --terminal")
-
-        expect(out.strip).to include("Missing `end` detected")
-        expect(out.strip).to include("\e[0m❯ 36  \e[1;3m    def filename")
-      end
+      expect(out.strip).to include("Missing `end` detected")
+      expect(out.strip).to include("\e[0m❯ 36  \e[1;3m    def filename")
     end
 
     it "records search" do
