@@ -23,7 +23,7 @@ module DeadEnd
 
     it "parses invalid code" do
       ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
-      out = exe("#{ruby_file} --no-terminal")
+      out = exe(ruby_file)
 
       expect(out.strip).to include("Missing `end` detected")
       expect(out.strip).to include("❯ 36      def filename")
@@ -32,13 +32,13 @@ module DeadEnd
     end
 
     it "handles heredocs" do
+      lines = fixtures_dir.join("rexe.rb.txt").read.lines
       Tempfile.create do |file|
-        lines = fixtures_dir.join("rexe.rb.txt").read.lines
         lines.delete_at(85 - 1)
 
         Pathname(file.path).write(lines.join)
 
-        out = exe("#{file.path} --no-terminal")
+        out = exe(file.path)
 
         expect(out).to include(<<~EOM.indent(4))
              16  class Rexe
@@ -47,6 +47,19 @@ module DeadEnd
           ❯ 148    end
             551  end
         EOM
+      end
+    end
+
+    describe "terminal coloring" do
+      # When ruby sub shells it is not a interactive shell and dead_end will
+      # default to no coloring.
+
+      it "passing --terminal will force color codes" do
+        ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
+        out = exe("#{ruby_file} --terminal")
+
+        expect(out.strip).to include("Missing `end` detected")
+        expect(out.strip).to include("\e[0m❯ 36  \e[1;3m    def filename")
       end
     end
 

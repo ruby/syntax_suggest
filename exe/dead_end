@@ -5,7 +5,6 @@ require "optparse"
 require_relative "../lib/dead_end"
 
 options = {}
-options[:terminal] = true
 options[:record_dir] = ENV["DEAD_END_RECORD_DIR"]
 
 parser = OptionParser.new do |opts|
@@ -44,6 +43,10 @@ parser = OptionParser.new do |opts|
 
   opts.on("--record <dir>", "When enabled, records the steps used to search for a syntax error to the given directory") do |v|
     options[:record_dir] = v
+  end
+
+  opts.on("--terminal", "Enable terminal highlighting") do |v|
+    options[:terminal] = true
   end
 
   opts.on("--no-terminal", "Disable terminal highlighting") do |v|

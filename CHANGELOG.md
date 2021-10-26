@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Don't print terminal color codes when output is not tty (https://github.com/zombocom/dead_end/pull/91)
+
 ## 2.0.1
 
 - Reintroduce Ruby 2.5 support (https://github.com/zombocom/dead_end/pull/90)
