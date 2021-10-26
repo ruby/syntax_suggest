@@ -9,8 +9,9 @@ module DeadEnd
   class DisplayInvalidBlocks
     attr_reader :filename
 
-    def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: nil, invalid_obj: WhoDisSyntaxError::Null.new)
-      @terminal = terminal.nil? ? io.isatty : terminal
+    def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: DEFAULT_VALUE, invalid_obj: WhoDisSyntaxError::Null.new)
+      @terminal = terminal == DEFAULT_VALUE ? io.isatty : terminal
+
       @filename = filename
       @io = io
 

@@ -70,7 +70,7 @@ warn "Record dir: #{options[:record_dir]}" if options[:record_dir]
 display = DeadEnd.call(
   source: file.read,
   filename: file.expand_path,
-  terminal: options[:terminal],
+  terminal: options.fetch(:terminal, DeadEnd::DEFAULT_VALUE),
   record_dir: options[:record_dir]
 )
 
