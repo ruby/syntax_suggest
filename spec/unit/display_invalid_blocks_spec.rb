@@ -16,6 +16,7 @@ module DeadEnd
 
       search = CodeSearch.new(syntax_string)
       search.call
+
       io = StringIO.new
       display = DisplayInvalidBlocks.new(
         io: io,
@@ -92,7 +93,6 @@ module DeadEnd
       )
       display.call
       expect(io.string).to include("❯ 2    def hello")
-      expect(io.string).to include("DeadEnd")
     end
 
     it " wraps code with github style codeblocks" do
@@ -114,7 +114,7 @@ module DeadEnd
         terminal: false,
         code_lines: code_lines
       ).call
-      expect(io.string).to include(<<~EOM.indent(4))
+      expect(io.string).to include(<<~EOM)
           1  class OH
         ❯ 2    def hello
           4    def hai
@@ -142,10 +142,10 @@ module DeadEnd
       ).call
 
       expect(io.string).to include([
-          "      1  class OH",
-          "    ❯ 2    def hello",
-          "      4    end",
-          "      5  end",
+          "  1  class OH",
+          "❯ 2    def hello",
+          "  4    end",
+          "  5  end",
           ""
         ].join($/))
 
@@ -165,7 +165,7 @@ module DeadEnd
           "  4    end",
           "  5  end",
           ""
-        ].join($/ + DisplayCodeWithLineNumbers::TERMINAL_END).indent(4)
+        ].join($/ + DisplayCodeWithLineNumbers::TERMINAL_END)
       )
     end
   end

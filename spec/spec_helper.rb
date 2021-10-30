@@ -56,8 +56,4 @@ class String
       end
     end.join
   end
-
-  def strip_control_codes
-    gsub(/\e\[[^\x40-\x7E]*[\x40-\x7E]/, "")
-  end
 end

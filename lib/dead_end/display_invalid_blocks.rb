@@ -10,52 +10,56 @@ module DeadEnd
     attr_reader :filename
 
     def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: DEFAULT_VALUE, invalid_obj: WhoDisSyntaxError::Null.new)
-      @terminal = terminal == DEFAULT_VALUE ? io.isatty : terminal
-
-      @filename = filename
       @io = io
-
       @blocks = Array(blocks)
-
-      @invalid_lines = @blocks.map(&:lines).flatten
+      @filename = filename
       @code_lines = code_lines
 
-      @invalid_obj = invalid_obj
+      @terminal = terminal == DEFAULT_VALUE ? io.isatty : terminal
     end
 
     def document_ok?
       @blocks.none? { |b| !b.hidden? }
     end
 
+
     def call
-      @io.puts "Syntax OK" and return if document_ok?
-
-      @io.puts
-      if banner
-        @io.puts banner
-        @io.puts
+      if document_ok?
+        @io.puts "Syntax OK"
+        return self
       end
-      @io.puts("file: #{filename}") if filename
-      @io.puts <<~EOM
-        simplified:
 
-        #{indent(code_block)}
-      EOM
+      @io.puts("--> #{filename}") if filename
+      @io.puts
+      @blocks.each do |block|
+        display_block(block)
+      end
+
       self
+    end
+
+    def display_block(block)
+      lines = CaptureCodeContext.new(
+        blocks: block,
+        code_lines: @code_lines
+      ).call
+
+      document = DisplayCodeWithLineNumbers.new(
+        lines: lines,
+        terminal: @terminal,
+        highlight_lines: block.lines
+      ).call
+
+      RipperErrors.new(block.lines.map(&:original).join).call.errors.each do |e|
+        @io.puts e
+      end
+      @io.puts
+
+      @io.puts(document)
     end
 
     private def banner
       Banner.new(invalid_obj: @invalid_obj).call
-    end
-
-    private def indent(string, with: "    ")
-      string.each_line.map { |l| with + l }.join
-    end
-
-    private def code_block
-      string = +""
-      string << code_with_context
-      string
     end
 
     private def code_with_context

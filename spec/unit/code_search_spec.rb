@@ -42,8 +42,8 @@ module DeadEnd
       EOM
     end
 
-    it "handles no spaces between blocks" do
-      search = CodeSearch.new(<<~'EOM')
+    it "handles no spaces between blocks and trailing slash" do
+      source = <<~'EOM'
         require "rails_helper"
         RSpec.describe Foo, type: :model do
           describe "#bar" do
@@ -64,13 +64,14 @@ module DeadEnd
         end
       EOM
 
+      search = CodeSearch.new(source)
       search.call
 
       expect(search.invalid_blocks.join.strip).to eq('it "returns true" do # <== HERE')
     end
 
     it "handles no spaces between blocks" do
-      search = CodeSearch.new(<<~EOM)
+      source = <<~EOM
         context "foo bar" do
           it "bars the foo" do
             travel_to DateTime.new(2020, 10, 1, 10, 0, 0) do
@@ -81,13 +82,13 @@ module DeadEnd
           it "should" do
         end
       EOM
-
+      search = CodeSearch.new(source)
       search.call
 
       expect(search.invalid_blocks.join.strip).to eq('it "should" do')
     end
 
-    it "recording" do
+    it "records debugging steps to a directory" do
       Dir.mktmpdir do |dir|
         dir = Pathname(dir)
         search = CodeSearch.new(<<~EOM, record_dir: dir)

@@ -45,7 +45,6 @@ module DeadEnd
       filename: filename,
       terminal: terminal,
       code_lines: search.code_lines,
-      invalid_obj: invalid_type(source),
     ).call
   rescue Timeout::Error => e
     io.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
@@ -146,5 +145,6 @@ require_relative "lex_all"
 require_relative "block_expand"
 require_relative "around_block_scan"
 require_relative "who_dis_syntax_error"
+require_relative "ripper_errors"
 require_relative "display_invalid_blocks"
 require_relative "parse_blocks_from_indent_line"
