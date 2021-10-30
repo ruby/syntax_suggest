@@ -36,11 +36,6 @@ module DeadEnd
       self
     end
 
-    private def no_invalid_blocks
-      @io.puts <<~EOM
-      EOM
-    end
-
     private def found_invalid_blocks
       @io.puts
       if banner
