@@ -17,10 +17,9 @@ module DeadEnd
   DEFAULT_VALUE = Object.new.freeze
 
   class Error < StandardError; end
-  SEARCH_SOURCE_ON_ERROR_DEFAULT = true
   TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 1).to_i
 
-  def self.handle_error(e, search_source_on_error: SEARCH_SOURCE_ON_ERROR_DEFAULT)
+  def self.handle_error(e)
     raise e unless e.message.include?("end-of-input")
 
     filename = e.message.split(":").first
@@ -28,12 +27,10 @@ module DeadEnd
     $stderr.sync = true
     warn "Run `$ dead_end #{filename}` for more options\n"
 
-    if search_source_on_error
-      call(
-        source: Pathname(filename).read,
-        filename: filename
-      )
-    end
+    call(
+      source: Pathname(filename).read,
+      filename: filename
+    )
 
     raise e
   end
