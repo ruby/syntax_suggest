@@ -28,15 +28,8 @@ module DeadEnd
     end
 
     def call
-      if document_ok?
-        @io.puts "Syntax OK"
-      else
-        found_invalid_blocks
-      end
-      self
-    end
+      @io.puts "Syntax OK" and return if document_ok?
 
-    private def found_invalid_blocks
       @io.puts
       if banner
         @io.puts banner
@@ -48,23 +41,24 @@ module DeadEnd
 
         #{indent(code_block)}
       EOM
+      self
     end
 
-    def banner
+    private def banner
       Banner.new(invalid_obj: @invalid_obj).call
     end
 
-    def indent(string, with: "    ")
+    private def indent(string, with: "    ")
       string.each_line.map { |l| with + l }.join
     end
 
-    def code_block
+    private def code_block
       string = +""
       string << code_with_context
       string
     end
 
-    def code_with_context
+    private def code_with_context
       lines = CaptureCodeContext.new(
         blocks: @blocks,
         code_lines: @code_lines
@@ -72,14 +66,6 @@ module DeadEnd
 
       DisplayCodeWithLineNumbers.new(
         lines: lines,
-        terminal: @terminal,
-        highlight_lines: @invalid_lines
-      ).call
-    end
-
-    def code_with_lines
-      DisplayCodeWithLineNumbers.new(
-        lines: @code_lines.select(&:visible?),
         terminal: @terminal,
         highlight_lines: @invalid_lines
       ).call

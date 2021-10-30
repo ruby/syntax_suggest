@@ -107,12 +107,14 @@ module DeadEnd
 
       code_lines = CleanDocument.new(source: source).call.lines
       block = CodeBlock.new(lines: code_lines[1])
-      display = DisplayInvalidBlocks.new(
+      io = StringIO.new
+      DisplayInvalidBlocks.new(
+        io: io,
         blocks: block,
         terminal: false,
         code_lines: code_lines
-      )
-      expect(display.code_block).to eq(<<~EOM)
+      ).call
+      expect(io.string).to include(<<~EOM.indent(4))
           1  class OH
         ❯ 2    def hello
           4    def hai
@@ -130,40 +132,40 @@ module DeadEnd
         end
       EOM
 
+      io = StringIO.new
       block = CodeBlock.new(lines: code_lines[1])
-      display = DisplayInvalidBlocks.new(
+      DisplayInvalidBlocks.new(
+        io: io,
         blocks: block,
         terminal: false,
         code_lines: code_lines
-      )
+      ).call
 
-      expect(display.code_with_lines).to eq(
-        [
-          "  1  class OH",
-          "❯ 2    def hello",
-          "  3    def hai",
-          "  4    end",
-          "  5  end",
+      expect(io.string).to include([
+          "      1  class OH",
+          "    ❯ 2    def hello",
+          "      4    end",
+          "      5  end",
           ""
-        ].join($/)
-      )
+        ].join($/))
 
       block = CodeBlock.new(lines: code_lines[1])
-      display = DisplayInvalidBlocks.new(
+      io = StringIO.new
+      DisplayInvalidBlocks.new(
+        io: io,
         blocks: block,
         terminal: true,
         code_lines: code_lines
-      )
+      ).call
 
-      expect(display.code_with_lines).to eq(
+      expect(io.string).to include(
         [
           "  1  class OH",
           ["❯ 2  ", DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT, "  def hello"].join,
-          "  3    def hai",
           "  4    end",
           "  5  end",
           ""
-        ].join($/ + DisplayCodeWithLineNumbers::TERMINAL_END)
+        ].join($/ + DisplayCodeWithLineNumbers::TERMINAL_END).indent(4)
       )
     end
   end

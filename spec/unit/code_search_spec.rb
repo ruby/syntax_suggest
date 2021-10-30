@@ -100,7 +100,7 @@ module DeadEnd
         search.call
 
         expect(search.record_dir.entries.map(&:to_s)).to include("1-add-1.txt")
-        expect(search.record_dir.join("1-add-1.txt").read).to eq(<<~EOM.indent(4))
+        expect(search.record_dir.join("1-add-1.txt").read).to eq(<<~EOM)
             1  class OH
             2    def hello
           ❯ 3    def hai
@@ -154,20 +154,15 @@ module DeadEnd
       it "finds hanging def in this project" do
         source_string = fixtures_dir.join("this_project_extra_def.rb.txt").read
         search = CodeSearch.new(source_string)
-
         search.call
 
-        blocks = search.invalid_blocks
-        io = StringIO.new
-        display = DisplayInvalidBlocks.new(
-          code_lines: search.code_lines,
-          blocks: blocks,
-          io: io
-        )
-        display.call
-        # puts io.string
+        document = DisplayCodeWithLineNumbers.new(
+          lines: search.code_lines.select(&:visible?),
+          terminal: false,
+          highlight_lines: search.invalid_blocks.flat_map(&:lines)
+        ).call
 
-        expect(display.code_with_lines.strip_control_codes).to include(<<~EOM)
+        expect(document).to include(<<~EOM)
           ❯ 36      def filename
         EOM
       end
@@ -208,18 +203,13 @@ module DeadEnd
         EOM
         search.call
 
-        blocks = search.invalid_blocks
-        io = StringIO.new
-        display = DisplayInvalidBlocks.new(
-          io: io,
-          blocks: blocks,
-          code_lines: search.code_lines,
-          filename: "fake/spec/lol.rb"
-        )
-        display.call
-        # io.string
+        document = DisplayCodeWithLineNumbers.new(
+          lines: search.code_lines.select(&:visible?),
+          terminal: false,
+          highlight_lines: search.invalid_blocks.flat_map(&:lines)
+        ).call
 
-        expect(display.code_with_lines).to include(<<~EOM)
+        expect(document).to include(<<~EOM)
              1  require 'rails_helper'
              2
              3  RSpec.describe AclassNameHere, type: :worker do

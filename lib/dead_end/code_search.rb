@@ -73,12 +73,13 @@ module DeadEnd
         puts "  block indent:      #{block.current_indent}"
       end
       @record_dir.join(filename).open(mode: "a") do |f|
-        display = DisplayInvalidBlocks.new(
-          blocks: block,
+        document = DisplayCodeWithLineNumbers.new(
+          lines: @code_lines.select(&:visible?),
           terminal: false,
-          code_lines: @code_lines
-        )
-        f.write(display.indent(display.code_with_lines))
+          highlight_lines: block.lines
+        ).call
+
+        f.write(document)
       end
     end
 
