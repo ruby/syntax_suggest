@@ -20,12 +20,8 @@ module DeadEnd
   TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 1).to_i
 
   def self.handle_error(e)
-    raise e unless e.message.include?("end-of-input")
-
     filename = e.message.split(":").first
-
     $stderr.sync = true
-    warn "Run `$ dead_end #{filename}` for more options\n"
 
     call(
       source: Pathname(filename).read,
@@ -44,12 +40,12 @@ module DeadEnd
 
     blocks = search.invalid_blocks
     DisplayInvalidBlocks.new(
+      io: io,
       blocks: blocks,
       filename: filename,
       terminal: terminal,
       code_lines: search.code_lines,
       invalid_obj: invalid_type(source),
-      io: io
     ).call
   rescue Timeout::Error => e
     io.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
