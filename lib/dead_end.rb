@@ -41,7 +41,7 @@ module DeadEnd
       blocks: blocks,
       filename: filename,
       terminal: terminal,
-      code_lines: search.code_lines,
+      code_lines: search.code_lines
     ).call
   rescue Timeout::Error => e
     io.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"

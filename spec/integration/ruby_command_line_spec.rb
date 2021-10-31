@@ -50,7 +50,7 @@ module DeadEnd
           require_relative "./script.rb"
         EOM
 
-        out = `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
+        `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
 
         expect($?.success?).to be_falsey
       end

@@ -142,12 +142,12 @@ module DeadEnd
       ).call
 
       expect(io.string).to include([
-          "  1  class OH",
-          "❯ 2    def hello",
-          "  4    end",
-          "  5  end",
-          ""
-        ].join($/))
+        "  1  class OH",
+        "❯ 2    def hello",
+        "  4    end",
+        "  5  end",
+        ""
+      ].join($/))
 
       block = CodeBlock.new(lines: code_lines[1])
       io = StringIO.new

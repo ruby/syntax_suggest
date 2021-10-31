@@ -8,7 +8,6 @@ module DeadEnd
   #   puts RipperErrors.new(" def foo").call.errors
   #   # => ["syntax error, unexpected end-of-input, expecting ';' or '\\n'"]
   class RipperErrors < Ripper
-
     attr_reader :errors
 
     # Comes from ripper, called

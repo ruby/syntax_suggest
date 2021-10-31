@@ -67,7 +67,7 @@ module DeadEnd
 
         expect(tmp_dir).to be_empty
 
-        out = exe("#{ruby_file} --record #{tmp_dir}")
+        exe("#{ruby_file} --record #{tmp_dir}")
 
         expect(tmp_dir).to_not be_empty
       end
