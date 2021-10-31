@@ -21,7 +21,6 @@ module DeadEnd
       @blocks.none? { |b| !b.hidden? }
     end
 
-
     def call
       if document_ok?
         @io.puts "Syntax OK"
@@ -37,7 +36,7 @@ module DeadEnd
       self
     end
 
-    def display_block(block)
+    private def display_block(block)
       lines = CaptureCodeContext.new(
         blocks: block,
         code_lines: @code_lines
