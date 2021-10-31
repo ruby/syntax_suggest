@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "banner"
 require_relative "capture_code_context"
 require_relative "display_code_with_line_numbers"
 
@@ -9,7 +8,7 @@ module DeadEnd
   class DisplayInvalidBlocks
     attr_reader :filename
 
-    def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: DEFAULT_VALUE, invalid_obj: WhoDisSyntaxError::Null.new)
+    def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: DEFAULT_VALUE)
       @io = io
       @blocks = Array(blocks)
       @filename = filename

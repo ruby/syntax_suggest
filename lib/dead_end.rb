@@ -126,10 +126,6 @@ module DeadEnd
   def self.valid?(source)
     !invalid?(source)
   end
-
-  def self.invalid_type(source)
-    WhoDisSyntaxError.new(source).call
-  end
 end
 
 require_relative "dead_end/code_line"
@@ -141,7 +137,6 @@ require_relative "dead_end/clean_document"
 require_relative "dead_end/lex_all"
 require_relative "dead_end/block_expand"
 require_relative "dead_end/around_block_scan"
-require_relative "dead_end/who_dis_syntax_error"
 require_relative "dead_end/ripper_errors"
 require_relative "dead_end/display_invalid_blocks"
 require_relative "dead_end/parse_blocks_from_indent_line"
