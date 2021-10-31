@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../dead_end/internals"
+require_relative "../dead_end"
 
 # Monkey patch kernel to ensure that all `require` calls call the same
 # method
