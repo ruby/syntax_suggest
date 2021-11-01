@@ -54,10 +54,35 @@ module DeadEnd
       @code_lines = code_lines
       @frontier = []
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
+      @has_run = false
     end
 
     def count
       @frontier.count
+    end
+
+    # Performance optimization
+    #
+    # Parsing with ripper is expensive
+    # If we know we don't have any blocks with invalid
+    # syntax, then we know we cannot have found
+    # the incorrect syntax yet.
+    #
+    # We need to short-circuit this logic for the
+    # first pass, since passing in valid document
+    # would result in an infinite loop
+    #
+    # This logic gets re-used as well so we have to
+    # check for when the default value is also the frontier
+    private def can_skip_check?(block_array)
+      if block_array == @frontier
+        if @has_run && !block_array.any?(&:invalid?)
+          true
+        else
+          @has_run = true
+          false
+        end
+      end
     end
 
     # Returns true if the document is valid with all lines
@@ -65,7 +90,9 @@ module DeadEnd
     # the frontier array, but can be used for arbitrary arrays
     # of codeblocks as well
     def holds_all_syntax_errors?(block_array = @frontier)
-      without_lines = block_array.map do |block|
+      return false if can_skip_check?(block_array)
+
+      without_lines = block_array.flat_map do |block|
         block.lines
       end
 
