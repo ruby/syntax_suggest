@@ -39,28 +39,33 @@ module DeadEnd
     end
 
     private def display_block(block)
-      # Output explanations
-      ExplainSyntax.new(
+      # Build explanation
+      explain = ExplainSyntax.new(
         code_lines: block.lines
-      ).call.errors.each do |e|
-        @io.puts e
-      end
-      @io.puts
+      ).call
 
-      ## Output source code
+      # Enhance code output
+      # Also handles several ambiguious cases
       lines = CaptureCodeContext.new(
         blocks: block,
         code_lines: @code_lines
       ).call
 
+      # Build code output
       document = DisplayCodeWithLineNumbers.new(
         lines: lines,
         terminal: @terminal,
         highlight_lines: block.lines
       ).call
 
-      @io.puts(document)
+      # Output syntax error explanation
+      explain.errors.each do |e|
+        @io.puts e
+      end
+      @io.puts
 
+      # Output code
+      @io.puts(document)
     end
 
     private def code_with_context
