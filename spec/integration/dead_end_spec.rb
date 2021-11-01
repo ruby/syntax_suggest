@@ -89,6 +89,5 @@ module DeadEnd
         ❯ 1075    end
       EOM
     end
-
   end
 end
