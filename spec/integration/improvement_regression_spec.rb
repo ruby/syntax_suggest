@@ -11,7 +11,6 @@ module DeadEnd
       DeadEnd.call(
         io: io,
         source: source,
-        filename: "none"
       )
       debug_display(io.string)
 
@@ -31,7 +30,6 @@ module DeadEnd
       DeadEnd.call(
         io: io,
         source: source,
-        filename: "none"
       )
       debug_display(io.string)
 
@@ -54,9 +52,7 @@ module DeadEnd
       DeadEnd.call(
         io: io,
         source: source,
-        filename: "none"
       )
-
       debug_display(io.string)
 
       expect(io.string).to include(<<~'EOM')
