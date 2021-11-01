@@ -25,9 +25,7 @@ module DeadEnd
       ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
       out = exe(ruby_file)
 
-      expect(out.strip).to include("Missing `end` detected")
       expect(out.strip).to include("❯ 36      def filename")
-
       expect($?.success?).to be_falsey
     end
 
@@ -40,7 +38,7 @@ module DeadEnd
 
         out = exe(file.path)
 
-        expect(out).to include(<<~EOM.indent(4))
+        expect(out).to include(<<~EOM)
              16  class Rexe
           ❯  77    class Lookups
           ❯  78      def input_modes
@@ -57,7 +55,6 @@ module DeadEnd
       ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
       out = exe("#{ruby_file} --terminal")
 
-      expect(out.strip).to include("Missing `end` detected")
       expect(out.strip).to include("\e[0m❯ 36  \e[1;3m    def filename")
     end
 
@@ -70,9 +67,8 @@ module DeadEnd
 
         expect(tmp_dir).to be_empty
 
-        out = exe("#{ruby_file} --record #{tmp_dir}")
+        exe("#{ruby_file} --record #{tmp_dir}")
 
-        expect(out.strip).to include("Unmatched `end` detected")
         expect(tmp_dir).to_not be_empty
       end
     end

@@ -1,5 +1,11 @@
 ## HEAD (unreleased)
 
+- [Breaking] Remove previously deprecated `require "dead_end/fyi"` interface (https://github.com/zombocom/dead_end/pull/94)
+- DeadEnd is now fired on EVERY syntax error (https://github.com/zombocom/dead_end/pull/94)
+- Output format changes
+  - The "banner" is removed in favor of original parse error messages (https://github.com/zombocom/dead_end/pull/94)
+  - Parse errors emitted per-block rather than for the whole document (https://github.com/zombocom/dead_end/pull/94)
+
 ## 2.0.2
 
 - Don't print terminal color codes when output is not tty (https://github.com/zombocom/dead_end/pull/91)

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "dead_end/internals" # Don't auto load code to
+require "dead_end"
 
 require "tempfile"
 
@@ -55,9 +55,5 @@ class String
         " " * number + line
       end
     end.join
-  end
-
-  def strip_control_codes
-    gsub(/\e\[[^\x40-\x7E]*[\x40-\x7E]/, "")
   end
 end

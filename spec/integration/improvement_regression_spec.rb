@@ -14,7 +14,7 @@ module DeadEnd
         filename: "none"
       )
 
-      expect(io.string).to include(<<~'EOM'.indent(4))
+      expect(io.string).to include(<<~'EOM')
            1  Rails.application.routes.draw do
         ❯ 113    namespace :admin do
         ❯ 116    match "/foobar(*path)", via: :all, to: redirect { |_params, req|
@@ -33,7 +33,7 @@ module DeadEnd
         filename: "none"
       )
 
-      expect(io.string).to include(<<~'EOM'.indent(4))
+      expect(io.string).to include(<<~'EOM')
            1  describe "webmock tests" do
           22    it "body" do
           27      query = Cutlass::FunctionQuery.new(
@@ -55,7 +55,7 @@ module DeadEnd
         filename: "none"
       )
 
-      expect(io.string).to include(<<~'EOM'.indent(4))
+      expect(io.string).to include(<<~'EOM')
            5  module DerailedBenchmarks
            6    class RequireTree
            7      REQUIRED_BY = {}
