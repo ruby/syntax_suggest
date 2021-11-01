@@ -70,8 +70,11 @@ module DeadEnd
     end
 
     def valid?
-      return @valid if @valid != UNSET
-      @valid = DeadEnd.valid?(to_s)
+      if @valid == UNSET
+        @valid = DeadEnd.valid?(lines.map(&:original).join)
+      else
+        @valid
+      end
     end
 
     def to_s

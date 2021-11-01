@@ -70,5 +70,25 @@ module DeadEnd
           74  end
       EOM
     end
+
+    it "re-checks all block code, not just what's visible issues/95" do
+      file = fixtures_dir.join("ruby_buildpack.rb.txt")
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: file.read,
+        filename: file
+      )
+      debug_display(io.string)
+
+      expect(io.string).to_not include("def ruby_install_binstub_path")
+      expect(io.string).to include(<<~'EOM')
+        ❯ 1067    def add_yarn_binary
+        ❯ 1068      return [] if yarn_preinstalled?
+        ❯ 1069  |
+        ❯ 1075    end
+      EOM
+    end
+
   end
 end
