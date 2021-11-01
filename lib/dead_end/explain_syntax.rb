@@ -37,7 +37,7 @@ module DeadEnd
       "|" => "|"
     }.freeze
 
-    def initialize(code_lines: )
+    def initialize(code_lines:)
       @code_lines = code_lines
       @left_right = LeftRightLexCount.new
       @missing = nil
@@ -99,7 +99,7 @@ module DeadEnd
         return RipperErrors.new(@code_lines.map(&:original).join).call.errors
       end
 
-      missing.map {|miss| why(miss) }
+      missing.map { |miss| why(miss) }
     end
   end
 end

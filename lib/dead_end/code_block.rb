@@ -80,10 +80,10 @@ module DeadEnd
         # That means there's no reason to re-check all
         # lines with ripper (which is expensive).
         # Benchmark in commit message
-        if lines.all? {|l| l.hidden? || l.empty? }
-          @valid = true
+        @valid = if lines.all? { |l| l.hidden? || l.empty? }
+          true
         else
-          @valid = DeadEnd.valid?(lines.map(&:original).join)
+          DeadEnd.valid?(lines.map(&:original).join)
         end
       else
         @valid

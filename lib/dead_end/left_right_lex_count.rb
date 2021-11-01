@@ -151,8 +151,6 @@ module DeadEnd
     private def missing_pipe
       if @count_for_char["|"].odd?
         "|"
-      else
-        nil
       end
     end
   end

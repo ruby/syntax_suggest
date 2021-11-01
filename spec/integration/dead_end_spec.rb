@@ -4,14 +4,13 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
-
     it "returns good results on routes.rb" do
       source = fixtures_dir.join("routes.rb.txt").read
 
       io = StringIO.new
       DeadEnd.call(
         io: io,
-        source: source,
+        source: source
       )
       debug_display(io.string)
 
@@ -30,7 +29,7 @@ module DeadEnd
       io = StringIO.new
       DeadEnd.call(
         io: io,
-        source: source,
+        source: source
       )
       debug_display(io.string)
 
@@ -52,7 +51,7 @@ module DeadEnd
       io = StringIO.new
       DeadEnd.call(
         io: io,
-        source: source,
+        source: source
       )
       debug_display(io.string)
 
