@@ -28,8 +28,9 @@ module DeadEnd
     raise e
   end
 
-  def self.call(source:, filename:, terminal: DEFAULT_VALUE, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
+  def self.call(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
+    filename = nil if filename == DEFAULT_VALUE
     Timeout.timeout(timeout) do
       record_dir ||= ENV["DEBUG"] ? "tmp" : nil
       search = CodeSearch.new(source, record_dir: record_dir).call
@@ -140,5 +141,7 @@ require_relative "dead_end/around_block_scan"
 require_relative "dead_end/ripper_errors"
 require_relative "dead_end/display_invalid_blocks"
 require_relative "dead_end/parse_blocks_from_indent_line"
+
+require_relative "dead_end/explain_syntax"
 
 require_relative "dead_end/auto"

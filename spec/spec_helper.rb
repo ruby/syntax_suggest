@@ -17,6 +17,15 @@ RSpec.configure do |config|
   end
 end
 
+# Used for debugging modifications to
+# display output
+def debug_display(output)
+  return unless ENV["DEBUG_DISPLAY"]
+  puts
+  puts output
+  puts
+end
+
 def spec_dir
   Pathname(__dir__)
 end

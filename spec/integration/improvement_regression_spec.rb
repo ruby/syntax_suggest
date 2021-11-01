@@ -3,7 +3,7 @@
 require_relative "../spec_helper"
 
 module DeadEnd
-  RSpec.describe "Library only integration to test regressions and improvements" do
+  RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
     it "returns good results on routes.rb" do
       source = fixtures_dir.join("routes.rb.txt").read
 
@@ -13,6 +13,7 @@ module DeadEnd
         source: source,
         filename: "none"
       )
+      debug_display(io.string)
 
       expect(io.string).to include(<<~'EOM')
            1  Rails.application.routes.draw do
@@ -32,6 +33,7 @@ module DeadEnd
         source: source,
         filename: "none"
       )
+      debug_display(io.string)
 
       expect(io.string).to include(<<~'EOM')
            1  describe "webmock tests" do
@@ -54,6 +56,8 @@ module DeadEnd
         source: source,
         filename: "none"
       )
+
+      debug_display(io.string)
 
       expect(io.string).to include(<<~'EOM')
            5  module DerailedBenchmarks
