@@ -71,7 +71,20 @@ module DeadEnd
 
     def valid?
       if @valid == UNSET
-        @valid = DeadEnd.valid?(lines.map(&:original).join)
+        # Performance optimization
+        #
+        # If all the lines were previously hidden
+        # and we expand to capture additional empty
+        # lines then the result cannot be invalid
+        #
+        # That means there's no reason to re-check all
+        # lines with ripper (which is expensive).
+        # Benchmark in commit message
+        if lines.all? {|l| l.hidden? || l.empty? }
+          @valid = true
+        else
+          @valid = DeadEnd.valid?(lines.map(&:original).join)
+        end
       else
         @valid
       end
