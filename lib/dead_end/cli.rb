@@ -17,7 +17,7 @@ module DeadEnd
     # ARGV is Everything passed to the executable, does not include executable name
     #
     # All other intputs are dependency injection for testing
-    def initialize(argv: , exit_obj: Kernel, io: $stdout, env: ENV)
+    def initialize(argv:, exit_obj: Kernel, io: $stdout, env: ENV)
       @options = {}
       @parser = nil
       options[:record_dir] = env["DEAD_END_RECORD_DIR"]
@@ -35,7 +35,7 @@ module DeadEnd
         # Display help if raw command
         parser.parse! %w[--help]
       else
-        self.parse
+        parse
       end
 
       # Needed for testing since we fake exit
@@ -68,7 +68,6 @@ module DeadEnd
 
     def parser
       @parser ||= OptionParser.new do |opts|
-
         opts.banner = <<~EOM
           Usage: dead_end <file> [options]
 

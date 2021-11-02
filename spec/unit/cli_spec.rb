@@ -3,7 +3,6 @@
 require_relative "../spec_helper"
 
 module DeadEnd
-
   class FakeExit
     def initialize
       @called = false
@@ -19,9 +18,7 @@ module DeadEnd
       @called
     end
 
-    def value
-      @value
-    end
+    attr_reader :value
   end
 
   RSpec.describe Cli do
@@ -33,7 +30,7 @@ module DeadEnd
 
         io = StringIO.new
         exit_obj = FakeExit.new
-        cli = Cli.new(
+        Cli.new(
           io: io,
           argv: [file.to_s],
           exit_obj: exit_obj
@@ -50,7 +47,7 @@ module DeadEnd
 
       io = StringIO.new
       exit_obj = FakeExit.new
-      cli = Cli.new(
+      Cli.new(
         io: io,
         argv: [file.to_s],
         exit_obj: exit_obj

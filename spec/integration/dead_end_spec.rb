@@ -99,7 +99,7 @@ module DeadEnd
       io = StringIO.new
       DeadEnd.call(
         io: io,
-        source: lines.join,
+        source: lines.join
       )
 
       out = io.string
