@@ -46,13 +46,13 @@ module DeadEnd
 
         require_rb = tmpdir.join("require.rb")
         require_rb.write <<~EOM
-          require_relative "./script.rb"
+          load "#{script.expand_path}"
         EOM
 
         out = `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
 
         expect($?.success?).to be_falsey
-        expect(out).to include('❯  5    it "flerg"')
+        expect(out).to include('❯  5    it "flerg"').once
       end
     end
   end

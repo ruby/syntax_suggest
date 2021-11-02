@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Fix double output bug (https://github.com/zombocom/dead_end/pull/99)
 - Fix bug causing poor results (fix #95, fix #88) ()
 - [Breaking] Remove previously deprecated `require "dead_end/fyi"` interface (https://github.com/zombocom/dead_end/pull/94)
 - DeadEnd is now fired on EVERY syntax error (https://github.com/zombocom/dead_end/pull/94)
