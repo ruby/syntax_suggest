@@ -1,10 +1,11 @@
 ## HEAD (unreleased)
 
+- Fix bug causing poor results (fix #95, fix #88) ()
 - [Breaking] Remove previously deprecated `require "dead_end/fyi"` interface (https://github.com/zombocom/dead_end/pull/94)
 - DeadEnd is now fired on EVERY syntax error (https://github.com/zombocom/dead_end/pull/94)
-- Output format changes
-  - The "banner" is removed in favor of original parse error messages (https://github.com/zombocom/dead_end/pull/94)
+- Output format changes:
   - Parse errors emitted per-block rather than for the whole document (https://github.com/zombocom/dead_end/pull/94)
+  - The "banner" is now based on lexical analysis rather than parser regex (fix #68, fix #87) ()
 
 ## 2.0.2
 

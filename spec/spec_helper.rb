@@ -3,6 +3,7 @@
 require "bundler/setup"
 require "dead_end"
 
+require "benchmark"
 require "tempfile"
 
 RSpec.configure do |config|
@@ -15,6 +16,15 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+end
+
+# Used for debugging modifications to
+# display output
+def debug_display(output)
+  return unless ENV["DEBUG_DISPLAY"]
+  puts
+  puts output
+  puts
 end
 
 def spec_dir

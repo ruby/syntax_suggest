@@ -27,8 +27,10 @@ module DeadEnd
         return self
       end
 
-      @io.puts("--> #{filename}") if filename
-      @io.puts
+      if filename
+        @io.puts("--> #{filename}")
+        @io.puts
+      end
       @blocks.each do |block|
         display_block(block)
       end
@@ -37,27 +39,33 @@ module DeadEnd
     end
 
     private def display_block(block)
+      # Build explanation
+      explain = ExplainSyntax.new(
+        code_lines: block.lines
+      ).call
+
+      # Enhance code output
+      # Also handles several ambiguious cases
       lines = CaptureCodeContext.new(
         blocks: block,
         code_lines: @code_lines
       ).call
 
+      # Build code output
       document = DisplayCodeWithLineNumbers.new(
         lines: lines,
         terminal: @terminal,
         highlight_lines: block.lines
       ).call
 
-      RipperErrors.new(block.lines.map(&:original).join).call.errors.each do |e|
+      # Output syntax error explanation
+      explain.errors.each do |e|
         @io.puts e
       end
       @io.puts
 
+      # Output code
       @io.puts(document)
-    end
-
-    private def banner
-      Banner.new(invalid_obj: @invalid_obj).call
     end
 
     private def code_with_context

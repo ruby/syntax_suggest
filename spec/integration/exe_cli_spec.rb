@@ -24,6 +24,7 @@ module DeadEnd
     it "parses invalid code" do
       ruby_file = fixtures_dir.join("this_project_extra_def.rb.txt")
       out = exe(ruby_file)
+      debug_display(out)
 
       expect(out.strip).to include("❯ 36      def filename")
       expect($?.success?).to be_falsey
@@ -37,6 +38,7 @@ module DeadEnd
         Pathname(file.path).write(lines.join)
 
         out = exe(file.path)
+        debug_display(out)
 
         expect(out).to include(<<~EOM)
              16  class Rexe

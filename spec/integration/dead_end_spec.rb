@@ -3,16 +3,16 @@
 require_relative "../spec_helper"
 
 module DeadEnd
-  RSpec.describe "Library only integration to test regressions and improvements" do
+  RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
     it "returns good results on routes.rb" do
       source = fixtures_dir.join("routes.rb.txt").read
 
       io = StringIO.new
       DeadEnd.call(
         io: io,
-        source: source,
-        filename: "none"
+        source: source
       )
+      debug_display(io.string)
 
       expect(io.string).to include(<<~'EOM')
            1  Rails.application.routes.draw do
@@ -29,9 +29,9 @@ module DeadEnd
       io = StringIO.new
       DeadEnd.call(
         io: io,
-        source: source,
-        filename: "none"
+        source: source
       )
+      debug_display(io.string)
 
       expect(io.string).to include(<<~'EOM')
            1  describe "webmock tests" do
@@ -51,9 +51,9 @@ module DeadEnd
       io = StringIO.new
       DeadEnd.call(
         io: io,
-        source: source,
-        filename: "none"
+        source: source
       )
+      debug_display(io.string)
 
       expect(io.string).to include(<<~'EOM')
            5  module DerailedBenchmarks
@@ -68,6 +68,29 @@ module DeadEnd
           73    end
           74  end
       EOM
+    end
+
+    it "re-checks all block code, not just what's visible issues/95" do
+      file = fixtures_dir.join("ruby_buildpack.rb.txt")
+      io = StringIO.new
+
+      benchmark = Benchmark.measure do
+        DeadEnd.call(
+          io: io,
+          source: file.read,
+          filename: file
+        )
+
+        expect(io.string).to_not include("def ruby_install_binstub_path")
+        expect(io.string).to include(<<~'EOM')
+          ❯ 1067    def add_yarn_binary
+          ❯ 1068      return [] if yarn_preinstalled?
+          ❯ 1069  |
+          ❯ 1075    end
+        EOM
+      end
+      debug_display(io.string)
+      debug_display(benchmark)
     end
   end
 end

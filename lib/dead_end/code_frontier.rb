@@ -54,18 +54,42 @@ module DeadEnd
       @code_lines = code_lines
       @frontier = []
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
+      @has_run = false
+      @check_next = true
     end
 
     def count
       @frontier.count
     end
 
+    # Performance optimization
+    #
+    # Parsing with ripper is expensive
+    # If we know we don't have any blocks with invalid
+    # syntax, then we know we cannot have found
+    # the incorrect syntax yet.
+    #
+    # When an invalid block is added onto the frontier
+    # check document state
+    private def can_skip_check?
+      check_next = @check_next
+      @check_next = false
+
+      if check_next
+        false
+      else
+        true
+      end
+    end
+
     # Returns true if the document is valid with all lines
     # removed. By default it checks all blocks in present in
     # the frontier array, but can be used for arbitrary arrays
     # of codeblocks as well
-    def holds_all_syntax_errors?(block_array = @frontier)
-      without_lines = block_array.map do |block|
+    def holds_all_syntax_errors?(block_array = @frontier, can_cache: true)
+      return false if can_cache && can_skip_check?
+
+      without_lines = block_array.flat_map do |block|
         block.lines
       end
 
@@ -120,6 +144,8 @@ module DeadEnd
       @frontier.reject! { |b|
         b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
       }
+
+      @check_next = true if block.invalid?
       @frontier << block
       @frontier.sort!
 
@@ -142,7 +168,7 @@ module DeadEnd
     # the smallest possible set of blocks that contain all the syntax errors
     def detect_invalid_blocks
       self.class.combination(@frontier.select(&:invalid?)).detect do |block_array|
-        holds_all_syntax_errors?(block_array)
+        holds_all_syntax_errors?(block_array, can_cache: false)
       end || []
     end
   end
