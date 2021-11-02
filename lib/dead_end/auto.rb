@@ -33,23 +33,3 @@ module Kernel
     DeadEnd.handle_error(e)
   end
 end
-
-# I honestly have no idea why this Object delegation is needed
-# I keep staring at bootsnap and it doesn't have to do this
-# is there a bug in their implementation they haven't caught or
-# am I doing something different?
-class Object
-  private
-
-  def load(path, wrap = false)
-    Kernel.load(path, wrap)
-  rescue SyntaxError => e
-    DeadEnd.handle_error(e)
-  end
-
-  def require(path)
-    Kernel.require(path)
-  rescue SyntaxError => e
-    DeadEnd.handle_error(e)
-  end
-end
