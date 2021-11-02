@@ -30,26 +30,6 @@ module DeadEnd
       expect($?.success?).to be_falsey
     end
 
-    it "handles heredocs" do
-      lines = fixtures_dir.join("rexe.rb.txt").read.lines
-      Tempfile.create do |file|
-        lines.delete_at(85 - 1)
-
-        Pathname(file.path).write(lines.join)
-
-        out = exe(file.path)
-        debug_display(out)
-
-        expect(out).to include(<<~EOM)
-             16  class Rexe
-          ❯  77    class Lookups
-          ❯  78      def input_modes
-          ❯ 148    end
-            551  end
-        EOM
-      end
-    end
-
     # When ruby sub shells it is not a interactive shell and dead_end will
     # default to no coloring. Colors/bold can be forced with `--terminal`
     # flag
