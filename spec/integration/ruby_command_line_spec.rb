@@ -6,23 +6,22 @@ module DeadEnd
   RSpec.describe "Requires with ruby cli" do
     it "namespaces all monkeypatched methods" do
       Dir.mktmpdir do |dir|
-        @tmpdir = Pathname(dir)
-        @script = @tmpdir.join("script.rb")
-        @script.write <<~'EOM'
+        tmpdir = Pathname(dir)
+        script = tmpdir.join("script.rb")
+        script.write <<~'EOM'
           puts Kernel.private_methods
         EOM
+        dead_end_methods_file = tmpdir.join("dead_end_methods.txt")
+        kernel_methods_file = tmpdir.join("kernel_methods.txt")
 
-        dead_end_methods_array = `ruby -I#{lib_dir} -rdead_end/auto #{@script} 2>&1`.strip.lines.map(&:strip)
-        kernel_methods_array = `ruby #{@script} 2>&1`.strip.lines.map(&:strip)
-        methods = (dead_end_methods_array - kernel_methods_array).sort
-        expect(methods).to eq(["dead_end_original_load", "dead_end_original_require", "dead_end_original_require_relative", "timeout"])
+        d_pid = Process.spawn("ruby -I#{lib_dir} -rdead_end/auto #{script} 2>&1 > #{dead_end_methods_file}")
+        k_pid = Process.spawn("ruby #{script} 2>&1 >> #{kernel_methods_file}")
 
-        @script.write <<~'EOM'
-          puts Kernel.private_methods
-        EOM
+        Process.wait(k_pid)
+        Process.wait(d_pid)
 
-        dead_end_methods_array = `ruby -I#{lib_dir} -rdead_end/auto #{@script} 2>&1`.strip.lines.map(&:strip)
-        kernel_methods_array = `ruby #{@script} 2>&1`.strip.lines.map(&:strip)
+        dead_end_methods_array = dead_end_methods_file.read.strip.lines.map(&:strip)
+        kernel_methods_array = kernel_methods_file.read.strip.lines.map(&:strip)
         methods = (dead_end_methods_array - kernel_methods_array).sort
         expect(methods).to eq(["dead_end_original_load", "dead_end_original_require", "dead_end_original_require_relative", "timeout"])
       end
