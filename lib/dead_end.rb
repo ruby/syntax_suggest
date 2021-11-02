@@ -145,3 +145,4 @@ require_relative "dead_end/parse_blocks_from_indent_line"
 require_relative "dead_end/explain_syntax"
 
 require_relative "dead_end/auto"
+require_relative "dead_end/cli"
