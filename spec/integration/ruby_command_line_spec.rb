@@ -29,9 +29,9 @@ module DeadEnd
 
     it "detects require error and adds a message with auto mode" do
       Dir.mktmpdir do |dir|
-        @tmpdir = Pathname(dir)
-        @script = @tmpdir.join("script.rb")
-        @script.write <<~EOM
+        tmpdir = Pathname(dir)
+        script = tmpdir.join("script.rb")
+        script.write <<~EOM
           describe "things" do
             it "blerg" do
             end
@@ -44,14 +44,15 @@ module DeadEnd
           end
         EOM
 
-        require_rb = @tmpdir.join("require.rb")
+        require_rb = tmpdir.join("require.rb")
         require_rb.write <<~EOM
           require_relative "./script.rb"
         EOM
 
-        `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
+        out = `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
 
         expect($?.success?).to be_falsey
+        expect(out).to include('❯  5    it "flerg"')
       end
     end
   end
