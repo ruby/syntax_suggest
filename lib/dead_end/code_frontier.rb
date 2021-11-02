@@ -55,6 +55,7 @@ module DeadEnd
       @frontier = []
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
       @has_run = false
+      @check_next = true
     end
 
     def count
@@ -68,20 +69,16 @@ module DeadEnd
     # syntax, then we know we cannot have found
     # the incorrect syntax yet.
     #
-    # We need to short-circuit this logic for the
-    # first pass, since passing in valid document
-    # would result in an infinite loop
-    #
-    # This logic gets re-used as well so we have to
-    # check for when the default value is also the frontier
-    private def can_skip_check?(block_array)
-      if block_array == @frontier
-        if @has_run && !block_array.any?(&:invalid?)
-          true
-        else
-          @has_run = true
-          false
-        end
+    # When an invalid block is added onto the frontier
+    # check document state
+    private def can_skip_check?
+      check_next = @check_next
+      @check_next = false
+
+      if check_next
+        false
+      else
+        true
       end
     end
 
@@ -89,8 +86,8 @@ module DeadEnd
     # removed. By default it checks all blocks in present in
     # the frontier array, but can be used for arbitrary arrays
     # of codeblocks as well
-    def holds_all_syntax_errors?(block_array = @frontier)
-      return false if can_skip_check?(block_array)
+    def holds_all_syntax_errors?(block_array = @frontier, can_cache: true)
+      return false if can_cache && can_skip_check?
 
       without_lines = block_array.flat_map do |block|
         block.lines
@@ -147,6 +144,8 @@ module DeadEnd
       @frontier.reject! { |b|
         b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
       }
+
+      @check_next = true if block.invalid?
       @frontier << block
       @frontier.sort!
 
@@ -169,7 +168,7 @@ module DeadEnd
     # the smallest possible set of blocks that contain all the syntax errors
     def detect_invalid_blocks
       self.class.combination(@frontier.select(&:invalid?)).detect do |block_array|
-        holds_all_syntax_errors?(block_array)
+        holds_all_syntax_errors?(block_array, can_cache: false)
       end || []
     end
   end

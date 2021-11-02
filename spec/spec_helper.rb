@@ -3,6 +3,7 @@
 require "bundler/setup"
 require "dead_end"
 
+require "benchmark"
 require "tempfile"
 
 RSpec.configure do |config|
