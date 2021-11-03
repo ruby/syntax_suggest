@@ -70,16 +70,22 @@ module DeadEnd
       EOM
     end
 
+    require 'ruby-prof'
     it "re-checks all block code, not just what's visible issues/95" do
       file = fixtures_dir.join("ruby_buildpack.rb.txt")
       io = StringIO.new
 
       benchmark = Benchmark.measure do
+        result = RubyProf.profile do
         DeadEnd.call(
           io: io,
           source: file.read,
           filename: file
         )
+        end
+
+        printer = RubyProf::GraphPrinter.new(result)
+        printer.print(STDOUT, {})
 
         expect(io.string).to_not include("def ruby_install_binstub_path")
         expect(io.string).to include(<<~'EOM')
