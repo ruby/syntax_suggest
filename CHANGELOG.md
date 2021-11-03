@@ -1,8 +1,10 @@
 ## HEAD (unreleased)
 
+## 3.0.0
+
+- [Breaking] Remove previously deprecated `require "dead_end/fyi"` interface (https://github.com/zombocom/dead_end/pull/94)
 - Fix double output bug (https://github.com/zombocom/dead_end/pull/99)
 - Fix bug causing poor results (fix #95, fix #88) (https://github.com/zombocom/dead_end/pull/96)
-- [Breaking] Remove previously deprecated `require "dead_end/fyi"` interface (https://github.com/zombocom/dead_end/pull/94)
 - DeadEnd is now fired on EVERY syntax error (https://github.com/zombocom/dead_end/pull/94)
 - Output format changes:
   - Parse errors emitted per-block rather than for the whole document (https://github.com/zombocom/dead_end/pull/94)
