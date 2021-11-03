@@ -76,27 +76,40 @@ module DeadEnd
       io = StringIO.new
 
       benchmark = Benchmark.measure do
-        result = RubyProf.profile do
         DeadEnd.call(
           io: io,
           source: file.read,
           filename: file
         )
-        end
-
-        printer = RubyProf::GraphPrinter.new(result)
-        printer.print(STDOUT, {})
-
-        expect(io.string).to_not include("def ruby_install_binstub_path")
-        expect(io.string).to include(<<~'EOM')
-          ❯ 1067    def add_yarn_binary
-          ❯ 1068      return [] if yarn_preinstalled?
-          ❯ 1069  |
-          ❯ 1075    end
-        EOM
       end
+
+      expect(io.string).to_not include("def ruby_install_binstub_path")
+      expect(io.string).to include(<<~'EOM')
+        ❯ 1067    def add_yarn_binary
+        ❯ 1068      return [] if yarn_preinstalled?
+        ❯ 1069  |
+        ❯ 1075    end
+      EOM
+
       debug_display(io.string)
       debug_display(benchmark)
+
+      # result = RubyProf.profile do
+      #   DeadEnd.call(
+      #     io: io,
+      #     source: file.read,
+      #     filename: file
+      #   )
+      # end
+
+      # printer = RubyProf::GraphPrinter.new(result)
+      # printer.print(STDOUT, {})
+
+      # printer = RubyProf::CallTreePrinter.new(result)
+      # printer.print(path: "tmp")
+
+      # printer = RubyProf::CallStackPrinter.new(result)
+      # printer.print(Pathname("tmp/lol").tap{|f| FileUtils.touch(f)}.open("w"))
     end
 
     it "handles heredocs" do

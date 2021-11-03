@@ -85,17 +85,16 @@ module DeadEnd
   #
   class CleanDocument
     def initialize(source:)
-      @source = source
+      @source = clean_sweep(source: source)
       @document = CodeLine.from_source(@source)
     end
 
     # Call all of the document "cleaners"
     # and return self
     def call
-      clean_sweep
-        .join_trailing_slash!
-        .join_consecutive!
-        .join_heredoc!
+      join_trailing_slash!
+      join_consecutive!
+      join_heredoc!
 
       self
     end
@@ -122,17 +121,15 @@ module DeadEnd
     #       puts "world"
     #     EOM
     #
-    #     lines = CleanDocument.new(source: source).clean_sweep.lines
+    #     lines = CleanDocument.new(source: source).lines
     #     expect(lines[0].to_s).to eq("\n")
     #     expect(lines[1].to_s).to eq("puts "hello")
     #     expect(lines[2].to_s).to eq("\n")
     #     expect(lines[3].to_s).to eq("puts "world")
     #
-    # WARNING:
-    # If you run this after any of the "join" commands, they
-    # will be un-joined.
+    # Important: This must be done before lexing.
     #
-    # After this change is made, we re-lex the document because
+    # After this change is made, we lex the document because
     # removing comments can change how the doc is parsed.
     #
     # For example:
@@ -142,7 +139,9 @@ module DeadEnd
     #         # comment
     #         where(name: 'schneems')
     #     EOM
-    #     expect(values.count {|v| v.type == :on_ignored_nl}).to eq(1)
+    #     expect(
+    #       values.count {|v| v.type == :on_ignored_nl}
+    #     ).to eq(1)
     #
     # After the comment is removed:
     #
@@ -151,26 +150,18 @@ module DeadEnd
     #
     #         where(name: 'schneems')
     #     EOM
-    #     expect(values.count {|v| v.type == :on_ignored_nl}).to eq(2)
+    #     expect(
+    #      values.count {|v| v.type == :on_ignored_nl}
+    #    ).to eq(2)
     #
-    def clean_sweep
-      source = @document.map do |code_line|
-        # Clean trailing whitespace on empty line
-        if code_line.line.strip.empty?
-          next CodeLine.new(line: "\n", index: code_line.index, lex: [])
+    def clean_sweep(source:)
+      source.lines.map do |line|
+        if line.match?(/^\s*(#[^{].*)?$/) # https://rubular.com/r/LLE10D8HKMkJvs
+          $/
+        else
+          line
         end
-
-        # Remove comments
-        if code_line.lex.detect { |lex| lex.type != :on_sp }&.type == :on_comment
-          next CodeLine.new(line: "\n", index: code_line.index, lex: [])
-        end
-
-        code_line
       end.join
-
-      @source = source
-      @document = CodeLine.from_source(source)
-      self
     end
 
     # Smushes all heredoc lines into one line
