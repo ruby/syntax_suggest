@@ -28,6 +28,16 @@ module DeadEnd
     raise e
   end
 
+  def self.record_dir(dir)
+    time = Time.now.strftime("%Y-%m-%d-%H-%M-%s-%N")
+    dir = Pathname(dir)
+    symlink = dir.join("last").tap { |path| path.delete if path.exist? }
+    dir.join(time).tap { |path|
+      path.mkpath
+      FileUtils.symlink(path.basename, symlink)
+    }
+  end
+
   def self.call(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     filename = nil if filename == DEFAULT_VALUE

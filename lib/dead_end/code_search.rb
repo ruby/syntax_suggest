@@ -43,8 +43,7 @@ module DeadEnd
 
     def initialize(source, record_dir: ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil)
       if record_dir
-        @time = Time.now.strftime("%Y-%m-%d-%H-%M-%s-%N")
-        @record_dir = Pathname(record_dir).join(@time).tap { |p| p.mkpath }
+        @record_dir = DeadEnd.record_dir(record_dir)
         @write_count = 0
       end
 

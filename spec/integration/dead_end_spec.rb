@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../spec_helper"
+require "ruby-prof"
 
 module DeadEnd
   RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
@@ -80,17 +81,34 @@ module DeadEnd
           source: file.read,
           filename: file
         )
-
-        expect(io.string).to_not include("def ruby_install_binstub_path")
-        expect(io.string).to include(<<~'EOM')
-          ❯ 1067    def add_yarn_binary
-          ❯ 1068      return [] if yarn_preinstalled?
-          ❯ 1069  |
-          ❯ 1075    end
-        EOM
       end
       debug_display(io.string)
       debug_display(benchmark)
+
+      expect(io.string).to_not include("def ruby_install_binstub_path")
+      expect(io.string).to include(<<~'EOM')
+        ❯ 1067    def add_yarn_binary
+        ❯ 1068      return [] if yarn_preinstalled?
+        ❯ 1069  |
+        ❯ 1075    end
+      EOM
+
+      if ENV["DEBUG_PERF"]
+        result = RubyProf.profile do
+          DeadEnd.call(
+            io: io,
+            source: file.read,
+            filename: file
+          )
+        end
+
+        dir = DeadEnd.record_dir("tmp")
+
+        printer = RubyProf::MultiPrinter.new(result, [:flat, :graph, :graph_html, :tree, :call_tree, :stack, :dot])
+        printer.print(path: dir, profile: "profile")
+
+        dir.join("raw.rb.marshal").write(Marshal.dump(result))
+      end
     end
 
     it "handles heredocs" do
