@@ -80,8 +80,6 @@ module DeadEnd
         "Unmatched `end', missing keyword (`do', `def`, `if`, etc.) ?"
       when "end"
         "Unmatched keyword, missing `end' ?"
-      when "{"
-        "Unmatched `}', missing `{' or `\#{' ?"
       else
         inverse = INVERSE.fetch(miss) {
           raise "Unknown explain syntax char or key: #{miss.inspect}"
