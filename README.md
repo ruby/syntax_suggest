@@ -170,7 +170,27 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 You can see changes to output against a variety of invalid code by running specs and using the `DEBUG_DISPLAY=1` environment variable. For example:
 
 ```
-$ DEBUG_DISPLAY=1 be rspec spec/ --format=failures
+$ DEBUG_DISPLAY=1 bundle exec rspec spec/ --format=failures
+```
+
+### Run profiler
+
+You can output profiler data to the `tmp` directory by running:
+
+```
+$ DEBUG_PERF=1 bundle exec rspec spec/integration/dead_end_spec.rb
+```
+
+Some outputs are in text format, some are html, the raw marshaled data is available in `raw.rb.marshal`. See https://ruby-prof.github.io/#reports for more info. One interesting one, is the "kcachegrind" interface. To view this on mac:
+
+```
+$ brew install qcachegrind
+```
+
+Open:
+
+```
+$ qcachegrind tmp/last/profile.callgrind.out.<numbers>
 ```
 
 ## Contributing
