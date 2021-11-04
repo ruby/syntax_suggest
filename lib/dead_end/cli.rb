@@ -12,7 +12,7 @@ module DeadEnd
   #   Cli.new(argv: ["<path/to/file>.rb", "--terminal"]).call
   #
   class Cli
-    attr_accessor :options, :file_name
+    attr_accessor :options
 
     # ARGV is Everything passed to the executable, does not include executable name
     #
@@ -26,22 +26,33 @@ module DeadEnd
 
       @io = io
       @argv = argv
-      @file_name = argv[0]
       @exit_obj = exit_obj
     end
 
     def call
-      if file_name.nil? || file_name.empty?
+      if @argv.empty?
         # Display help if raw command
         parser.parse! %w[--help]
+        return
       else
+        # Mutates @argv
         parse
+        return if options[:exit]
       end
 
-      # Needed for testing since we fake exit
-      return if options[:exit]
+      file_name = @argv.first
+      if file_name.nil?
+        @io.puts "No file given"
+        @exit_obj.exit(1)
+        return
+      end
 
       file = Pathname(file_name)
+      if !file.exist?
+        @io.puts "file not found: #{file.expand_path} "
+        @exit_obj.exit(1)
+        return
+      end
 
       @io.puts "Record dir: #{options[:record_dir]}" if options[:record_dir]
 

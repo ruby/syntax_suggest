@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Fix CLI parsing when flags come before filename (https://github.com/zombocom/dead_end/pull/102)
+
 ## 3.0.0
 
 - [Breaking] Remove previously deprecated `require "dead_end/fyi"` interface (https://github.com/zombocom/dead_end/pull/94)
