@@ -61,6 +61,58 @@ module DeadEnd
       expect(out.strip).to include("❯ 36      def filename")
     end
 
+    it "parses valid code with flags" do
+      Dir.mktmpdir do |dir|
+        dir = Pathname(dir)
+        file = dir.join("script.rb")
+        file.write("puts 'lol'")
+
+        io = StringIO.new
+        exit_obj = FakeExit.new
+        cli = Cli.new(
+          io: io,
+          argv: ["--terminal", file.to_s],
+          exit_obj: exit_obj
+        )
+        cli.call
+
+        expect(exit_obj.called?).to be_truthy
+        expect(exit_obj.value).to eq(0)
+        expect(cli.options[:terminal]).to be_truthy
+        expect(io.string.strip).to eq("Syntax OK")
+      end
+    end
+
+    it "errors when no file given" do
+      io = StringIO.new
+      exit_obj = FakeExit.new
+      cli = Cli.new(
+        io: io,
+        argv: ["--terminal"],
+        exit_obj: exit_obj
+      )
+      cli.call
+
+      expect(exit_obj.called?).to be_truthy
+      expect(exit_obj.value).to eq(1)
+      expect(io.string.strip).to eq("No file given")
+    end
+
+    it "errors when file does not exist" do
+      io = StringIO.new
+      exit_obj = FakeExit.new
+      cli = Cli.new(
+        io: io,
+        argv: ["lol-i-d-o-not-ex-ist-yololo.txtblerglol"],
+        exit_obj: exit_obj
+      )
+      cli.call
+
+      expect(exit_obj.called?).to be_truthy
+      expect(exit_obj.value).to eq(1)
+      expect(io.string.strip).to include("file not found:")
+    end
+
     # We cannot execute the parser here
     # because it calls `exit` and it will exit
     # our tests, however we can assert that the
