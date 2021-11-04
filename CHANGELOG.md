@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 3.0.1
+
 - Fix CLI parsing when flags come before filename (https://github.com/zombocom/dead_end/pull/102)
 
 ## 3.0.0
