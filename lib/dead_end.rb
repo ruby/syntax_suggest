@@ -147,6 +147,7 @@ require_relative "dead_end/clean_document"
 
 require_relative "dead_end/lex_all"
 require_relative "dead_end/block_expand"
+require_relative "dead_end/insertion_sort"
 require_relative "dead_end/around_block_scan"
 require_relative "dead_end/ripper_errors"
 require_relative "dead_end/display_invalid_blocks"

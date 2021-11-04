@@ -52,14 +52,14 @@ module DeadEnd
   class CodeFrontier
     def initialize(code_lines:)
       @code_lines = code_lines
-      @frontier = []
+      @frontier = InsertionSort.new
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
       @has_run = false
       @check_next = true
     end
 
     def count
-      @frontier.count
+      @frontier.to_a.length
     end
 
     # Performance optimization
@@ -89,7 +89,7 @@ module DeadEnd
     def holds_all_syntax_errors?(block_array = @frontier, can_cache: true)
       return false if can_cache && can_skip_check?
 
-      without_lines = block_array.flat_map do |block|
+      without_lines = block_array.to_a.flat_map do |block|
         block.lines
       end
 
@@ -101,7 +101,7 @@ module DeadEnd
 
     # Returns a code block with the largest indentation possible
     def pop
-      @frontier.pop
+      @frontier.to_a.pop
     end
 
     def next_indent_line
@@ -109,15 +109,15 @@ module DeadEnd
     end
 
     def expand?
-      return false if @frontier.empty?
-      return true if @unvisited_lines.empty?
+      return false if @frontier.to_a.empty?
+      return true if @unvisited_lines.to_a.empty?
 
-      frontier_indent = @frontier.last.current_indent
+      frontier_indent = @frontier.to_a.last.current_indent
       unvisited_indent = next_indent_line.indent
 
       if ENV["DEBUG"]
         puts "```"
-        puts @frontier.last.to_s
+        puts @frontier.to_a.last.to_s
         puts "```"
         puts "  @frontier indent:  #{frontier_indent}"
         puts "  @unvisited indent: #{unvisited_indent}"
@@ -141,13 +141,13 @@ module DeadEnd
       register_indent_block(block)
 
       # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
-      @frontier.reject! { |b|
+      @frontier.to_a.reject! { |b|
         b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
       }
 
       @check_next = true if block.invalid?
       @frontier << block
-      @frontier.sort!
+      # @frontier.sort!
 
       self
     end
@@ -167,7 +167,7 @@ module DeadEnd
     # Given that we know our syntax error exists somewhere in our frontier, we want to find
     # the smallest possible set of blocks that contain all the syntax errors
     def detect_invalid_blocks
-      self.class.combination(@frontier.select(&:invalid?)).detect do |block_array|
+      self.class.combination(@frontier.to_a.select(&:invalid?)).detect do |block_array|
         holds_all_syntax_errors?(block_array, can_cache: false)
       end || []
     end
