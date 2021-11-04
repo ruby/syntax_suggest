@@ -4,7 +4,7 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CleanDocument do
-    it "heredoc: blerg" do
+    it "heredocs" do
       source = fixtures_dir.join("this_project_extra_def.rb.txt").read
       code_lines = CleanDocument.new(source: source).call.lines
 
@@ -92,7 +92,7 @@ module DeadEnd
           # yolo
       EOM
 
-      out = CleanDocument.new(source: source).clean_sweep
+      out = CleanDocument.new(source: source).lines.join
       expect(out.to_s).to eq(<<~EOM)
 
         puts "what"
@@ -105,7 +105,7 @@ module DeadEnd
         puts "what"
       EOM
 
-      out = CleanDocument.new(source: source).clean_sweep
+      out = CleanDocument.new(source: source).lines.join
       expect(out.to_s).to eq(<<~EOM)
 
         puts "what"
