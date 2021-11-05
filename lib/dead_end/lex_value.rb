@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DeadEnd
   # Value object for accessing lex values
   #

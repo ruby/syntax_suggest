@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DeadEnd
   # Ripper.lex is not guaranteed to lex the entire source document
   #
@@ -9,19 +11,21 @@ module DeadEnd
     include Enumerable
 
     def initialize(source:, source_lines: nil)
-      @lex = Ripper.lex(source)
-      lineno = @lex.last.first.first + 1
+      @lex = Ripper::Lexer.new(source, "-", 1).parse.sort_by(&:pos)
+      lineno = @lex.last.pos.first + 1
       source_lines ||= source.lines
       last_lineno = source_lines.length
 
       until lineno >= last_lineno
         lines = source_lines[lineno..-1]
 
-        @lex.concat(Ripper.lex(lines.join, "-", lineno + 1))
-        lineno = @lex.last.first.first + 1
+        @lex.concat(
+          Ripper::Lexer.new(lines.join, "-", lineno + 1).parse.sort_by(&:pos)
+        )
+        lineno = @lex.last.pos.first + 1
       end
 
-      @lex.map! { |(line, _), type, token, state| LexValue.new(line, type, token, state) }
+      @lex.map! { |elem| LexValue.new(elem.pos.first, elem.event, elem.tok, elem.state) }
     end
 
     def to_a
