@@ -45,6 +45,13 @@ To get the CLI and manually search for syntax errors (but not automatically anno
 
 This gives you the CLI command `$ dead_end` for more info run `$ dead_end --help`.
 
+## Editor integration
+
+An extension is available for VSCode:
+
+- Extension: https://marketplace.visualstudio.com/items?itemName=Zombocom.dead-end-vscode
+- GitHub: https://github.com/zombocom/dead_end-vscode
+
 ## What syntax errors does it handle?
 
 Dead end will fire against all syntax errors and can isolate any syntax error. In addition, dead_end attempts to produce human readable descriptions of what needs to be done to resolve the issue. For example:
