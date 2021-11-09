@@ -42,6 +42,29 @@ module DeadEnd
       end
     end
 
+    it "works on multiple files" do
+      Dir.mktmpdir do |dir|
+        dir = Pathname(dir)
+        file_one = dir.join("script_one.rb")
+        file_one.write("puts 'lol'")
+
+        file_two = dir.join("script_two.rb")
+        file_two.write("puts 'lol'")
+
+        io = StringIO.new
+        exit_obj = FakeExit.new
+        Cli.new(
+          io: io,
+          argv: [file_one.to_s, file_two.to_s],
+          exit_obj: exit_obj
+        ).call
+
+        expect(exit_obj.called?).to be_truthy
+        expect(exit_obj.value).to eq(0)
+        expect(io.string.strip).to eq("Syntax OK\nSyntax OK")
+      end
+    end
+
     it "parses invalid code" do
       file = fixtures_dir.join("this_project_extra_def.rb.txt")
 
@@ -52,7 +75,6 @@ module DeadEnd
         argv: [file.to_s],
         exit_obj: exit_obj
       ).call
-
       out = io.string
       debug_display(out)
 

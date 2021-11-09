@@ -40,34 +40,36 @@ module DeadEnd
         return if options[:exit]
       end
 
-      file_name = @argv.first
-      if file_name.nil?
+      if @argv.empty?
         @io.puts "No file given"
         @exit_obj.exit(1)
         return
       end
 
-      file = Pathname(file_name)
-      if !file.exist?
-        @io.puts "file not found: #{file.expand_path} "
-        @exit_obj.exit(1)
-        return
+      display_array = []
+      while (file_name = @argv.pop)
+        file = Pathname(file_name)
+        if !file.exist?
+          @io.puts "file not found: #{file.expand_path} "
+          @exit_obj.exit(1)
+          return
+        end
+
+        @io.puts "Record dir: #{options[:record_dir]}" if options[:record_dir]
+
+        display_array << DeadEnd.call(
+          io: @io,
+          source: file.read,
+          filename: file.expand_path,
+          terminal: options.fetch(:terminal, DeadEnd::DEFAULT_VALUE),
+          record_dir: options[:record_dir]
+        )
       end
 
-      @io.puts "Record dir: #{options[:record_dir]}" if options[:record_dir]
-
-      display = DeadEnd.call(
-        io: @io,
-        source: file.read,
-        filename: file.expand_path,
-        terminal: options.fetch(:terminal, DeadEnd::DEFAULT_VALUE),
-        record_dir: options[:record_dir]
-      )
-
-      if display.document_ok?
-        @exit_obj.exit(0)
-      else
+      if display_array.empty? || display_array.detect { |d| !d.document_ok? }
         @exit_obj.exit(1)
+      else
+        @exit_obj.exit(0)
       end
     end
 

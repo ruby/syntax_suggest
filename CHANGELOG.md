@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Support checking multiple files from the CLI at once (https://github.com/zombocom/dead_end/pull/110)
 - Update links on readme and code of conduct (https://github.com/zombocom/dead_end/pull/107)
 
 ## 3.0.1
