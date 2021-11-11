@@ -85,8 +85,8 @@ module DeadEnd
   #
   class CleanDocument
     def initialize(source:)
-      @source = clean_sweep(source: source)
-      @document = CodeLine.from_source(@source)
+      lines = clean_sweep(source: source)
+      @document = CodeLine.from_source(lines.join, lines: lines)
     end
 
     # Call all of the document "cleaners"
@@ -161,7 +161,7 @@ module DeadEnd
         else
           line
         end
-      end.join
+      end
     end
 
     # Smushes all heredoc lines into one line
