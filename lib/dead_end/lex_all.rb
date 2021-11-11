@@ -8,11 +8,11 @@ module DeadEnd
   class LexAll
     include Enumerable
 
-    def initialize(source:)
+    def initialize(source:, source_lines: nil)
       @lex = Ripper.lex(source)
       lineno = @lex.last.first.first + 1
-      source_lines = source.lines
-      last_lineno = source_lines.count
+      source_lines ||= source.lines
+      last_lineno = source_lines.length
 
       until lineno >= last_lineno
         lines = source_lines[lineno..-1]

@@ -26,9 +26,10 @@ module DeadEnd
 
     # Returns an array of CodeLine objects
     # from the source string
-    def self.from_source(source)
-      lex_array_for_line = LexAll.new(source: source).each_with_object(Hash.new { |h, k| h[k] = [] }) { |lex, hash| hash[lex.line] << lex }
-      source.lines.map.with_index do |line, index|
+    def self.from_source(source, lines: nil)
+      lines ||= source.lines
+      lex_array_for_line = LexAll.new(source: source, source_lines: lines).each_with_object(Hash.new { |h, k| h[k] = [] }) { |lex, hash| hash[lex.line] << lex }
+      lines.map.with_index do |line, index|
         CodeLine.new(
           line: line,
           index: index,
