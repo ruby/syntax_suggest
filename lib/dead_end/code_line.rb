@@ -43,17 +43,18 @@ module DeadEnd
       @lex = lex
       @line = line
       @index = index
-      @original = line.freeze
+      @original = line
       @line_number = @index + 1
+      strip_line = line.dup
+      strip_line.lstrip!
 
-      if line.strip.empty?
+      if strip_line.empty?
         @empty = true
         @indent = 0
       else
         @empty = false
-        @indent = SpaceCount.indent(line)
+        @indent = line.length - strip_line.length
       end
-
 
       set_kw_end
     end
