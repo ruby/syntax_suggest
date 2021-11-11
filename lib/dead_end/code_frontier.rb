@@ -54,6 +54,8 @@ module DeadEnd
       @code_lines = code_lines
       @frontier = InsertionSort.new
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
+      @visited_lines = {}
+
       @has_run = false
       @check_next = true
     end
@@ -128,7 +130,13 @@ module DeadEnd
     end
 
     def register_indent_block(block)
-      @unvisited_lines -= block.lines
+      block.lines.each do |line|
+        next if @visited_lines[line]
+        @visited_lines[line] = true
+
+        index = @unvisited_lines.bsearch_index { |l| line.indent_index <=> l.indent_index }
+        @unvisited_lines.delete_at(index)
+      end
       self
     end
 
