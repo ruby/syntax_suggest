@@ -7,10 +7,33 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
+    benchmark-ips (2.9.2)
+    derailed_benchmarks (2.1.1)
+      benchmark-ips (~> 2)
+      dead_end
+      get_process_mem (~> 0)
+      heapy (~> 0)
+      memory_profiler (>= 0, < 2)
+      mini_histogram (>= 0.3.0)
+      rack (>= 1)
+      rack-test
+      rake (> 10, < 14)
+      ruby-statistics (>= 2.1)
+      thor (>= 0.19, < 2)
     diff-lcs (1.4.4)
+    ffi (1.15.4)
+    get_process_mem (0.2.7)
+      ffi (~> 1.0)
+    heapy (0.2.0)
+      thor
+    memory_profiler (1.0.0)
+    mini_histogram (0.3.1)
     parallel (1.21.0)
     parser (3.0.2.0)
       ast (~> 2.4.1)
+    rack (2.2.3)
+    rack-test (1.1.0)
+      rack (>= 1.0, < 3)
     rainbow (3.0.0)
     rake (12.3.3)
     regexp_parser (2.1.1)
@@ -44,10 +67,12 @@ GEM
       rubocop-ast (>= 0.4.0)
     ruby-prof (1.4.3)
     ruby-progressbar (1.11.0)
+    ruby-statistics (3.0.0)
     stackprof (0.2.16)
     standard (1.3.0)
       rubocop (= 1.20.0)
       rubocop-performance (= 1.11.5)
+    thor (1.1.0)
     unicode-display_width (2.1.0)
 
 PLATFORMS
@@ -55,6 +80,7 @@ PLATFORMS
 
 DEPENDENCIES
   dead_end!
+  derailed_benchmarks
   rake (~> 12.0)
   rspec (~> 3.0)
   ruby-prof

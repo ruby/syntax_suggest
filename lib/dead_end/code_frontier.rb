@@ -54,6 +54,7 @@ module DeadEnd
       @code_lines = code_lines
       @frontier = InsertionSort.new
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
+      @captures = Array.new(code_lines.length) { [] }
       @visited_lines = {}
 
       @has_run = false
@@ -103,7 +104,9 @@ module DeadEnd
 
     # Returns a code block with the largest indentation possible
     def pop
-      @frontier.to_a.pop
+      block = @frontier.to_a.pop
+      @captures[block.starts_at].delete(block)
+      block
     end
 
     def next_indent_line
@@ -129,6 +132,12 @@ module DeadEnd
       frontier_indent >= unvisited_indent
     end
 
+    # In addition to holding the frontier blocks
+    # we also need to keep track of what blocks are not yet
+    # explored.
+    #
+    # As new blocks get added to the frontier this logic
+    # removes their lines from the "unvisited" list
     def register_indent_block(block)
       block.lines.each do |line|
         next if @visited_lines[line]
@@ -140,6 +149,22 @@ module DeadEnd
       self
     end
 
+    # As we expand blocks, one block may completely capture
+    # another one, when that happens we want to favor the larger
+    # block and remove the smaller block
+    def handle_captures(block)
+      @captures[block.starts_at..block.ends_at].each do |capture|
+        capture.each_with_index do |b|
+          if b.ends_at <= block.ends_at
+            capture.delete(b)
+            @frontier.delete(b)
+          end
+        end
+      end
+
+      @captures[block.starts_at] << block
+    end
+
     # Add a block to the frontier
     #
     # This method ensures the frontier always remains sorted (in indentation order)
@@ -147,11 +172,7 @@ module DeadEnd
     # don't re-evaluate the same line multiple times.
     def <<(block)
       register_indent_block(block)
-
-      # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
-      @frontier.to_a.reject! { |b|
-        b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
-      }
+      handle_captures(block)
 
       @check_next = true if block.invalid?
       @frontier << block

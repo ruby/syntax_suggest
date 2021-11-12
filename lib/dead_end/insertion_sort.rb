@@ -21,6 +21,11 @@ module DeadEnd
       @array = []
     end
 
+    def delete(item)
+      index = @array.bsearch_index {|i| item <=> i }
+      @array.delete_at(index)
+    end
+
     def <<(value)
       insert_in = @array.length
       @array.each.with_index do |existing, index|
