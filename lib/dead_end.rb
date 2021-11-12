@@ -17,12 +17,14 @@ module DeadEnd
   TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 1).to_i
 
   def self.handle_error(e)
-    filename = e.message.split(":").first
+    file = PathnameFromMessage.new(e.message).call.name
+    raise e unless file
+
     $stderr.sync = true
 
     call(
-      source: Pathname(filename).read,
-      filename: filename
+      source: file.read,
+      filename: file
     )
 
     raise e
@@ -139,21 +141,24 @@ module DeadEnd
   end
 end
 
-require_relative "dead_end/code_line"
-require_relative "dead_end/code_block"
+# Integration
+require_relative "dead_end/cli"
+require_relative "dead_end/auto"
+
+# Core logic
 require_relative "dead_end/code_search"
 require_relative "dead_end/code_frontier"
+require_relative "dead_end/explain_syntax"
 require_relative "dead_end/clean_document"
 
+# Helpers
 require_relative "dead_end/lex_all"
+require_relative "dead_end/code_line"
+require_relative "dead_end/code_block"
 require_relative "dead_end/block_expand"
+require_relative "dead_end/ripper_errors"
 require_relative "dead_end/insertion_sort"
 require_relative "dead_end/around_block_scan"
-require_relative "dead_end/ripper_errors"
+require_relative "dead_end/pathname_from_message"
 require_relative "dead_end/display_invalid_blocks"
 require_relative "dead_end/parse_blocks_from_indent_line"
-
-require_relative "dead_end/explain_syntax"
-
-require_relative "dead_end/auto"
-require_relative "dead_end/cli"
