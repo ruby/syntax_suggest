@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Fix windows filename detection (https://github.com/zombocom/dead_end/pull/114)
 - Update links on readme and code of conduct (https://github.com/zombocom/dead_end/pull/107)
 
 ## 3.0.1
