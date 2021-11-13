@@ -3,7 +3,93 @@
 require_relative "../spec_helper"
 
 module DeadEnd
+  class BucketRactorSort
+    def initialize(concurrency: 16, lines: , lex:)
+      @lex = lex
+      @size = size
+      @lines = lines
+      @ractors = []
+    end
+
+    def call
+      # @size.map do |i|
+      #   Ractor.new(lines, lex, i) do |lines, lex, i|
+      #     msg = Ractor.receive
+      #   end
+      # end
+    end
+  end
+
+  class BucketRange
+    attr_reader :len, :bucket_size, :overage
+
+    def initialize(concurrency: , len: )
+      @len = len
+      @bucket_size = (len / concurrency.to_f).floor
+      @overage = len - concurrency * bucket_size
+      @range_for_bucket = concurrency.times.map do |i|
+        start_index = i * bucket_size
+        end_index = start_index + bucket_size.pred
+        end_index += overage if i == concurrency.pred
+
+        (start_index..end_index)
+      end
+
+      @index_to_bucket = concurrency.times.each_with_object({}) do |bucket_i, hash|
+        range_for_bucket(bucket_i).each do |index|
+          hash[index] = bucket_i
+        end
+      end
+      freeze
+    end
+
+    def bucket_for_index(index)
+      @index_to_bucket[index]
+    end
+
+    def range_for_bucket(bucket_i)
+      @range_for_bucket[bucket_i]
+    end
+  end
+
+  RSpec.describe "foo" do
+    it "divides up evenly" do
+      bucket = BucketRange.new(concurrency: 2, len: 10)
+
+      expect(bucket.bucket_for_index(0)).to eq(0)
+      expect(bucket.bucket_for_index(1)).to eq(0)
+      expect(bucket.bucket_for_index(2)).to eq(0)
+      expect(bucket.bucket_for_index(3)).to eq(0)
+      expect(bucket.bucket_for_index(4)).to eq(0)
+      expect(bucket.bucket_for_index(5)).to eq(1)
+      expect(bucket.bucket_for_index(9)).to eq(1)
+
+      expect(bucket.range_for_bucket(0)).to eq(0..4)
+      expect(bucket.range_for_bucket(1)).to eq(5..9)
+    end
+
+    it "divides up unevenly" do
+      bucket = BucketRange.new(concurrency: 3, len: 10)
+
+      expect(bucket.bucket_for_index(0)).to eq(0)
+      expect(bucket.bucket_for_index(1)).to eq(0)
+      expect(bucket.bucket_for_index(2)).to eq(0)
+      expect(bucket.bucket_for_index(3)).to eq(1)
+      expect(bucket.bucket_for_index(4)).to eq(1)
+      expect(bucket.bucket_for_index(5)).to eq(1)
+      expect(bucket.bucket_for_index(6)).to eq(2)
+      expect(bucket.bucket_for_index(7)).to eq(2)
+      expect(bucket.bucket_for_index(8)).to eq(2)
+      expect(bucket.bucket_for_index(9)).to eq(2)
+
+      expect(bucket.range_for_bucket(0)).to eq(0..2)
+      expect(bucket.range_for_bucket(1)).to eq(3..5)
+      expect(bucket.range_for_bucket(2)).to eq(6..9)
+    end
+  end
+
   RSpec.describe CodeLine do
+
     it "supports endless method definitions" do
       skip("Unsupported ruby version") unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3")
 
