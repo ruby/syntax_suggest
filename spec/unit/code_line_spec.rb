@@ -3,23 +3,6 @@
 require_relative "../spec_helper"
 
 module DeadEnd
-  class BucketRactorSort
-    def initialize(concurrency: 16, lines: , lex:)
-      @lex = lex
-      @size = size
-      @lines = lines
-      @ractors = []
-    end
-
-    def call
-      # @size.map do |i|
-      #   Ractor.new(lines, lex, i) do |lines, lex, i|
-      #     msg = Ractor.receive
-      #   end
-      # end
-    end
-  end
-
   class BucketRange
     attr_reader :len, :bucket_size, :overage
 
@@ -49,6 +32,55 @@ module DeadEnd
 
     def range_for_bucket(bucket_i)
       @range_for_bucket[bucket_i]
+    end
+  end
+
+
+  # Make a communication channel (pipe)
+  # create N ractors, and register them with the pipe in order
+  # send an array of ractors to N ractors
+  #
+  # When ractor is done sending it sends a :done signals to all other ractors
+  pipe = Ractor.new do
+    loop do
+      puts Ractor.receive
+    end
+  end
+
+  r = Ractor.new do
+  end
+
+  pipe.send(r)
+
+  class BucketSort
+    attr_reader :bucket_range
+
+    def initialize(concurrency: , elements: [])
+      @elements = elements
+      @concurrency = concurrency
+      @bucket_range = BucketRange.new(concurrency: concurrency, len: lex.length)
+    end
+
+    def call
+      @concurrency.times.each do |bucket_i|
+        # Send self to pipe.
+        # Receive array of ractors
+        array = InsertionSort.new
+        bucket_range.range_for_bucket(bucket_i).each do |index|
+          # target_bucket = bucket_range.bucket_for_index(index)
+          value = @elements[index]
+          target_bucket = bucket_range.bucket_for_index(value.pos[0])
+          if target_bucket != bucket_id
+            # send to target bucket
+          else
+            array << value
+          end
+        end
+        # Send `:done` call to all ractors
+
+        # Receive values and sort until N `:done` calls received
+        array.to_a.freeze # return sorted array
+      end
     end
   end
 
