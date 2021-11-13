@@ -17,6 +17,8 @@ module DeadEnd
   #
   #
   class CodeBlock
+    include Comparable
+
     UNSET = Object.new.freeze
     attr_reader :lines
 

@@ -27,19 +27,7 @@ module DeadEnd
     end
 
     def <<(value)
-      insert_in = @array.length
-      @array.each.with_index do |existing, index|
-        case value <=> existing
-        when -1
-          insert_in = index
-          break
-        when 0
-          insert_in = index
-          break
-        when 1
-          # Keep going
-        end
-      end
+      insert_in = @array.bsearch_index {|i| i >= value } || @array.length
 
       @array.insert(insert_in, value)
     end

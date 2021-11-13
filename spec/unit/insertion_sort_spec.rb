@@ -4,6 +4,8 @@ require_relative "../spec_helper"
 
 module DeadEnd
   class CurrentIndex
+    include Comparable
+
     attr_reader :current_indent
 
     def initialize(value)
