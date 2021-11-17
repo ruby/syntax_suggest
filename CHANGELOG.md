@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 3.0.3
+
 - Expand explanations coming from additional Ripper errors (https://github.com/zombocom/dead_end/pull/117)
 - Fix explanation involving shorthand syntax for literals like `%w[]` and `%Q{}` (https://github.com/zombocom/dead_end/pull/116)
 
