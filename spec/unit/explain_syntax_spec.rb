@@ -4,6 +4,19 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "ExplainSyntax" do
+    it "handles shorthand syntaxes with non-bracket characters" do
+      source = <<~EOM
+        %Q* lol
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq([])
+      expect(explain.errors.join).to include("unterminated string")
+    end
+
     it "handles %w[]" do
       source = <<~EOM
         node.is_a?(Op) && %w[| ||].include?(node.value) &&
