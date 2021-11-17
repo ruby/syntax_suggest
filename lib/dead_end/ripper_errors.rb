@@ -18,6 +18,12 @@ module DeadEnd
       @errors << msg
     end
 
+    alias_method :on_alias_error, :on_parse_error
+    alias_method :on_assign_error, :on_parse_error
+    alias_method :on_class_name_error, :on_parse_error
+    alias_method :on_param_error, :on_parse_error
+    alias_method :compile_error, :on_parse_error
+
     def call
       @run_once ||= begin
         @errors = []
