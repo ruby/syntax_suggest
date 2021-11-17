@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Fix explanation involving shorthand syntax for literals like `%w[]` and `%Q{}` (https://github.com/zombocom/dead_end/pull/116)
+
 ## 3.0.2
 
 - Fix windows filename detection (https://github.com/zombocom/dead_end/pull/114)

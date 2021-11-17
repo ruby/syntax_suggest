@@ -61,6 +61,17 @@ module DeadEnd
         # ^^^
         # Means it's a string or a symbol `"{"` rather than being
         # part of a data structure (like a hash) `{ a: b }`
+        # ignore it.
+      when :on_words_beg, :on_symbos_beg, :on_qwords_beg,
+           :on_qsymbols_beg, :on_regexp_beg, :on_tstring_beg
+        # ^^^
+        # Handle shorthand syntaxes like `%Q{ i am a string }`
+        #
+        # The start token will be the full thing `%Q{` but we
+        # need to count it as if it's a `{`. Any token
+        # can be used
+        char = lex.token[-1]
+        @count_for_char[char] += 1 if @count_for_char.key?(char)
       when :on_embexpr_beg
         # ^^^
         # Embedded string expressions like `"#{foo} <-embed"`

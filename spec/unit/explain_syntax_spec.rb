@@ -4,6 +4,18 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "ExplainSyntax" do
+    it "handles %w[]" do
+      source = <<~EOM
+        node.is_a?(Op) && %w[| ||].include?(node.value) &&
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq([])
+    end
+
     it "doesn't falsely identify strings or symbols as critical chars" do
       source = <<~EOM
         a = ['(', '{', '[', '|']
