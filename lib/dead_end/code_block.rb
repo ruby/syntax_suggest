@@ -18,11 +18,36 @@ module DeadEnd
   #
   class CodeBlock
     UNSET = Object.new.freeze
-    attr_reader :lines
+    attr_reader :lines, :indent
 
-    def initialize(lines: [])
+    def initialize(lines: [], indent: nil)
       @lines = Array(lines)
       @valid = UNSET
+      if indent.nil?
+        set_indent!
+      else
+        @indent = indent
+      end
+    end
+
+    private def set_indent!
+      @indent = 0
+      min_indent = Float::INFINITY
+
+      lines.each do |line|
+        next if line.empty?
+        if line.indent < min_indent
+          min_indent = line.indent
+        end
+      end
+
+      if min_indent != Float::INFINITY
+        @indent = min_indent
+      end
+    end
+
+    def length
+      lines.length
     end
 
     def visible_lines
@@ -39,6 +64,18 @@ module DeadEnd
 
     def hidden?
       @lines.all?(&:hidden?)
+    end
+
+    def index_range
+      start_index..end_index
+    end
+
+    def start_index
+      @start_index ||= @lines.first&.index
+    end
+
+    def end_index
+      @end_index ||= @lines.last&.index
     end
 
     def starts_at
@@ -61,9 +98,7 @@ module DeadEnd
       starts_at <=> other.starts_at
     end
 
-    def current_indent
-      @current_indent ||= lines.select(&:not_empty?).map(&:indent).min || 0
-    end
+    alias :current_indent :indent
 
     def invalid?
       !valid?

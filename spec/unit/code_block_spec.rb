@@ -13,6 +13,11 @@ module DeadEnd
 
       block = CodeBlock.new(lines: code_lines[1])
       expect(block.valid?).to be_truthy
+
+      expect(block.index_range).to eq(1..1)
+
+      block = CodeBlock.new(lines: code_lines[1..2])
+      expect(block.index_range).to eq(1..2)
     end
 
     it "can be sorted in indentation order" do

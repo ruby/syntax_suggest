@@ -132,9 +132,7 @@ module DeadEnd
     # calling `join` on the array will call `to_s`
     # on each element, which essentially converts
     # it back into it's original source string.
-    def to_s
-      line
-    end
+    alias :to_s :line
 
     # When the code line is marked invisible
     # we retain the original value of it's line

@@ -45,7 +45,7 @@ module DeadEnd
 
     def expand_indent(block)
       AroundBlockScan.new(code_lines: @code_lines, block: block)
-        .skip(:hidden?)
+        .skip(:empty?)
         .stop_after_kw
         .scan_adjacent_indent
         .code_block
@@ -53,7 +53,7 @@ module DeadEnd
 
     def expand_neighbors(block, grab_empty: true)
       scan = AroundBlockScan.new(code_lines: @code_lines, block: block)
-        .skip(:hidden?)
+        .skip(:empty?)
         .stop_after_kw
         .scan_neighbors
 
@@ -63,7 +63,7 @@ module DeadEnd
           .scan_while { |line| line.empty? || line.hidden? }
       end
 
-      new_block = scan.code_block
+      new_block = scan.code_block(indent: block.indent)
 
       if block.lines == new_block.lines
         nil

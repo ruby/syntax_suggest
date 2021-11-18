@@ -60,8 +60,10 @@ module DeadEnd
 
         kw_count += 1 if line.is_kw?
         end_count += 1 if line.is_end?
-        if @stop_after_kw && kw_count > end_count
-          stop_next = true
+        if @stop_after_kw
+          if kw_count >= end_count && !kw_count.zero?
+            stop_next = true
+          end
         end
 
         block.call(line)
@@ -76,8 +78,10 @@ module DeadEnd
 
         kw_count += 1 if line.is_kw?
         end_count += 1 if line.is_end?
-        if @stop_after_kw && end_count > kw_count
-          stop_next = true
+        if @stop_after_kw
+          if end_count >= kw_count && !end_count.zero?
+            stop_next = true
+          end
         end
 
         block.call(line)
@@ -177,8 +181,16 @@ module DeadEnd
       self
     end
 
-    def code_block
-      CodeBlock.new(lines: @code_lines[before_index..after_index])
+    def code_block(indent: nil)
+      if indent.nil?
+        indent = @orig_indent
+        indent_before = (before_index..@orig_before_index).lazy.map {|i| @code_lines[i] }.select(&:not_empty?).min {|a, b| a.indent <=> b.indent }&.indent  || 0
+        indent_after = (@orig_after_index..after_index).lazy.map {|i| @code_lines[i] }.select(&:not_empty?).min {|a, b| a.indent <=> b.indent }&.indent || 0
+        indent = indent_before if indent_before < indent
+        indent = indent_after if indent_before < indent
+      end
+
+      CodeBlock.new(lines: @code_lines[before_index..after_index], indent: indent)
     end
 
     def before_index
