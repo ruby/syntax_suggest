@@ -16,18 +16,41 @@ module DeadEnd
   class Error < StandardError; end
   TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 1).to_i
 
-  def self.handle_error(e)
+  # DeadEnd.handle_error [Public interface]
+  #
+  # Takes an exception from a syntax error, uses that
+  # error message to locate the file. Then the file
+  # will be analyzed to find the location of the syntax
+  # error and emit that location to stderr.
+  #
+  # Example:
+  #
+  #   begin
+  #     require 'bad_file'
+  #   rescue => e
+  #     DeadEnd.handle_error(e)
+  #   end
+  #
+  # By default it will re_raise the exception unless
+  # `re_raise: false`. The message output location
+  # can be configured using the `io: $stderr` input.
+  #
+  # If a valid filename cannot be determined, the original
+  # exception will be re-raised (even with
+  # `re_raise: false`).
+  def self.handle_error(e, re_raise: true, io: $stderr)
     file = PathnameFromMessage.new(e.message).call.name
     raise e unless file
 
-    $stderr.sync = true
+    io.sync = true
 
     call(
+      io: io,
       source: file.read,
       filename: file
     )
 
-    raise e
+    raise e if re_raise
   end
 
   def self.record_dir(dir)
@@ -68,6 +91,8 @@ module DeadEnd
     end
   end
 
+  # DeadEnd.valid_without? [Private interface]
+  #
   # This will tell you if the `code_lines` would be valid
   # if you removed the `without_lines`. In short it's a
   # way to detect if we've found the lines with syntax errors
@@ -102,6 +127,8 @@ module DeadEnd
     Ripper.new(source).tap(&:parse).error?
   end
 
+  # DeadEnd.valid? [Private interface]
+  #
   # Returns truthy if a given input source is valid syntax
   #
   #   DeadEnd.valid?(<<~EOM) # => true
@@ -143,7 +170,7 @@ end
 
 # Integration
 require_relative "dead_end/cli"
-require_relative "dead_end/auto"
+require_relative "dead_end/core_ext" unless ENV["DISABLE_DEAD_END_CORE_EXT"]
 
 # Core logic
 require_relative "dead_end/code_search"

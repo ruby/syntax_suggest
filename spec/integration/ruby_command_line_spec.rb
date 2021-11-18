@@ -53,6 +53,12 @@ module DeadEnd
 
         expect($?.success?).to be_falsey
         expect(out).to include('❯  5    it "flerg"').once
+
+        # Does not monkeypatch when env var is set
+        out = `DISABLE_DEAD_END_CORE_EXT=1 ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
+
+        expect($?.success?).to be_falsey
+        expect(out).to_not include('❯  5    it "flerg"').once
       end
     end
   end

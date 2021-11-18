@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+- Requiring `dead_end/auto` is now deprecated please require `dead_end` instead (https://github.com/zombocom/dead_end/pull/119)
+- The interface `DeadEnd.handle_error` is declared public and stable (https://github.com/zombocom/dead_end/pull/119)
+- Requiring the gem with the environment variable `DISABLE_DEAD_END_CORE_EXT=1` now disables monkeypatching core extensions (https://github.com/zombocom/dead_end/pull/119)
+
 ## 3.0.3
 
 - Expand explanations coming from additional Ripper errors (https://github.com/zombocom/dead_end/pull/117)

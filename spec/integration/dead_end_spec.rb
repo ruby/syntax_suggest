@@ -5,6 +5,22 @@ require "ruby-prof"
 
 module DeadEnd
   RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
+    it "has a `handle_error` interface" do
+      fake_error = Object.new
+      def fake_error.message
+        "#{__FILE__}:216: unterminated string meets end of file "
+      end
+
+      io = StringIO.new
+      DeadEnd.handle_error(
+        fake_error,
+        re_raise: false,
+        io: io
+      )
+
+      expect(io.string.strip).to eq("Syntax OK")
+    end
+
     it "returns good results on routes.rb" do
       source = fixtures_dir.join("routes.rb.txt").read
 

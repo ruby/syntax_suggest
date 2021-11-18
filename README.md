@@ -166,6 +166,16 @@ Here's an example:
 
 ![](assets/syntax_search.gif)
 
+## Use internals
+
+To use the `dead_end` gem without monkeypatching you can set the environment variable `DISABLE_DEAD_END_CORE_EXT=1` before requiring the gem. This will allow you to load `dead_end` and use its internals without mutating `require`.
+
+Stable internal interface(s):
+
+- `DeadEnd.handle_error(e)`
+
+Any other entrypoints are subject to change without warning. If you want to use an internal interface from `dead_end` not on this list, open an issue to explain your use case.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
