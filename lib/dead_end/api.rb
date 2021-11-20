@@ -29,7 +29,7 @@ module DeadEnd
   #     DeadEnd.handle_error(e)
   #   end
   #
-  # By default it will re_raise the exception unless
+  # By default it will re-raise the exception unless
   # `re_raise: false`. The message output location
   # can be configured using the `io: $stderr` input.
   #
