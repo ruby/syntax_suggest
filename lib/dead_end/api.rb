@@ -16,7 +16,7 @@ module DeadEnd
 
   # DeadEnd.handle_error [Public]
   #
-  # Takes an exception from a syntax error, uses that
+  # Takes a `SyntaxError`` exception, uses the
   # error message to locate the file. Then the file
   # will be analyzed to find the location of the syntax
   # error and emit that location to stderr.
@@ -37,7 +37,12 @@ module DeadEnd
   # exception will be re-raised (even with
   # `re_raise: false`).
   def self.handle_error(e, re_raise: true, io: $stderr)
-    file = PathnameFromMessage.new(e.message).call.name
+    unless e.is_a?(SyntaxError)
+      io.puts("DeadEnd: Must pass a SyntaxError, got: #{e.class}")
+      raise e
+    end
+
+    file = PathnameFromMessage.new(e.message, io: io).call.name
     raise e unless file
 
     io.sync = true
