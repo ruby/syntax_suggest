@@ -25,7 +25,9 @@ module Kernel
     if Pathname.new(file).absolute?
       dead_end_original_require file
     else
-      dead_end_original_require File.expand_path("../#{file}", Kernel.caller_locations(1, 1)[0].absolute_path)
+      relative_from = caller_locations(1..1).first
+      relative_from_path = relative_from.absolute_path || relative_from.path
+      dead_end_original_require File.expand_path("../#{file}", relative_from_path)
     end
   rescue SyntaxError => e
     DeadEnd.handle_error(e)

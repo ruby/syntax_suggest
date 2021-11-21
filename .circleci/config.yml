@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  ruby: circleci/ruby@1.1.2
+  ruby: circleci/ruby@1.2.0
 references:
   unit: &unit
     run:
@@ -45,6 +45,17 @@ jobs:
       - ruby/install-deps
       - <<: *unit
 
+  "ruby-3-1":
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - ruby/install:
+          version: '3.1.0-preview1'
+      - run: ruby -v
+      - ruby/install-deps
+      - <<: *unit
+
   "lint":
     docker:
       - image: circleci/ruby:3.0
@@ -61,4 +72,5 @@ workflows:
       - "ruby-2-6"
       - "ruby-2-7"
       - "ruby-3-0"
+      - "ruby-3-1"
       - "lint"
