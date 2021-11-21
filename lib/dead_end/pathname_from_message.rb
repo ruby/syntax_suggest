@@ -30,7 +30,7 @@ module DeadEnd
       end
 
       if @parts.empty?
-        @io.puts "DeadEnd: could not find filename from #{@line.inspect}"
+        @io.puts "DeadEnd: Could not find filename from #{@line.inspect}"
         @name = nil
       end
 
