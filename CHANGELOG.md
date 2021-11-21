@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 3.1.0
+
 - Add support for Ruby 3.1 by updating `require_relative` logic (https://github.com/zombocom/dead_end/pull/120)
 - Requiring `dead_end/auto` is now deprecated please require `dead_end` instead (https://github.com/zombocom/dead_end/pull/119)
 - Requiring `dead_end/api` now loads code without monkeypatching core extensions (https://github.com/zombocom/dead_end/pull/119)
