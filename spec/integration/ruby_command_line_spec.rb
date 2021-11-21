@@ -24,15 +24,22 @@ module DeadEnd
         Process.wait(d_pid)
         Process.wait(r_pid)
 
-        dead_end_methods_array = dead_end_methods_file.read.strip.lines.map(&:strip)
         kernel_methods_array = kernel_methods_file.read.strip.lines.map(&:strip)
+        dead_end_methods_array = dead_end_methods_file.read.strip.lines.map(&:strip)
         api_only_methods_array = api_only_methods_file.read.strip.lines.map(&:strip)
 
+        # In ruby 3.1.0-preview1 the `timeout` file is already required
+        # we can remove it if it exists to normalize the output for
+        # all ruby versions
+        [dead_end_methods_array, kernel_methods_array, api_only_methods_array].each do |array|
+          array.delete("timeout")
+        end
+
         methods = (dead_end_methods_array - kernel_methods_array).sort
-        expect(methods).to eq(["dead_end_original_load", "dead_end_original_require", "dead_end_original_require_relative", "timeout"])
+        expect(methods).to eq(["dead_end_original_load", "dead_end_original_require", "dead_end_original_require_relative"])
 
         methods = (api_only_methods_array - kernel_methods_array).sort
-        expect(methods).to eq(["timeout"])
+        expect(methods).to eq([])
       end
     end
 
