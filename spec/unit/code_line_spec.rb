@@ -4,6 +4,21 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeLine do
+    it "bug in keyword detection" do
+      lines = CodeLine.from_source(<<~'EOM')
+        def to_json(*opts)
+          {
+            type: :module,
+            constant: constant,
+            bodystmt: bodystmt,
+            loc: location
+          }.to_json(*opts)
+        end
+      EOM
+      expect(lines.count(&:is_kw?)).to eq(1)
+      expect(lines.count(&:is_end?)).to eq(1)
+    end
+
     it "supports endless method definitions" do
       skip("Unsupported ruby version") unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3")
 
