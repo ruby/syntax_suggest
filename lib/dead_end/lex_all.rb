@@ -25,7 +25,10 @@ module DeadEnd
         lineno = @lex.last.pos.first + 1
       end
 
-      @lex.map! { |elem| LexValue.new(elem.pos.first, elem.event, elem.tok, elem.state) }
+      last_lex = nil
+      @lex.map! { |elem|
+        last_lex = LexValue.new(elem.pos.first, elem.event, elem.tok, elem.state, last_lex)
+      }
     end
 
     def to_a

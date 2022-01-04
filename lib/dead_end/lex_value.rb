@@ -15,19 +15,21 @@ module DeadEnd
   class LexValue
     attr_reader :line, :type, :token, :state
 
-    def initialize(line, type, token, state)
+    def initialize(line, type, token, state, last_lex = nil)
       @line = line
       @type = type
       @token = token
       @state = state
 
-      set_kw_end
+      set_kw_end(last_lex)
     end
 
-    private def set_kw_end
+    private def set_kw_end(last_lex)
       @is_end = false
       @is_kw = false
       return if type != :on_kw
+      #
+      return if last_lex && last_lex.fname? # https://github.com/ruby/ruby/commit/776759e300e4659bb7468e2b97c8c2d4359a2953
 
       case token
       when "if", "unless", "while", "until"
@@ -39,6 +41,10 @@ module DeadEnd
       when "end"
         @is_end = true
       end
+    end
+
+    def fname?
+      state.allbits?(Ripper::EXPR_FNAME)
     end
 
     def ignore_newline?
