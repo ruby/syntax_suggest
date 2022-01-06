@@ -1,10 +1,67 @@
 # frozen_string_literal: true
 
 require_relative "../spec_helper"
-require "ruby-prof"
 
 module DeadEnd
   RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
+    it "does not timeout on massive files" do
+      next unless ENV["DEAD_END_TIMEOUT"]
+
+      file = fixtures_dir.join("syntax_tree.rb.txt")
+      lines = file.read.lines
+      lines.delete_at(768 - 1)
+
+      io = StringIO.new
+
+      benchmark = Benchmark.measure do
+        debug_perf do
+          DeadEnd.call(
+            io: io,
+            source: lines.join,
+            filename: file
+          )
+        end
+        debug_display(io.string)
+        debug_display(benchmark)
+      end
+
+      expect(io.string).to include(<<~'EOM')
+             6  class SyntaxTree < Ripper
+           170    def self.parse(source)
+           174    end
+           176    private
+        ❯  754    def on_args_add(arguments, argument)
+        ❯  776    class ArgsAddBlock
+        ❯  810    end
+          9233  end
+      EOM
+    end
+
+    it "re-checks all block code, not just what's visible issues/95" do
+      file = fixtures_dir.join("ruby_buildpack.rb.txt")
+      io = StringIO.new
+
+      debug_perf do
+        benchmark = Benchmark.measure do
+          DeadEnd.call(
+            io: io,
+            source: file.read,
+            filename: file
+          )
+        end
+        debug_display(io.string)
+        debug_display(benchmark)
+      end
+
+      expect(io.string).to_not include("def ruby_install_binstub_path")
+      expect(io.string).to include(<<~'EOM')
+        ❯ 1067    def add_yarn_binary
+        ❯ 1068      return [] if yarn_preinstalled?
+        ❯ 1069  |
+        ❯ 1075    end
+      EOM
+    end
+
     it "returns good results on routes.rb" do
       source = fixtures_dir.join("routes.rb.txt").read
 
@@ -69,46 +126,6 @@ module DeadEnd
           73    end
           74  end
       EOM
-    end
-
-    it "re-checks all block code, not just what's visible issues/95" do
-      file = fixtures_dir.join("ruby_buildpack.rb.txt")
-      io = StringIO.new
-
-      benchmark = Benchmark.measure do
-        DeadEnd.call(
-          io: io,
-          source: file.read,
-          filename: file
-        )
-      end
-      debug_display(io.string)
-      debug_display(benchmark)
-
-      expect(io.string).to_not include("def ruby_install_binstub_path")
-      expect(io.string).to include(<<~'EOM')
-        ❯ 1067    def add_yarn_binary
-        ❯ 1068      return [] if yarn_preinstalled?
-        ❯ 1069  |
-        ❯ 1075    end
-      EOM
-
-      if ENV["DEBUG_PERF"]
-        result = RubyProf.profile do
-          DeadEnd.call(
-            io: io,
-            source: file.read,
-            filename: file
-          )
-        end
-
-        dir = DeadEnd.record_dir("tmp")
-
-        printer = RubyProf::MultiPrinter.new(result, [:flat, :graph, :graph_html, :tree, :call_tree, :stack, :dot])
-        printer.print(path: dir, profile: "profile")
-
-        dir.join("raw.rb.marshal").write(Marshal.dump(result))
-      end
     end
 
     it "handles heredocs" do

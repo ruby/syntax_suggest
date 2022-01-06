@@ -47,6 +47,27 @@ def code_line_array(source)
   DeadEnd::CleanDocument.new(source: source).call.lines
 end
 
+autoload :RubyProf, "ruby-prof"
+
+def debug_perf
+  raise "No block given" unless block_given?
+
+  if ENV["DEBUG_PERF"]
+    out = nil
+    result = RubyProf.profile do
+      out = yield
+    end
+
+    dir = DeadEnd.record_dir("tmp")
+    printer = RubyProf::MultiPrinter.new(result, [:flat, :graph, :graph_html, :tree, :call_tree, :stack, :dot])
+    printer.print(path: dir, profile: "profile")
+
+    out
+  else
+    yield
+  end
+end
+
 def run!(cmd, raise_on_nonzero_exit: true)
   out = `#{cmd} 2>&1`
   raise "Command: #{cmd} failed: #{out}" if !$?.success? && raise_on_nonzero_exit
