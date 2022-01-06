@@ -18,11 +18,22 @@ module DeadEnd
   #
   class CodeBlock
     UNSET = Object.new.freeze
-    attr_reader :lines
+    attr_reader :lines, :starts_at, :ends_at
 
     def initialize(lines: [])
       @lines = Array(lines)
       @valid = UNSET
+      @deleted = false
+      @starts_at = @lines.first.number
+      @ends_at = @lines.last.number
+    end
+
+    def delete
+      @deleted = true
+    end
+
+    def deleted?
+      @deleted
     end
 
     def visible_lines
@@ -39,14 +50,6 @@ module DeadEnd
 
     def hidden?
       @lines.all?(&:hidden?)
-    end
-
-    def starts_at
-      @starts_at ||= @lines.first&.line_number
-    end
-
-    def ends_at
-      @ends_at ||= @lines.last&.line_number
     end
 
     # This is used for frontier ordering, we are searching from

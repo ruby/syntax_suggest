@@ -52,7 +52,7 @@ module DeadEnd
   class CodeFrontier
     def initialize(code_lines:)
       @code_lines = code_lines
-      @frontier = InsertionSort.new
+      @frontier = PriorityQueue.new
       @unvisited_lines = @code_lines.sort_by(&:indent_index)
       @visited_lines = {}
 
@@ -61,7 +61,7 @@ module DeadEnd
     end
 
     def count
-      @frontier.to_a.length
+      @frontier.length
     end
 
     # Performance optimization
@@ -103,7 +103,7 @@ module DeadEnd
 
     # Returns a code block with the largest indentation possible
     def pop
-      @frontier.to_a.pop
+      @frontier.pop
     end
 
     def next_indent_line
@@ -111,15 +111,15 @@ module DeadEnd
     end
 
     def expand?
-      return false if @frontier.to_a.empty?
+      return false if @frontier.empty?
       return true if @unvisited_lines.to_a.empty?
 
-      frontier_indent = @frontier.to_a.last.current_indent
+      frontier_indent = @frontier.peek.current_indent
       unvisited_indent = next_indent_line.indent
 
       if ENV["DEBUG"]
         puts "```"
-        puts @frontier.to_a.last.to_s
+        puts @frontier.peek.to_s
         puts "```"
         puts "  @frontier indent:  #{frontier_indent}"
         puts "  @unvisited indent: #{unvisited_indent}"
@@ -129,6 +129,8 @@ module DeadEnd
       frontier_indent >= unvisited_indent
     end
 
+    # Keeps track of what lines have been added to blocks and which are not yet
+    # visited.
     def register_indent_block(block)
       block.lines.each do |line|
         next if @visited_lines[line]
@@ -140,6 +142,24 @@ module DeadEnd
       self
     end
 
+    # When one element fully encapsulates another we remove the smaller
+    # block from the frontier. This prevents double expansions and all-around
+    # weird behavior. However this guarantee is quite expensive to maintain
+    def register_engulf_block(block)
+      if block.starts_at != block.ends_at # A block of size 1 cannot engulf another since
+        @frontier.to_a.each { |b|
+          if b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
+            b.delete
+            true
+          end
+        }
+      end
+
+      while (last = @frontier.peek) && last.deleted?
+        @frontier.pop
+      end
+    end
+
     # Add a block to the frontier
     #
     # This method ensures the frontier always remains sorted (in indentation order)
@@ -147,11 +167,7 @@ module DeadEnd
     # don't re-evaluate the same line multiple times.
     def <<(block)
       register_indent_block(block)
-
-      # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
-      @frontier.to_a.reject! { |b|
-        b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
-      }
+      register_engulf_block(block)
 
       @check_next = true if block.invalid?
       @frontier << block

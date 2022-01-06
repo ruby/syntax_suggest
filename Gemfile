@@ -10,3 +10,5 @@ gem "rspec", "~> 3.0"
 gem "stackprof"
 gem "standard"
 gem "ruby-prof"
+
+gem "benchmark-ips"
