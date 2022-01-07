@@ -25,6 +25,15 @@ module DeadEnd
       @valid = UNSET
       @start_index = @lines.first.index
       @end_index = @lines.last.index
+      @deleted = false
+    end
+
+    def deleted?
+      @deleted
+    end
+
+    def delete
+      @deleted = true
     end
 
     def to_range

@@ -73,5 +73,19 @@ module DeadEnd
         tree.push(RangeCmp.new(range), i)
       end
     end
+
+    it "hahah" do
+      tree = BinaryIntervalTree.new
+      [
+        2..2,
+        1..3
+      ].each.with_index do |range, i|
+        tree.push(RangeCmp.new(range), i)
+        end
+
+      out = tree.search_contains_key(RangeCmp.new(1..3))
+      expect(out.count).to eq(2)
+      tree.delete(RangeCmp.new(2..2))
+    end
   end
 end

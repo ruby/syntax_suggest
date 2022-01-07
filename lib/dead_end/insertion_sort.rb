@@ -39,6 +39,14 @@ module DeadEnd
       @array.insert(insert_in, value)
     end
 
+    def pop
+      @array.pop
+    end
+
+    def peek
+      @array.last
+    end
+
     def to_a
       @array
     end
