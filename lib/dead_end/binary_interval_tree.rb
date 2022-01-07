@@ -65,7 +65,8 @@ module DeadEnd
 
     # Adds a new node to the the tree.
     def insert key, data = nil
-      @root = insert_and_balance(@root, key, data)
+      node = klass.new(key,data)
+      @root = insert_and_balance(@root, node)
     end
 
     # Removes a node from the tree.
@@ -88,13 +89,13 @@ module DeadEnd
     end
 
     # Inserts a new node and balances the tree (if needed).
-    private def insert_and_balance(node, key, data = nil, new_node = nil)
-      return klass.new key, data unless node
+    private def insert_and_balance(node, new_node = nil)
+      return new_node unless node
 
-      if key < node.key
-        node.left = insert_and_balance(node.left, key, data)
-      elsif key > node.key
-        node.right = insert_and_balance(node.right, key, data)
+      if new_node.key < node.key
+        node.left = insert_and_balance(node.left, new_node)
+      elsif new_node.key > node.key
+        node.right = insert_and_balance(node.right, new_node)
       else
         node.data = data
         node.deleted = false
