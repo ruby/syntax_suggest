@@ -150,7 +150,7 @@ module DeadEnd
 
       # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
       @frontier.to_a.reject! { |b|
-        b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
+        b.start_index >= block.start_index && b.end_index <= block.end_index
       }
 
       @check_next = true if block.invalid?

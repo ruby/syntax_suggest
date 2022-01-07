@@ -18,11 +18,17 @@ module DeadEnd
   #
   class CodeBlock
     UNSET = Object.new.freeze
-    attr_reader :lines
+    attr_reader :lines, :start_index, :end_index
 
     def initialize(lines: [])
       @lines = Array(lines)
       @valid = UNSET
+      @start_index = @lines.first.index
+      @end_index = @lines.last.index
+    end
+
+    def to_range
+      @start_index..@end_index
     end
 
     def visible_lines
@@ -41,14 +47,6 @@ module DeadEnd
       @lines.all?(&:hidden?)
     end
 
-    def starts_at
-      @starts_at ||= @lines.first&.line_number
-    end
-
-    def ends_at
-      @ends_at ||= @lines.last&.line_number
-    end
-
     # This is used for frontier ordering, we are searching from
     # the largest indentation to the smallest. This allows us to
     # populate an array with multiple code blocks then call `sort!`
@@ -58,7 +56,7 @@ module DeadEnd
       return out if out != 0
 
       # Stable sort
-      starts_at <=> other.starts_at
+      start_index <=> other.start_index
     end
 
     def current_indent
