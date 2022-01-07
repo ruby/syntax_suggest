@@ -152,7 +152,7 @@ module DeadEnd
       key = RangeCmp.new(block.to_range)
       @interval_tree.push(key, block)
       out = @interval_tree.search_contains_key(key)
-      out.map {|node| node.value }.each do |eaten_block|
+      out.map(&:value).each do |eaten_block|
         if eaten_block != block
           eaten_block.delete
           @interval_tree.delete(RangeCmp.new(eaten_block.to_range))
@@ -164,11 +164,6 @@ module DeadEnd
           @frontier.pop
         end
       end
-
-      # # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
-      # @frontier.to_a.reject! { |b|
-      #   b.start_index >= block.start_index && b.end_index <= block.end_index
-      # }
 
       @check_next = true if block.invalid?
       @frontier << block

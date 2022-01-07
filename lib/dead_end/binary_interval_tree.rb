@@ -164,6 +164,7 @@ module DeadEnd
     end
     alias_method :reverse_each, :each_backward
   end
+  Containers::Deque = Containers::RubyDeque
 
   class Containers::Stack
     include Enumerable
@@ -247,9 +248,10 @@ module DeadEnd
     attr_accessor :height_black
 
     # Create and initialize a new empty TreeMap.
-    def initialize
+    def initialize(node_klass: Node)
       @root = nil
       @height_black = 0
+      @node_klass = node_klass
     end
 
     # Insert an item with an associated key into the TreeMap, and returns the item inserted
@@ -314,6 +316,10 @@ module DeadEnd
       get_recursive(@root, key)
     end
     alias_method :[], :get
+
+    def get_node_for_key(key)
+      get_recursive_node_for_key(@root, key)
+    end
 
     # Return the smallest key in the map.
     #
@@ -564,6 +570,16 @@ module DeadEnd
     end
     private :delete_max_recursive
 
+    private def get_recursive_node_for_key(node, key)
+      return nil if node.nil?
+
+      case key <=> node.key
+      when 0 then node
+      when -1 then get_recursive_node_for_key(node.left, key)
+      when 1 then get_recursive_node_for_key(node.right, key)
+      end
+    end
+
     def get_recursive(node, key)
       return nil if node.nil?
       case key <=> node.key
@@ -589,7 +605,7 @@ module DeadEnd
     private :max_recursive
 
     def insert(node, key, value)
-      return Node.new(key, value) unless node
+      return @node_klass.new(key, value) unless node
 
       case key <=> node.key
       when 0 then node.value = value
@@ -612,12 +628,17 @@ module DeadEnd
     private :isred
   end
 
+
   class RangeCmp
     attr_reader :first, :last
 
     def initialize(range)
       @first = range.first
       @last = range.last
+    end
+
+    def annotate
+      @last
     end
 
     def <=>(other)
@@ -632,17 +653,85 @@ module DeadEnd
     end
 
     def to_s
-      (@first..last).to_s
+      "#{@first..last}"
     end
 
     def inspect
-      (@first..last).inspect
+      "#{self.class} (#{self.object_id}): #{to_s}"
     end
   end
 
+  # Compares end before beginning
+  class RangeCmpRev < RangeCmp
+    def annotate
+      @first
+    end
+
+    def <=>(other)
+      case @last <=> other.last
+      when 1
+        1
+      when -1
+        -1
+      when 0
+        @first <=> other.first
+      end
+    end
+  end
+
+  class AnnotateNode < Containers::RubyRBTreeMap::Node
+    attr_accessor :annotate
+
+    def initialize(key, value)
+      super
+      @annotate = key.annotate
+    end
+  end
+
+
   class BinaryIntervalTree < Containers::RubyRBTreeMap
+
+    def initialize
+      super(node_klass: AnnotateNode)
+    end
+
     def search_contains_key(key)
       search_contains_rec(@root, key)
+    end
+
+    def search_contains_annotate_key(key)
+      search_contains_rec_annotate(@root, key)
+    end
+
+    def insert(node, key, value)
+      if node && (key.annotate <=> node.annotate) == 1 # greater than
+        node.annotate = key.annotate
+      end
+      super
+    end
+    private :insert
+
+    private def search_contains_rec_annotate(node, key, result = [])
+      return result if node.nil?
+
+      if node.key.last <= key.last
+        if node.key.first >= key.first
+          result << node
+        end
+        # go both if (node.key.first MAX) > key.first
+
+        if node.annotate > key.first
+          search_contains_rec_annotate(node.left, key, result)
+          search_contains_rec_annotate(node.right, key, result)
+        end
+      else
+        # go right if annotate (node.key.first MAX) > key.first
+        if node.annotate > key.first
+          search_contains_rec_annotate(node.right, key, result)
+        end
+      end
+
+      result
     end
 
     private def search_contains_rec(node, key, result = [])
@@ -666,7 +755,6 @@ module DeadEnd
           # Nodes to the left will have smaller start && || end
           # Nodes to the right will have larger start && || end
         end
-
         search_contains_rec(node.left, key, result)
         search_contains_rec(node.right, key, result)
       else
@@ -676,6 +764,25 @@ module DeadEnd
         search_contains_rec(node.right, key, result)
       end
       result
+    end
+  end
+
+  class BinaryIntervalTree::Debug < BinaryIntervalTree
+    attr_accessor :count
+
+    def initialize
+      super
+      @count = 0
+    end
+
+    private def search_contains_rec_annotate(node, key, result = [])
+      @count += 1
+      super
+    end
+
+    private def search_contains_rec(node, key, result = [])
+      @count += 1
+      super
     end
   end
 end
