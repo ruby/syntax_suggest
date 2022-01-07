@@ -58,6 +58,8 @@ module DeadEnd
 
       @has_run = false
       @check_next = true
+
+      @interval_tree = BinaryIntervalTree.new
     end
 
     def count
@@ -147,6 +149,13 @@ module DeadEnd
     # don't re-evaluate the same line multiple times.
     def <<(block)
       register_indent_block(block)
+      puts block.to_range
+      # @interval_tree.print
+      inserted = @interval_tree.insert(block.to_range, block)
+      # @interval_tree.search_contains_key(inserted.key).each do |node|
+      #   next if node == inserted
+      #   @interval_tree.remove_node(node)
+      # end
 
       # Make sure we don't double expand, if a code block fully engulfs another code block, keep the bigger one
       @frontier.to_a.reject! { |b|

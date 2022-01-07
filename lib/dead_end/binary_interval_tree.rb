@@ -125,7 +125,7 @@ module DeadEnd
       elsif cmp == 1
         node.right = insert_and_balance(node.right, new_node)
       else
-        node.data = data
+        node.data = new_node.data
         node.deleted = false
       end
 
@@ -133,24 +133,29 @@ module DeadEnd
     end
 
     # Prints the subtree that starts at the provided node.
-    private def print_rec(node = @root, indent = 0)
-      unless node
-        puts "x".rjust(indent * 2, " ")
+    private def print_rec(node = @root, indent = 0, name: "🌳")
+      if !node
+        puts "#{name}".rjust(indent * 2, " ")
         return
       end
 
-      puts_key node, indent
-      print_rec node.left, indent + 1
-      print_rec node.right, indent + 1
+      txt = "#{name}: #{node.key.to_s}"
+      if node.deleted
+        txt += " (D)"
+      end
+      puts " " * indent + txt
+
+      print_rec node.left, indent + 1, name: "L"
+      print_rec node.right, indent + 1, name: "R"
     end
 
     # Returns the heigh of the provided node.
-    private def height node
+    private def height(node)
       node&.height || 0
     end
 
     # Calculates and sets the height for the specified node.
-    private def set_height node
+    private def set_height(node)
       lh = height node&.left
       rh = height node&.right
       max = lh > rh ? lh : rh
@@ -159,31 +164,31 @@ module DeadEnd
     end
 
     # Performs a right rotation.
-    private def rotate_right p
-      q = p.left
-      p.left = q.right
-      q.right = p
+    private def rotate_right(a)
+      b = a.left
+      a.left = b.right
+      b.right = a
 
-      set_height p
-      set_height q
+      set_height(a)
+      set_height(b)
 
-      q
+      b
     end
 
     # Performs a left rotation.
-    private def rotate_left p
-      q = p.right
-      p.right = q.left
-      q.left = p
+    private def rotate_left(a)
+      b = a.right
+      a.right = b.left
+      b.left = a
 
-      set_height p
-      set_height q
+      set_height(a)
+      set_height(b)
 
-      q
+      b
     end
 
     # Performs a LR rotation.
-    private def rotate_left_right node
+    private def rotate_left_right(node)
       node.left = rotate_left(node.left)
       rotate_right(node)
     end
@@ -196,12 +201,14 @@ module DeadEnd
 
     # Balances the subtree rooted at the specify node if that tree needs
     # to be balanced.
-    private def balance node
-      set_height node
+    private def balance(node)
+      set_height(node)
 
       if height(node.left) - height(node.right) == 2
         if height(node.left.right) > height(node.left.left)
           # LR rotation.
+          # puts height(node.left.right).inspect # 1
+          # puts height(node.left.left).inspect # 0, nil
           return rotate_left_right(node.left)
         end
         ## RR rotation (or just right rotation).
@@ -230,7 +237,6 @@ module DeadEnd
       txt = node.key.to_s
       if node.deleted
         txt += " (D)"
-        puts txt.rjust(indent * 8, " ")
       else
         puts txt.rjust(indent * 4, " ")
       end

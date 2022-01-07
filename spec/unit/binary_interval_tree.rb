@@ -65,5 +65,16 @@ module DeadEnd
       expect(out.count).to eq(0)
       expect(out.map(&:data)).to eq([])
     end
+
+    it "lol" do
+      tree = BinaryIntervalTree.new
+      [
+        3..3,
+        2..2,
+        2..3
+      ].each.with_index do |range, i|
+        tree.insert(range, i)
+      end
+    end
   end
 end
