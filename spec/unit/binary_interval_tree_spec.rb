@@ -56,7 +56,7 @@ module DeadEnd
       expect(out.count).to eq(1)
       expect(out.map(&:value)).to eq(["a"])
 
-      out.each { |n| tree.remove_node(n) }
+      out.each { |node| tree.delete(node.key) }
 
       out = tree.search_contains_key(key)
       expect(out.count).to eq(0)
