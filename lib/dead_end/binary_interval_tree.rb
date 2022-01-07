@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 module DeadEnd
+
+
   # AVL tree
-  class BinaryIntervalTree
-    class RangeComparable
-      include Comparable
+  class BinaryTree
+    class RangeCmp
+      attr_reader :first, :last
 
       def initialize(range)
         @first = range.first
@@ -34,10 +36,16 @@ module DeadEnd
     class RangeNode
       attr_accessor :key, :data, :height, :left, :right, :deleted
 
+      attr_reader :first, :last
+
       def initialize key, data
-        self.key = RangeComparable.new(key)
+        self.key = RangeCmp.new(key)
         self.data = data
         self.height = 1
+      end
+
+      def <=>(other)
+        @key <=> other.key
       end
     end
 
@@ -52,7 +60,7 @@ module DeadEnd
       end
 
       def <=>(other)
-        self.key <=> other.key
+        @key <=> other.key
       end
     end
 
@@ -67,6 +75,11 @@ module DeadEnd
     def insert key, data = nil
       node = klass.new(key,data)
       @root = insert_and_balance(@root, node)
+      node
+    end
+
+    def remove_node(node)
+      node&.deleted = true
     end
 
     # Removes a node from the tree.
@@ -74,12 +87,26 @@ module DeadEnd
       # This method finds the node to be removed and marks it as deleted.
       # This is a nice way to handle deletions because since the structure
       # doesn't change we don't have to balance the tree after removals.
-      search(key)&.deleted = true
+      delete_node(search(key))
+    end
+
+    def search_node(node)
+      node = search_node_rec(@root, node)
+      return node unless node&.deleted
+    end
+
+    private def search_node_rec(node, looking_for)
+      return nil unless node
+
+      cmp = looking_for <=> node
+      return search_node_rec(node.left, looking_for) if cmp == -1
+      return search_node_rec(node.right, looking_for) if cmp == 1
+      node
     end
 
     # Searches for a key in the current tree.
-    def search key
-      node = search_rec @root, key
+    def search_key(key)
+      node = search_key_rec @root, key
       return node unless node&.deleted
     end
 
@@ -92,9 +119,10 @@ module DeadEnd
     private def insert_and_balance(node, new_node = nil)
       return new_node unless node
 
-      if new_node.key < node.key
+      cmp = new_node <=> node
+      if cmp == -1
         node.left = insert_and_balance(node.left, new_node)
-      elsif new_node.key > node.key
+      elsif cmp == 1
         node.right = insert_and_balance(node.right, new_node)
       else
         node.data = data
@@ -115,7 +143,6 @@ module DeadEnd
       print_rec node.left, indent + 1
       print_rec node.right, indent + 1
     end
-
 
     # Returns the heigh of the provided node.
     private def height node
@@ -190,13 +217,11 @@ module DeadEnd
       node
     end
 
-
-
     # Searches for a key in the subtree that starts at the provided node.
-    private def search_rec node, key
+    private def search_key_rec node, key
       return nil unless node
-      return search_rec(node.left, key) if key < node.key
-      return search_rec(node.right, key) if key > node.key
+      return search_key_rec(node.left, key) if key < node.key
+      return search_key_rec(node.right, key) if key > node.key
       node
     end
 
@@ -209,6 +234,50 @@ module DeadEnd
       else
         puts txt.rjust(indent * 4, " ")
       end
+    end
+  end
+
+  class BinaryIntervalTree < BinaryTree
+
+    def initialize
+      super(klass: RangeNode)
+    end
+
+    def search_contains_key(key)
+      search_contains_rec(@root, key)
+    end
+
+    private def search_contains_rec(node, key, result = [])
+      return result if node.nil? || node.deleted
+
+      if node.key.first >= key.first
+        # Node may have overlap, and may be contained
+
+        if node.key.last <= key.last
+          # Node is contained, add it to the list and keep searching
+          # It's children may also be contained too
+          #
+          # Nodes to the left will have smaller start && || end
+          # Nodes to the right will have larger start && || end
+
+          result << node
+        else
+          # End of node was too large to be contained
+          # may still have an overlap
+          #
+          # Nodes to the left will have smaller start && || end
+          # Nodes to the right will have larger start && || end
+        end
+
+        search_contains_rec(node.left, key, result)
+        search_contains_rec(node.right, key, result)
+      else
+        # Node is outside of containment because it starts too soon,
+        # Doesn't matter where it ends
+        # look right
+        search_contains_rec(node.right, key, result)
+      end
+      result
     end
   end
 end
