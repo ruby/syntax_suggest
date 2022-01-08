@@ -680,11 +680,22 @@ module DeadEnd
   end
 
   class AnnotateNode < Containers::RubyRBTreeMap::Node
-    attr_accessor :annotate
+    attr_accessor :annotate, :parent
 
     def initialize(key, value)
       super
       @annotate = key.annotate
+      @parent = nil
+    end
+
+    def left=(node)
+      @left = node
+      node.parent = self if node
+    end
+
+    def right=(node)
+      @right = node
+      node.parent = self if node
     end
   end
 
