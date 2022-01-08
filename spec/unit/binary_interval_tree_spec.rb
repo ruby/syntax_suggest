@@ -114,35 +114,35 @@ module DeadEnd
         tree.push(RangeCmpRev.new(range), i)
       end
 
-      skip("Work on reverse later")
+      # skip("Work on reverse later")
 
-      out = tree.search_contains_key(
-        RangeCmpRev.new(20..36)
-      )
-      expect(out.map(&:value)).to eq([0])
+      # out = tree.search_contains_key(
+      #   RangeCmpRev.new(20..36)
+      # )
+      # expect(out.map(&:value)).to eq([0])
 
-      out = tree.search_contains_key(
-        RangeCmpRev.new(29..99)
-      )
-      expect(out.map(&:value)).to eq([1])
+      # out = tree.search_contains_key(
+      #   RangeCmpRev.new(29..99)
+      # )
+      # expect(out.map(&:value)).to eq([1])
 
-      out = tree.search_contains_key(
-        RangeCmpRev.new(3..41)
-      )
-      expect(out.map(&:value)).to eq([0, 2, 4])
+      # out = tree.search_contains_key(
+      #   RangeCmpRev.new(3..41)
+      # )
+      # expect(out.map(&:value)).to eq([0, 2, 4])
 
-      out = tree.search_contains_key(
-        RangeCmpRev.new(0..1)
-      )
-      expect(out.map(&:value)).to eq([3])
+      # out = tree.search_contains_key(
+      #   RangeCmpRev.new(0..1)
+      # )
+      # expect(out.map(&:value)).to eq([3])
 
-      out = tree.search_contains_key(
-        RangeCmpRev.new(10..15)
-      )
-      expect(out.map(&:value)).to eq([4])
+      # out = tree.search_contains_key(
+      #   RangeCmpRev.new(10..15)
+      # )
+      # expect(out.map(&:value)).to eq([4])
 
-      puts "rev"
-      puts tree.count
+      # puts "rev"
+      # puts tree.count
     end
 
     it "doesn't find deleted nodes" do
@@ -190,25 +190,18 @@ module DeadEnd
     end
 
     it "annotations" do
-      # raise "nope"
       # Build a print function
       # print before and after rotation
       # https://tildesites.bowdoin.edu/~ltoma/teaching/cs231/fall09/Lectures/10-augmentedTrees/augtrees.pdf
       # page 6
 
-      # START HERE NEXT
       tree = BinaryIntervalTree::Debug.new
 
       i = 0
       tree.push(RangeCmp.new(29..99), i += 1)
       tree.push(RangeCmp.new(10..15), i += 1)
       tree.push(RangeCmp.new(3..41), i += 1)
-      # puts "==========="
-      # pp tree
       tree.push(RangeCmp.new(20..36), i += 1)
-
-      puts "==========="
-      pp tree
       tree.push(RangeCmp.new(0..1), i += 1)
 
       out = tree.get_node_for_key(
@@ -237,44 +230,43 @@ module DeadEnd
       expect(out.annotate).to eq(99)
     end
 
-    it "reverse annotations" do
-      skip
-      tree = BinaryIntervalTree.new
-      [
-        20..36,
-        29..99,
-        3..41,
-        0..1,
-        10..15
-      ].each.with_index do |range, i|
-        tree.push(RangeCmpRev.new(range), i)
-      end
+    # it "reverse annotations" do
+    #   skip
+    #   tree = BinaryIntervalTree.new
+    #   [
+    #     20..36,
+    #     29..99,
+    #     3..41,
+    #     0..1,
+    #     10..15
+    #   ].each.with_index do |range, i|
+    #     tree.push(RangeCmpRev.new(range), i)
+    #   end
 
-      puts tree.inspect
-      out = tree.get_node_for_key(
-        RangeCmpRev.new(29..99)
-      )
-      expect(out.annotate).to eq(29)
+    #   out = tree.get_node_for_key(
+    #     RangeCmpRev.new(29..99)
+    #   )
+    #   expect(out.annotate).to eq(29)
 
-      out = tree.get_node_for_key(
-        RangeCmpRev.new(3..41)
-      )
-      expect(out.annotate).to eq(29)
+    #   out = tree.get_node_for_key(
+    #     RangeCmpRev.new(3..41)
+    #   )
+    #   expect(out.annotate).to eq(29)
 
-      # out = tree.get_node_for_key(
-      #   RangeCmpRev.new(0..1)
-      # )
-      # expect(out.annotate).to eq(0)
+    #   # out = tree.get_node_for_key(
+    #   #   RangeCmpRev.new(0..1)
+    #   # )
+    #   # expect(out.annotate).to eq(0)
 
-      # out = tree.get_node_for_key(
-      #   RangeCmpRev.new(20..36)
-      # )
-      # expect(out.annotate).to eq(20)
+    #   # out = tree.get_node_for_key(
+    #   #   RangeCmpRev.new(20..36)
+    #   # )
+    #   # expect(out.annotate).to eq(20)
 
-      out = tree.get_node_for_key(
-        RangeCmpRev.new(10..15)
-      )
-      expect(out.annotate).to eq(20)
-    end
+    #   out = tree.get_node_for_key(
+    #     RangeCmpRev.new(10..15)
+    #   )
+    #   expect(out.annotate).to eq(20)
+    # end
   end
 end

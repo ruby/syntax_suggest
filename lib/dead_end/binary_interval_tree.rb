@@ -715,18 +715,25 @@ module DeadEnd
       search_contains_rec_annotate(@root, key)
     end
 
-    def annotate_from_kids(node)
-      if node && node.left && node.left.annotate > node.annotate
-        node.annotate = node.left.annotate
-      end
-      if node && node.right && node.right.annotate > node.annotate
-        node.annotate = node.right.annotate
-      end
+    def insert(node, key, value)
+      out = super
+      annotate_from_kids(out)
     end
 
-    def insert(node, key, value)
-      super
+    def annotate_from_kids(node)
+      return if node.nil?
+
+      node.annotate = node.key.annotate
+
+      if node.left && node.left.key.annotate > node.annotate
+        node.annotate = node.left.key.annotate
+      end
+      if node.right && node.right.key.annotate > node.annotate
+        node.annotate = node.right.key.annotate
+      end
+      node
     end
+
     private :insert
 
     def print_tree
