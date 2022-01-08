@@ -527,9 +527,11 @@ module DeadEnd
         if ((key <=> node.key) == 0) && node.right.nil?
           return nil, node.value
         end
+
         if !isred(node.right) && !isred(node.right.left)
           node.move_red_right
         end
+
         if (key <=> node.key) == 0
           result = node.value
           node.value = get_recursive(node.right, min_recursive(node.right))
@@ -707,12 +709,84 @@ module DeadEnd
       super(node_klass: AnnotateNode)
     end
 
+    def delete_engulf(key)
+      deleted = []
+      while n = search_engulf_rec(@root, key)
+        deleted << n.value
+        delete(n.key)
+      end
+      deleted
+    end
+
+    private def search_engulf_rec(node, search)
+      return if node.nil?
+
+      # We know that high value is not high enough
+      # if the current annotation is < search.high
+      # there will never be a match
+
+      # if node.annotate > search.high
+      #   return nil
+      # end
+
+      if search.low <= node.key.low
+        # Maybe left, maybe right, maybe match
+        if search.high >= node.key.high
+          return node
+        else
+          out = search_engulf_rec(node.right, search)
+          out ||= search_engulf_rec(node.left, search)
+          return out
+        end
+      else
+        # Current low range value is the biggest possible on the left
+        # if we are not >= it, we will never find a match, go right
+        return search_engulf_rec(node.right, search)
+      end
+    end
+
+    # No elimination logic, checks all nodes
     def search_contains_key(key)
       search_contains_rec(@root, key)
     end
 
-    def search_contains_annotate_key(key)
-      search_contains_rec_annotate(@root, key)
+    def force_annotate_check(node = @root)
+      return true if node.nil?
+
+      if node.left
+        if node.left.key.annotate > node.annotate
+          print_tree
+          raise "expected #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
+        end
+      end
+
+      if node.right
+        if node.right.key.annotate > node.annotate
+          print_tree
+          raise "expected #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
+        end
+      end
+
+      force_annotate_check(node.left)
+      force_annotate_check(node.right)
+    end
+
+
+    # No elimination logic, checks all nodes
+    private def search_contains_rec(node, key, result = [])
+      return result if node.nil?
+
+      if node.key.first >= key.first
+
+        if node.key.last <= key.last
+          result << node
+        end
+      end
+
+      search_contains_rec(node.left, key, result)
+      search_contains_rec(node.right, key, result)
+
+      result
     end
 
     def insert(node, key, value)
@@ -751,81 +825,7 @@ module DeadEnd
       end
     end
 
-    private def search_contains_rec_annotate(node, key, result = [])
-      return result if node.nil?
 
-      if node.key.last <= key.last
-        if node.key.first >= key.first
-          result << node
-        end
-        # go both if (node.key.first MAX) > key.first
-
-        if node.annotate > key.first
-          search_contains_rec_annotate(node.left, key, result)
-          search_contains_rec_annotate(node.right, key, result)
-        end
-      else
-        # go right if annotate (node.key.first MAX) > key.first
-        if node.annotate > key.first
-          search_contains_rec_annotate(node.right, key, result)
-        end
-      end
-
-      result
-    end
-
-    def search_overlap(key)
-      search_overlap_rec(@root, key)
-    end
-
-    # Pretend annotations work perfectly
-    # https://www.geeksforgeeks.org/interval-tree/
-    private def search_overlap_rec(node, key, result = [])
-      return result if node.nil?
-
-      if key.low <= node.key.low && node.key.high <= key.high
-        result << node
-      end
-
-      if node.left && node.left.annotate >= key.annotate
-        return search_overlap_rec(node.left, key, result)
-      else
-        return search_overlap_rec(node.right, key, result)
-      end
-      result
-    end
-
-    private def search_contains_rec(node, key, result = [])
-      return result if node.nil?
-
-      if node.key.first >= key.first
-        # Node may have overlap, and may be contained
-
-        if node.key.last <= key.last
-          # Node is contained, add it to the list and keep searching
-          # It's children may also be contained too
-          #
-          # Nodes to the left will have smaller start && || end
-          # Nodes to the right will have larger start && || end
-
-          result << node
-        else
-          # End of node was too large to be contained
-          # may still have an overlap
-          #
-          # Nodes to the left will have smaller start && || end
-          # Nodes to the right will have larger start && || end
-        end
-        search_contains_rec(node.left, key, result)
-        search_contains_rec(node.right, key, result)
-      else
-        # Node is outside of containment because it starts too soon,
-        # Doesn't matter where it ends
-        # look right
-        search_contains_rec(node.right, key, result)
-      end
-      result
-    end
   end
 
   class BinaryIntervalTree::Debug < BinaryIntervalTree

@@ -228,6 +228,39 @@ module DeadEnd
       expect(out.annotate).to eq(99)
     end
 
+    it "annotate part deux" do
+      # Given
+      #
+      # 7238..7238 annotate 7238
+      #   R: 8137..8137 annotate: 8138
+      #     R: 8138..8138
+      #       R: ∅️
+      #       L: ∅️
+      #     L: 7239..7239
+      #       R: ∅️
+      #       L: ∅️
+      #   L: 5935..5947 annotate: 6818
+      #     R: 6810..6818
+      #       R: ∅️
+      #       L: ∅️
+      #     L: 5911..5920
+      #       R: ∅️
+      #       L: ∅️
+      tree = BinaryIntervalTree::Debug.new
+      tree.push(RangeCmp.new(7238..7238), "lol")
+      tree.push(RangeCmp.new(8137..8137), "lol")
+      tree.push(RangeCmp.new(8138..8138), "lol")
+      tree.push(RangeCmp.new(7239..7239), "lol")
+      tree.push(RangeCmp.new(5935..5947), "lol")
+      tree.push(RangeCmp.new(6810..6818), "lol")
+      tree.push(RangeCmp.new(5911..5920), "lol")
+
+      node = tree.get_node_for_key(RangeCmp.new(8137..8137))
+      expect(node.annotate).to eq(8138)
+
+      tree.force_annotate_check
+    end
+
     # it "reverse annotations" do
     #   skip
     #   tree = BinaryIntervalTree.new
