@@ -728,6 +728,7 @@ module DeadEnd
       if node.left && node.left.key.annotate > node.annotate
         node.annotate = node.left.key.annotate
       end
+
       if node.right && node.right.key.annotate > node.annotate
         node.annotate = node.right.key.annotate
       end
@@ -773,20 +774,25 @@ module DeadEnd
       result
     end
 
+    def search_overlap(key)
+      search_overlap_rec(@root, key)
+    end
+
     # Pretend annotations work perfectly
     # https://www.geeksforgeeks.org/interval-tree/
-    private def search_overlap_first(node, key)
-      return resul if node.nil?
+    private def search_overlap_rec(node, key, result = [])
+      return result if node.nil?
 
-      if key.first <= node.key.last && node.key.first <= key.last
-        return result
+      if key.low <= node.key.low && node.key.high <= key.high
+        result << node
       end
 
       if node.left && node.left.annotate >= key.annotate
-        return search_overlap(node.left, key, result)
+        return search_overlap_rec(node.left, key, result)
       else
-        return search_overlap(node.right, key, result) if right
+        return search_overlap_rec(node.right, key, result)
       end
+      result
     end
 
     private def search_contains_rec(node, key, result = [])

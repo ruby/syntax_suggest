@@ -67,52 +67,50 @@ module DeadEnd
     it "uses annotations to improve search" do
       tree = BinaryIntervalTree::Debug.new
       [
-        20..36,
-        29..99,
-        3..41,
-        0..1,
-        10..15
+        20..36, # 0
+        29..99, # 1
+        3..41, # 2
+        0..1, # 3
+        10..15 # 4
       ].each.with_index do |range, i|
         tree.push(RangeCmp.new(range), i)
       end
 
-      out = tree.search_contains_key(
+      out = tree.search_overlap(
         RangeCmp.new(20..36)
       )
       expect(out.map(&:value)).to eq([0])
 
-      out = tree.search_contains_key(
+      out = tree.search_overlap(
         RangeCmp.new(29..99)
       )
       expect(out.map(&:value)).to eq([1])
 
-      out = tree.search_contains_key(
+      out = tree.search_overlap(
         RangeCmp.new(3..41)
       )
       expect(out.map(&:value)).to eq([0, 2, 4])
 
-      out = tree.search_contains_key(
+      out = tree.search_overlap(
         RangeCmp.new(0..1)
       )
       expect(out.map(&:value)).to eq([3])
 
-      out = tree.search_contains_key(
+      out = tree.search_overlap(
         RangeCmp.new(10..15)
       )
       expect(out.map(&:value)).to eq([4])
-      puts "reg"
-      puts tree.count
 
-      tree = BinaryIntervalTree::Debug.new
-      [
-        20..36,
-        29..99,
-        3..41,
-        0..1,
-        10..15
-      ].each.with_index do |range, i|
-        tree.push(RangeCmpRev.new(range), i)
-      end
+      # tree = BinaryIntervalTree::Debug.new
+      # [
+      #   20..36,
+      #   29..99,
+      #   3..41,
+      #   0..1,
+      #   10..15
+      # ].each.with_index do |range, i|
+      #   tree.push(RangeCmpRev.new(range), i)
+      # end
 
       # skip("Work on reverse later")
 
