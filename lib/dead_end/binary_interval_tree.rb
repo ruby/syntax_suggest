@@ -636,6 +636,8 @@ module DeadEnd
       @first = range.first
       @last = range.last
     end
+    alias :high :last
+    alias :low :first
 
     def annotate
       @last
@@ -701,7 +703,6 @@ module DeadEnd
 
 
   class BinaryIntervalTree < Containers::RubyRBTreeMap
-
     def initialize
       super(node_klass: AnnotateNode)
     end
@@ -714,10 +715,16 @@ module DeadEnd
       search_contains_rec_annotate(@root, key)
     end
 
-    def insert(node, key, value)
-      if node && (key.annotate <=> node.annotate) == 1 # greater than
-        node.annotate = key.annotate
+    def annotate_from_kids(node)
+      if node && node.left && node.left.annotate > node.annotate
+        node.annotate = node.left.annotate
       end
+      if node && node.right && node.right.annotate > node.annotate
+        node.annotate = node.right.annotate
+      end
+    end
+
+    def insert(node, key, value)
       super
     end
     private :insert
@@ -743,6 +750,22 @@ module DeadEnd
       end
 
       result
+    end
+
+    # Pretend annotations work perfectly
+    # https://www.geeksforgeeks.org/interval-tree/
+    private def search_overlap_first(node, key)
+      return resul if node.nil?
+
+      if key.first <= node.key.last && node.key.first <= key.last
+        return result
+      end
+
+      if node.left && node.left.annotate >= key.annotate
+        return search_overlap(node.left, key, result)
+      else
+        return search_overlap(node.right, key, result) if right
+      end
     end
 
     private def search_contains_rec(node, key, result = [])

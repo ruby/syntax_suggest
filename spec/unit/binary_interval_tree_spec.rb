@@ -190,28 +190,36 @@ module DeadEnd
     end
 
     it "annotations" do
+      # raise "nope"
+      # Build a print function
+      # print before and after rotation
+      # https://tildesites.bowdoin.edu/~ltoma/teaching/cs231/fall09/Lectures/10-augmentedTrees/augtrees.pdf
+      # page 6
+
       # START HERE NEXT
-      tree = BinaryIntervalTree.new
-      array = [29..99,
-        10..15,
-        3..41,
-        20..36,
-        0..1
-      ]
+      tree = BinaryIntervalTree::Debug.new
 
-      array.each.with_index do |range, i|
-        tree.push(RangeCmp.new(range), i)
-      end
+      i = 0
+      tree.push(RangeCmp.new(29..99), i += 1)
+      tree.push(RangeCmp.new(10..15), i += 1)
+      tree.push(RangeCmp.new(3..41), i += 1)
+      # puts "==========="
+      # pp tree
+      tree.push(RangeCmp.new(20..36), i += 1)
 
-      out = tree.get_node_for_key(
-        RangeCmp.new(20..36)
-      )
-      expect(out.annotate).to eq(99)
+      puts "==========="
+      pp tree
+      tree.push(RangeCmp.new(0..1), i += 1)
 
       out = tree.get_node_for_key(
         RangeCmp.new(29..99)
       )
       expect(out.annotate).to eq(99)
+
+      out = tree.get_node_for_key(
+        RangeCmp.new(20..36)
+      )
+      expect(out.annotate).to eq(36)
 
       out = tree.get_node_for_key(
         RangeCmp.new(3..41)
@@ -226,7 +234,7 @@ module DeadEnd
       out = tree.get_node_for_key(
         RangeCmp.new(10..15)
       )
-      expect(out.annotate).to eq(15)
+      expect(out.annotate).to eq(99)
     end
 
     it "reverse annotations" do
