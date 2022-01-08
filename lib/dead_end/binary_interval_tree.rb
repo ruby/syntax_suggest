@@ -729,6 +729,20 @@ module DeadEnd
     end
     private :insert
 
+    def print_tree
+      print_rec(@root)
+    end
+
+    private def print_rec(node, indent: 2, name: "")
+      if node.nil?
+        puts " " * indent + "#{name} ∅️"
+      else
+        puts " " * indent + "#{name} #{node.key}".strip
+        print_rec(node.right, indent: indent + 2, name: "R:")
+        print_rec(node.left, indent: indent + 2, name: "L:")
+      end
+    end
+
     private def search_contains_rec_annotate(node, key, result = [])
       return result if node.nil?
 
