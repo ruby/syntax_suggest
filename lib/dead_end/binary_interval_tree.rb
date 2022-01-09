@@ -610,15 +610,20 @@ module DeadEnd
       return @node_klass.new(key, value) unless node
 
       case key <=> node.key
-      when 0 then node.value = value
-      when -1 then node.left = insert(node.left, key, value)
-      when 1 then node.right = insert(node.right, key, value)
+      when 0
+        node.value = value
+      when -1
+        node.left = insert(node.left, key, value)
+      when 1
+        node.right = insert(node.right, key, value)
       end
 
       node.rotate_left if node.right && node.right.red?
       node.rotate_right if node.left && node.left.red? && node.left.left && node.left.left.red?
       node.colorflip if node.left && node.left.red? && node.right && node.right.red?
       node.update_size
+
+      node
     end
     private :insert
 
@@ -701,8 +706,35 @@ module DeadEnd
       @right = node
       node.parent = self if node
     end
-  end
 
+    def rotate_left
+      r = @right
+      r_key, r_value, r_color, r_annotate = r.key, r.value, r.color, r.annotate
+      b = r.left
+      r.left = @left
+      @left = r
+      @right = r.right
+      r.right = b
+      r.color, r.key, r.value, r.annotate = :red, @key, @value, @annotate
+      @key, @value, @annotate = r_key, r_value, r_annotate
+      r.update_size
+      update_size
+    end
+
+    def rotate_right
+      l = @left
+      l_key, l_value, l_color, l_annotate = l.key, l.value, l.color, l.annotate
+      b = l.right
+      l.right = @right
+      @right = l
+      @left = l.left
+      l.left = b
+      l.color, l.key, l.value, l.annotate = :red, @key, @value, @annotate
+      @key, @value, @annotate = l_key, l_value, @annotate
+      l.update_size
+      update_size
+    end
+  end
 
   class BinaryIntervalTree < Containers::RubyRBTreeMap
     def initialize
@@ -721,13 +753,11 @@ module DeadEnd
     private def search_engulf_rec(node, search)
       return if node.nil?
 
-      # We know that high value is not high enough
-      # if the current annotation is < search.high
-      # there will never be a match
-
-      # if node.annotate > search.high
-      #   return nil
-      # end
+      # if node.annotate > search.high, some value is higher than search, but maybe not all
+      # if node.annotate > search.low, then no queries exist that overlap
+      if search.low > node.annotate
+        return nil
+      end
 
       if search.low <= node.key.low
         # Maybe left, maybe right, maybe match
@@ -756,14 +786,14 @@ module DeadEnd
       if node.left
         if node.left.key.annotate > node.annotate
           print_tree
-          raise "expected #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
+          raise "expected #{node.key}: #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
         end
       end
 
       if node.right
         if node.right.key.annotate > node.annotate
           print_tree
-          raise "expected #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
+          raise "expected #{node.key}: #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
         end
       end
 
@@ -791,7 +821,18 @@ module DeadEnd
 
     def insert(node, key, value)
       out = super
+
       annotate_from_kids(out)
+
+      out
+    end
+
+    def force_reannotate(node = @root)
+      return if node.nil?
+
+      force_reannotate(node.left)
+      force_reannotate(node.right)
+      annotate_from_kids(node)
     end
 
     def annotate_from_kids(node)
@@ -799,12 +840,12 @@ module DeadEnd
 
       node.annotate = node.key.annotate
 
-      if node.left && node.left.key.annotate > node.annotate
-        node.annotate = node.left.key.annotate
+      if node.left && node.left.annotate > node.annotate
+        node.annotate = node.left.annotate
       end
 
-      if node.right && node.right.key.annotate > node.annotate
-        node.annotate = node.right.key.annotate
+      if node.right && node.right.annotate > node.annotate
+        node.annotate = node.right.annotate
       end
       node
     end
@@ -813,13 +854,14 @@ module DeadEnd
 
     def print_tree
       print_rec(@root)
+      puts
     end
 
     private def print_rec(node, indent: 2, name: "")
       if node.nil?
         puts " " * indent + "#{name} ∅️"
       else
-        puts " " * indent + "#{name} #{node.key}".strip
+        puts " " * indent + "#{name} #{node.key} annotate: #{node.annotate}".strip
         print_rec(node.right, indent: indent + 2, name: "R:")
         print_rec(node.left, indent: indent + 2, name: "L:")
       end

@@ -150,16 +150,37 @@ module DeadEnd
     def <<(block)
       register_indent_block(block)
       key = RangeCmp.new(block.to_range)
-      @interval_tree.push(key, block)
-      out = @interval_tree.search_contains_key(key)
-      out.map(&:value).each do |eaten_block|
-        if eaten_block != block
-          eaten_block.delete
-          @interval_tree.delete(RangeCmp.new(eaten_block.to_range))
-        end
+      @push << block.to_range
+
+      # if block.to_range == (498..503)
+      #   puts @interval_tree.map {|key| key.to_s }.join(", ")
+
+      #   raise
+      # end
+
+      # Optimization, skip checking overlap if length == 1, because we control generation
+      # out = @interval_tree.search_contains_key(key)
+      # @interval_tree.force_annotate_check
+      deleted = @interval_tree.delete_engulf(key)
+
+      # if out.count != deleted.count
+      #   # @interval_tree.print_tree
+      #   puts "Checking #{key}"
+      #   puts "Expected: #{out.count} got: #{deleted.count}"
+      #   @interval_tree.print_tree
+      #   puts @interval_tree.map{|x|x }.length
+      #   raise @interval_tree.map{|x|x }.length.to_s
+      # end
+
+      deleted.each do |eaten_block|
+        @delete << eaten_block.to_range
+        eaten_block.delete
       end
 
-      if !out.empty?
+
+      @interval_tree.push(key, block)
+
+      if deleted.any?
         while (last = @frontier.peek) && last.deleted?
           @frontier.pop
         end

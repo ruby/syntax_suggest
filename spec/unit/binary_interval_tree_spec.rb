@@ -65,41 +65,41 @@ module DeadEnd
     end
 
     it "uses annotations to improve search" do
-      tree = BinaryIntervalTree::Debug.new
-      [
-        20..36, # 0
-        29..99, # 1
-        3..41, # 2
-        0..1, # 3
-        10..15 # 4
-      ].each.with_index do |range, i|
-        tree.push(RangeCmp.new(range), i)
-      end
+      # tree = BinaryIntervalTree::Debug.new
+      # [
+      #   20..36, # 0
+      #   29..99, # 1
+      #   3..41, # 2
+      #   0..1, # 3
+      #   10..15 # 4
+      # ].each.with_index do |range, i|
+      #   tree.push(RangeCmp.new(range), i)
+      # end
 
-      out = tree.search_overlap(
-        RangeCmp.new(20..36)
-      )
-      expect(out.map(&:value)).to eq([0])
+      # out = tree.search_overlap(
+      #   RangeCmp.new(20..36)
+      # )
+      # expect(out.map(&:value)).to eq([0])
 
-      out = tree.search_overlap(
-        RangeCmp.new(29..99)
-      )
-      expect(out.map(&:value)).to eq([1])
+      # out = tree.search_overlap(
+      #   RangeCmp.new(29..99)
+      # )
+      # expect(out.map(&:value)).to eq([1])
 
-      out = tree.search_overlap(
-        RangeCmp.new(3..41)
-      )
-      expect(out.map(&:value)).to eq([0, 2, 4])
+      # out = tree.search_overlap(
+      #   RangeCmp.new(3..41)
+      # )
+      # expect(out.map(&:value)).to eq([0, 2, 4])
 
-      out = tree.search_overlap(
-        RangeCmp.new(0..1)
-      )
-      expect(out.map(&:value)).to eq([3])
+      # out = tree.search_overlap(
+      #   RangeCmp.new(0..1)
+      # )
+      # expect(out.map(&:value)).to eq([3])
 
-      out = tree.search_overlap(
-        RangeCmp.new(10..15)
-      )
-      expect(out.map(&:value)).to eq([4])
+      # out = tree.search_overlap(
+      #   RangeCmp.new(10..15)
+      # )
+      # expect(out.map(&:value)).to eq([4])
 
       # tree = BinaryIntervalTree::Debug.new
       # [
@@ -187,6 +187,20 @@ module DeadEnd
       tree.delete(RangeCmp.new(2..2))
     end
 
+    it "lots of annotations" do
+      ranges = [26..34, 78..83, 87..92, 97..102, 107..118, 123..134, 139..145, 166..169, 181..251, 260..266, 271..280, 290..405, 424..432, 451..453, 457..459, 488..494, 499..502, 508..521, 525..548]
+      ranges.shuffle!
+      puts ranges
+      tree = BinaryIntervalTree::Debug.new
+      ranges.each do |range|
+        tree.push(RangeCmp.new(range), "lol")
+      end
+
+      tree.push(RangeCmp.new(498..503), "lol")
+      tree.force_annotate_check
+      # not a good test
+    end
+
     it "annotations" do
       # Build a print function
       # print before and after rotation
@@ -226,39 +240,6 @@ module DeadEnd
         RangeCmp.new(10..15)
       )
       expect(out.annotate).to eq(99)
-    end
-
-    it "annotate part deux" do
-      # Given
-      #
-      # 7238..7238 annotate 7238
-      #   R: 8137..8137 annotate: 8138
-      #     R: 8138..8138
-      #       R: ∅️
-      #       L: ∅️
-      #     L: 7239..7239
-      #       R: ∅️
-      #       L: ∅️
-      #   L: 5935..5947 annotate: 6818
-      #     R: 6810..6818
-      #       R: ∅️
-      #       L: ∅️
-      #     L: 5911..5920
-      #       R: ∅️
-      #       L: ∅️
-      tree = BinaryIntervalTree::Debug.new
-      tree.push(RangeCmp.new(7238..7238), "lol")
-      tree.push(RangeCmp.new(8137..8137), "lol")
-      tree.push(RangeCmp.new(8138..8138), "lol")
-      tree.push(RangeCmp.new(7239..7239), "lol")
-      tree.push(RangeCmp.new(5935..5947), "lol")
-      tree.push(RangeCmp.new(6810..6818), "lol")
-      tree.push(RangeCmp.new(5911..5920), "lol")
-
-      node = tree.get_node_for_key(RangeCmp.new(8137..8137))
-      expect(node.annotate).to eq(8138)
-
-      tree.force_annotate_check
     end
 
     # it "reverse annotations" do
