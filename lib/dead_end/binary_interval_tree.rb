@@ -622,8 +622,6 @@ module DeadEnd
       node.rotate_right if node.left && node.left.red? && node.left.left && node.left.left.red?
       node.colorflip if node.left && node.left.red? && node.right && node.right.red?
       node.update_size
-
-      node
     end
     private :insert
 
@@ -701,6 +699,37 @@ module DeadEnd
 
     def annotate
       key.annotate
+    end
+
+    def annotate_from_kids(node)
+      return if node.nil?
+
+      # puts "Annotate from kids #{node&.key} #{node&.annotate}"
+
+      node.key.annotate = node.key.original_annotate
+
+      if node.left && node.left.annotate > node.annotate
+        node.annotate = node.left.annotate
+      end
+
+      if node.right && node.right.annotate > node.annotate
+        node.annotate = node.right.annotate
+      end
+      node
+    end
+
+    def rotate_left
+      super
+      annotate_from_kids(@left)
+      annotate_from_kids(@right)
+      annotate_from_kids(@self)
+    end
+
+    def rotate_right
+      super
+      annotate_from_kids(@left)
+      annotate_from_kids(@right)
+      annotate_from_kids(@self)
     end
   end
 
@@ -832,8 +861,24 @@ module DeadEnd
       annotate_from_kids(node)
     end
 
+    def fix_check_annotations!(node = @root)
+      return if node.nil?
+
+      fix_check_annotations!(node.left)
+      fix_check_annotations!(node.right)
+
+      before = node.annotate
+      annotate_from_kids(node)
+      after = node.annotate
+      if before != after
+        raise "Expected #{before} to eq #{after} but it did not for #{node.key}"
+      end
+    end
+
     def annotate_from_kids(node)
       return if node.nil?
+
+      # puts "Annotate from kids #{node&.key} #{node&.annotate}"
 
       node.key.annotate = node.key.original_annotate
 
