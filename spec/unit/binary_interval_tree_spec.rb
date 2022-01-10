@@ -173,6 +173,29 @@ module DeadEnd
       end
     end
 
+    it "Annotates correctly after a deletion" do
+      ranges = [
+        347..354,
+        427..427,
+        271..280,
+        374..387,
+        428..428,
+        320..327,
+        364..372,
+      ]
+      tree = BinaryIntervalTree::Debug.new
+      ranges.each do |range|
+        tree.push(RangeCmp.new(range), RangeCmp.new(range))
+      end
+
+      key = 347..354
+      tree.print_tree
+      expect(tree.get_node_for_key(RangeCmp.new(key)).annotate).to eq(387)
+      tree.delete(RangeCmp.new(427..427))
+      tree.print_tree
+      expect(tree.get_node_for_key(RangeCmp.new(key)).annotate).to eq(387)
+    end
+
     it "delete_engulf" do
       ranges = [11..11, 23..27, 10..10]
       tree = BinaryIntervalTree::Debug.new
@@ -180,9 +203,30 @@ module DeadEnd
         tree.push(RangeCmp.new(range), RangeCmp.new(range))
       end
 
+      key = RangeCmp.new(10..12)
+      from_all = tree.search_all_covers_slow(key).map(&:value).sort
+      from_optimized = tree.delete_engulf(key).sort
+
+      expect(from_optimized).to eq(from_all)
+
+      # Larger example
+      ranges = [
+        347..354,
+        427..427,
+        271..280,
+        374..387,
+        428..428,
+        320..327,
+        364..372,
+      ]
+      tree = BinaryIntervalTree::Debug.new
+      ranges.each do |range|
+        tree.push(RangeCmp.new(range), RangeCmp.new(range))
+      end
+
       tree.print_tree
 
-      key = RangeCmp.new(10..12)
+      key = RangeCmp.new(425..428)
       from_all = tree.search_all_covers_slow(key).map(&:value).sort
       from_optimized = tree.delete_engulf(key).sort
 
