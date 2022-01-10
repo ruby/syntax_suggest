@@ -244,10 +244,6 @@ module DeadEnd
       end
 
       tree.push(RangeCmp.new(498..503), "lol")
-
-
-
-      tree.force_annotate_check # Doesn't catch all annotation problems, but it does catch some
     end
 
     it "annotations" do

@@ -106,14 +106,7 @@ module DeadEnd
     # Returns a code block with the largest indentation possible
     def pop
       block = @frontier.to_a.pop
-      # puts "Popping #{block.to_range}"
-      begin
-        @interval_tree.delete(RangeCmp.new(block.to_range))
-      rescue => e
-        puts "Deleting #{block.to_range}"
-        @interval_tree.print_tree
-        raise e
-      end
+      @interval_tree.delete(RangeCmp.new(block.to_range))
       block
     end
 
@@ -171,7 +164,6 @@ module DeadEnd
       while (last = @frontier.peek) && last.deleted?
         @frontier.pop
       end
-
 
       @check_next = true if block.invalid?
       @frontier << block

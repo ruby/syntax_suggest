@@ -366,7 +366,6 @@ module DeadEnd
         @root.color = :black if @root
       end
 
-
       result
     end
 
@@ -706,10 +705,8 @@ module DeadEnd
       key.annotate
     end
 
-    def annotate_from_kids(node)
+    def self.annotate_from_kids(node)
       return if node.nil?
-
-      # puts "Annotate from kids #{node&.key} #{node&.annotate}"
 
       node.key.annotate = node.key.original_annotate
 
@@ -725,16 +722,16 @@ module DeadEnd
 
     def rotate_left
       super
-      annotate_from_kids(@left)
-      annotate_from_kids(@right)
-      annotate_from_kids(@self)
+      self.class.annotate_from_kids(@left)
+      # annotate_from_kids(@right)
+      # annotate_from_kids(@self)
     end
 
     def rotate_right
       super
-      annotate_from_kids(@left)
-      annotate_from_kids(@right)
-      annotate_from_kids(@self)
+      self.class.annotate_from_kids(@left)
+      # annotate_from_kids(@right)
+      # annotate_from_kids(@self)
     end
   end
 
@@ -793,61 +790,9 @@ module DeadEnd
       end
     end
 
-    private def search_engulf_rec(node, search)
-      return if node.nil?
-
-      if search.low > node.annotate
-        return nil
-      end
-
-      if search.low <= node.key.low
-        # Maybe left, maybe right, maybe match
-        if search.high >= node.key.high
-          return node
-        else
-
-          # At this point low will only increase, if it is higher than
-          # the search.high, it cannot exist to the right
-          # TODO
-
-          out = search_engulf_rec(node.right, search)
-
-          out ||= search_engulf_rec(node.left, search)
-          return out
-        end
-      else
-        # Current low range value is the biggest possible on the left
-        # if we are not >= it, we will never find a match, go right
-        return search_engulf_rec(node.right, search)
-      end
-    end
-
-    # No elimination logic, checks all nodes
     def search_all_covers_slow(key)
       search_contains_rec(@root, key)
     end
-
-    def force_annotate_check(node = @root)
-      return true if node.nil?
-
-      if node.left
-        if node.left.key.annotate > node.annotate
-          print_tree
-          raise "expected #{node.key}: #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
-        end
-      end
-
-      if node.right
-        if node.right.key.annotate > node.annotate
-          print_tree
-          raise "expected #{node.key}: #{node.right.key.annotate} never to be larger than #{node.annotate} but it was"
-        end
-      end
-
-      force_annotate_check(node.left)
-      force_annotate_check(node.right)
-    end
-
 
     # No elimination logic, checks all nodes
     private def search_contains_rec(node, key, result = [])
@@ -868,14 +813,14 @@ module DeadEnd
 
     def delete_recursive(node, key)
       out = super
-      annotate_from_kids(out.first)
+      AnnotateNode.annotate_from_kids(out.first)
       out
     end
 
-    def insert(node, key, value)
+    private def insert(node, key, value)
       out = super
 
-      annotate_from_kids(out)
+      AnnotateNode.annotate_from_kids(out)
 
       out
     end
@@ -886,9 +831,10 @@ module DeadEnd
 
       force_reannotate(node.left)
       force_reannotate(node.right)
-      annotate_from_kids(node)
+      AnnotateNode.annotate_from_kids(node)
     end
 
+    # Should only be used for debugging
     def fix_check_annotations!(node = @root)
       return if node.nil?
 
@@ -896,31 +842,13 @@ module DeadEnd
       fix_check_annotations!(node.right)
 
       before = node.annotate
-      annotate_from_kids(node)
+      AnnotateNode.annotate_from_kids(node)
+
       after = node.annotate
       if before != after
         raise "Expected #{before} to eq #{after} but it did not for #{node.key}"
       end
     end
-
-    def annotate_from_kids(node)
-      return if node.nil?
-
-      # puts "Annotate from kids #{node&.key} #{node&.annotate}"
-
-      node.key.annotate = node.key.original_annotate
-
-      if node.left && node.left.annotate > node.annotate
-        node.annotate = node.left.annotate
-      end
-
-      if node.right && node.right.annotate > node.annotate
-        node.annotate = node.right.annotate
-      end
-      node
-    end
-
-    private :insert
 
     def print_tree(io: $stdout)
       print_rec(@root, io: io)
