@@ -741,20 +741,46 @@ module DeadEnd
       super(node_klass: AnnotateNode)
     end
 
-    def delete_engulf(key)
+    def delete_engulf(search)
+      found = []
       deleted = []
-      while n = search_engulf_rec(@root, key)
-        deleted << n.value
+      while n = search_overlap(@root, search)
+        if search.low <= n.key.low && n.key.high <= search.high
+          deleted << n.value
+        else
+          found << [n.key, n.value]
+        end
+
         delete(n.key)
       end
+
+      found.each do |(k, v)|
+        # puts "Fixing #{k}"
+        push(k, v)
+      end
+
       deleted
+    end
+
+    private def search_overlap(node, search)
+      return if node.nil?
+
+      # i1.low <= i2.high && i2.low <= i1.high
+
+      if node.key.low <= search.high && search.low <= node.key.high
+        return node
+      end
+
+      if node.left && node.left.annotate > search.low
+        search_overlap(node.left, search)
+      else
+        search_overlap(node.right, search)
+      end
     end
 
     private def search_engulf_rec(node, search)
       return if node.nil?
 
-      # if node.annotate > search.high, some value is higher than search, but maybe not all
-      # if node.annotate > search.low, then no queries exist that overlap
       if search.low > node.annotate
         return nil
       end
@@ -764,7 +790,13 @@ module DeadEnd
         if search.high >= node.key.high
           return node
         else
+
+          # At this point low will only increase, if it is higher than
+          # the search.high, it cannot exist to the right
+          # TODO
+
           out = search_engulf_rec(node.right, search)
+
           out ||= search_engulf_rec(node.left, search)
           return out
         end

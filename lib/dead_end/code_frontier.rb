@@ -105,7 +105,16 @@ module DeadEnd
 
     # Returns a code block with the largest indentation possible
     def pop
-      @frontier.to_a.pop
+      block = @frontier.to_a.pop
+      # puts "Popping #{block.to_range}"
+      begin
+        @interval_tree.delete(RangeCmp.new(block.to_range))
+      rescue => e
+        puts "Deleting #{block.to_range}"
+        @interval_tree.print_tree
+        raise e
+      end
+      block
     end
 
     def next_indent_line
@@ -150,41 +159,28 @@ module DeadEnd
     def <<(block)
       register_indent_block(block)
       key = RangeCmp.new(block.to_range)
-      @push << block.to_range
 
-      # if block.to_range == (498..503)
-      #   puts @interval_tree.map {|key| key.to_s }.join(", ")
-
-      #   raise
-      # end
-
-      # Optimization, skip checking overlap if length == 1, because we control generation
-      # out = @interval_tree.search_contains_key(key)
-      # @interval_tree.force_annotate_check
-      deleted = @interval_tree.delete_engulf(key)
-
-      # if out.count != deleted.count
-      #   # @interval_tree.print_tree
-      #   puts "Checking #{key}"
-      #   puts "Expected: #{out.count} got: #{deleted.count}"
-      #   @interval_tree.print_tree
-      #   puts @interval_tree.map{|x|x }.length
-      #   raise @interval_tree.map{|x|x }.length.to_s
-      # end
-
-      deleted.each do |eaten_block|
-        @delete << eaten_block.to_range
+      covered = @interval_tree.search_contains_key(key)
+      covered.map(&:value).each do |eaten_block|
         eaten_block.delete
+        @interval_tree.delete(RangeCmp.new(eaten_block.to_range))
       end
 
+      # if key.high != key.low
+      #   deleted = @interval_tree.delete_engulf(key)
 
+      #   deleted.each do |eaten_block|
+      #     eaten_block.delete
+      #   end
+      # end
+
+      while (last = @frontier.peek) && last.deleted?
+        @frontier.pop
+      end
+
+      # puts "Push #{key}"
       @interval_tree.push(key, block)
 
-      if deleted.any?
-        while (last = @frontier.peek) && last.deleted?
-          @frontier.pop
-        end
-      end
 
       @check_next = true if block.invalid?
       @frontier << block
