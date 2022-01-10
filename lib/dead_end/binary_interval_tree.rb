@@ -908,26 +908,53 @@ module DeadEnd
         print_rec(node.left, indent: indent + 2, name: "L:", io: io)
       end
     end
-
-
   end
 
+  # Extremely slow, only use to detect problems, use it in Test only
   class BinaryIntervalTree::Debug < BinaryIntervalTree
-    attr_accessor :count
-
     def initialize
       super
-      @count = 0
     end
 
-    private def search_contains_rec_annotate(node, key, result = [])
-      @count += 1
-      super
+    def push(key, val)
+      io = StringIO.new
+      print_tree(io: io)
+
+      out = super
+
+      begin
+        fix_check_annotations!
+      rescue => e
+        warn "Annotations failed while pushing #{key} onto tree: \n#{io.string}"
+        raise e
+      end
+
+      out
     end
 
-    private def search_contains_rec(node, key, result = [])
-      @count += 1
-      super
+    def delete(key)
+      before = StringIO.new
+      print_tree(io: before)
+
+      out = super
+
+      begin
+        after = StringIO.new
+        print_tree(io: after)
+
+        fix_check_annotations!
+      rescue => e
+        warn "Annotations failed while deleting #{key} from tree"
+        warn
+        warn "Before:"
+        warn before.string
+        warn
+        warn "After:"
+        warn after.string
+        raise e
+      end
+
+      out
     end
   end
 end
