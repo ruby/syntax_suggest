@@ -262,6 +262,8 @@ module DeadEnd
     # map.push("MA", "Massachusetts") #=> "Massachusetts"
     # map.get("MA") #=> "Massachusetts"
     def push(key, value)
+      # puts "Pushing #{key}"
+      # print_tree
       @root = insert(@root, key, value)
       @height_black += 1 if isred(@root)
       @root.color = :black
@@ -363,6 +365,8 @@ module DeadEnd
         @root, result = delete_recursive(@root, key)
         @root.color = :black if @root
       end
+
+
       result
     end
 
@@ -513,6 +517,7 @@ module DeadEnd
         rotate_left if @right && @right.red?
         rotate_right if (@left && @left.red?) && (@left.left && @left.left.red?)
         colorflip if (@left && @left.red?) && (@right && @right.red?)
+
 
         update_size
       end
@@ -758,6 +763,22 @@ module DeadEnd
       deleted
     end
 
+    def validate_engulf_logic!(key)
+      io = StringIO.new
+      print_tree(io: io)
+      from_all = search_all_covers_slow(key).map(&:value).sort
+      from_optimized = delete_engulf(key).sort
+
+      if from_all != from_optimized
+        message = "Expected #{from_all.map(&:to_s).inspect} got #{from_optimized.map(&:to_s).inspect}"
+
+        warn "Engulf search for #{key}"
+        warn message
+        warn io.string
+        raise message
+      end
+    end
+
     private def search_overlap(node, search)
       return if node.nil?
 
@@ -845,6 +866,12 @@ module DeadEnd
       result
     end
 
+    def delete_recursive(node, key)
+      out = super
+      annotate_from_kids(out.first)
+      out
+    end
+
     def insert(node, key, value)
       out = super
 
@@ -853,6 +880,7 @@ module DeadEnd
       out
     end
 
+    # Should only be using for debugging
     def force_reannotate(node = @root)
       return if node.nil?
 
@@ -917,15 +945,24 @@ module DeadEnd
     end
 
     def push(key, val)
-      io = StringIO.new
-      print_tree(io: io)
+      before = StringIO.new
+      print_tree(io: before)
 
       out = super
 
       begin
+        after = StringIO.new
+        print_tree(io: after)
+
         fix_check_annotations!
       rescue => e
-        warn "Annotations failed while pushing #{key} onto tree: \n#{io.string}"
+        warn "Annotations failed while pushing #{key} onto tree"
+        warn
+        warn "Before:"
+        warn before.string
+        warn
+        warn "After:"
+        warn after.string
         raise e
       end
 

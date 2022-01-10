@@ -160,38 +160,17 @@ module DeadEnd
       register_indent_block(block)
       key = RangeCmp.new(block.to_range)
 
-      io = StringIO.new
-      @interval_tree.print_tree(io: io)
-
-      covered = @interval_tree.search_all_covers_slow(key).map(&:value)
       deleted = @interval_tree.delete_engulf(key)
-      if covered.sort != deleted.sort
-        puts "Overlapping #{block.to_range}"
-        puts "Expected #{covered.sort.map(&:to_range).inspect}"
-        puts "Got      #{deleted.sort.map(&:to_range).inspect}"
-        puts io.string
-        raise "foo"
+      if key.high != key.low
+        deleted.each do |eaten_block|
+          eaten_block.delete
+        end
       end
-
-      covered.each do |eaten_block|
-        eaten_block.delete
-        # @interval_tree.delete(RangeCmp.new(eaten_block.to_range))
-      end
-
-      # if key.high != key.low
-      #   deleted = @interval_tree.delete_engulf(key)
-
-      #   deleted.each do |eaten_block|
-      #     eaten_block.delete
-      #   end
-      # end
+      @interval_tree.push(key, block)
 
       while (last = @frontier.peek) && last.deleted?
         @frontier.pop
       end
-
-      # puts "Push #{key}"
-      @interval_tree.push(key, block)
 
 
       @check_next = true if block.invalid?

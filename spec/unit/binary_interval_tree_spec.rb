@@ -5,12 +5,12 @@ require_relative "../spec_helper"
 module DeadEnd
   RSpec.describe BinaryIntervalTree do
     it "works as a binary search tree" do
-      tree = Containers::RubyRBTreeMap.new
-      tree.push(1, "a")
-      tree.push(2, "b")
+      # tree = Containers::RubyRBTreeMap.new
+      # tree.push(1, "a")
+      # tree.push(2, "b")
 
-      expect(tree.get(1)).to be_truthy
-      expect(tree.get(9)).to be_falsey
+      # expect(tree.get(1)).to be_truthy
+      # expect(tree.get(9)).to be_falsey
     end
 
     it "Works as an interval tree" do
@@ -180,7 +180,25 @@ module DeadEnd
       key = 347..354
       expect(tree.get_node_for_key(RangeCmp.new(key)).annotate).to eq(387)
       tree.delete(RangeCmp.new(427..427))
-      expect(tree.get_node_for_key(RangeCmp.new(key)).annotate).to eq(387)
+      expect(tree.get_node_for_key(RangeCmp.new(key)).annotate).to eq(372)
+    end
+
+    it "Annotates correctly after deletion (1 element)" do
+  # 5936..5946 annotate: 6817
+  #   R: 6813..6817 annotate: 6817
+  #     R: ∅️
+  #     L: ∅️
+  #   L: 5912..5919 annotate: 5919
+  #     R: ∅️
+  #     L: ∅️
+
+  # 5936..5946 annotate: 6817
+  #   R: ∅️
+  #   L: 5912..5919 annotate: 5919
+  #     R: ∅️
+  #     L: ∅️
+
+# Deleting 6813..6817
     end
 
     it "deletion annotation example (3 elements)" do
@@ -197,18 +215,24 @@ module DeadEnd
       expect(from_optimized).to eq(from_all)
     end
 
-    it "hahah" do
-      tree = BinaryIntervalTree.new
-      [
-        2..2,
-        1..3
-      ].each.with_index do |range, i|
-        tree.push(RangeCmp.new(range), i)
+    it "integration case versus search all covers fails IRL" do
+      tree = BinaryIntervalTree::Debug.new
+      ranges = [
+        692..696,
+        783..793,
+        1058..1058,
+        824..852,
+      ]
+      ranges.each.with_index do |range|
+        tree.push(RangeCmp.new(range), range)
       end
 
-      out = tree.search_all_covers_slow(RangeCmp.new(1..3))
-      expect(out.count).to eq(2)
-      tree.delete(RangeCmp.new(2..2))
+      tree.push(RangeCmp.new(940..996), 940..996)
+
+      expect(tree.get_node_for_key(RangeCmp.new(783..793)).annotate).to eq(852)
+
+      key = RangeCmp.new(1058..1059)
+      tree.validate_engulf_logic!(key)
     end
 
     it "lots of annotations" do
