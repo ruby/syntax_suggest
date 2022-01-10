@@ -162,18 +162,7 @@ module DeadEnd
       expect(out.map(&:value)).to eq([])
     end
 
-    it "lol" do
-      tree = BinaryIntervalTree.new
-      [
-        3..3,
-        2..2,
-        2..3
-      ].each.with_index do |range, i|
-        tree.push(RangeCmp.new(range), i)
-      end
-    end
-
-    it "Annotates correctly after a deletion" do
+    it "Annotates correctly after a deletion (7 elements)" do
       ranges = [
         347..354,
         427..427,
@@ -189,14 +178,12 @@ module DeadEnd
       end
 
       key = 347..354
-      tree.print_tree
       expect(tree.get_node_for_key(RangeCmp.new(key)).annotate).to eq(387)
       tree.delete(RangeCmp.new(427..427))
-      tree.print_tree
       expect(tree.get_node_for_key(RangeCmp.new(key)).annotate).to eq(387)
     end
 
-    it "delete_engulf" do
+    it "deletion annotation example (3 elements)" do
       ranges = [11..11, 23..27, 10..10]
       tree = BinaryIntervalTree::Debug.new
       ranges.each do |range|
@@ -204,29 +191,6 @@ module DeadEnd
       end
 
       key = RangeCmp.new(10..12)
-      from_all = tree.search_all_covers_slow(key).map(&:value).sort
-      from_optimized = tree.delete_engulf(key).sort
-
-      expect(from_optimized).to eq(from_all)
-
-      # Larger example
-      ranges = [
-        347..354,
-        427..427,
-        271..280,
-        374..387,
-        428..428,
-        320..327,
-        364..372,
-      ]
-      tree = BinaryIntervalTree::Debug.new
-      ranges.each do |range|
-        tree.push(RangeCmp.new(range), RangeCmp.new(range))
-      end
-
-      tree.print_tree
-
-      key = RangeCmp.new(425..428)
       from_all = tree.search_all_covers_slow(key).map(&:value).sort
       from_optimized = tree.delete_engulf(key).sort
 
@@ -250,15 +214,16 @@ module DeadEnd
     it "lots of annotations" do
       ranges = [26..34, 78..83, 87..92, 97..102, 107..118, 123..134, 139..145, 166..169, 181..251, 260..266, 271..280, 290..405, 424..432, 451..453, 457..459, 488..494, 499..502, 508..521, 525..548]
       ranges.shuffle!
-      puts ranges
       tree = BinaryIntervalTree::Debug.new
       ranges.each do |range|
         tree.push(RangeCmp.new(range), "lol")
       end
 
       tree.push(RangeCmp.new(498..503), "lol")
-      tree.force_annotate_check
-      # not a good test
+
+
+
+      tree.force_annotate_check # Doesn't catch all annotation problems, but it does catch some
     end
 
     it "annotations" do

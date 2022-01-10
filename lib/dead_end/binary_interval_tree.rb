@@ -637,18 +637,17 @@ module DeadEnd
 
 
   class RangeCmp
-    attr_reader :first, :last
+    attr_reader :first, :last, :original_annotate
+    attr_accessor :annotate
 
     def initialize(range)
       @first = range.first
       @last = range.last
+      @annotate = @last
+      @original_annotate = @last
     end
     alias :high :last
     alias :low :first
-
-    def annotate
-      @last
-    end
 
     def <=>(other)
       case @first <=> other.first
@@ -696,32 +695,12 @@ module DeadEnd
       @annotate = key.annotate
     end
 
-    def rotate_left
-      r = @right
-      r_key, r_value, r_color, r_annotate = r.key, r.value, r.color, r.annotate
-      b = r.left
-      r.left = @left
-      @left = r
-      @right = r.right
-      r.right = b
-      r.color, r.key, r.value, r.annotate = :red, @key, @value, @annotate
-      @key, @value, @annotate = r_key, r_value, r_annotate
-      r.update_size
-      update_size
+    def annotate=(value)
+      key.annotate = value
     end
 
-    def rotate_right
-      l = @left
-      l_key, l_value, l_color, l_annotate = l.key, l.value, l.color, l.annotate
-      b = l.right
-      l.right = @right
-      @right = l
-      @left = l.left
-      l.left = b
-      l.color, l.key, l.value, l.annotate = :red, @key, @value, @annotate
-      @key, @value, @annotate = l_key, l_value, @annotate
-      l.update_size
-      update_size
+    def annotate
+      key.annotate
     end
   end
 
@@ -744,7 +723,6 @@ module DeadEnd
       end
 
       found.each do |(k, v)|
-        # puts "Fixing #{k}"
         push(k, v)
       end
 
@@ -857,7 +835,7 @@ module DeadEnd
     def annotate_from_kids(node)
       return if node.nil?
 
-      node.annotate = node.key.annotate
+      node.key.annotate = node.key.original_annotate
 
       if node.left && node.left.annotate > node.annotate
         node.annotate = node.left.annotate
