@@ -882,18 +882,18 @@ module DeadEnd
 
     private :insert
 
-    def print_tree
-      print_rec(@root)
-      puts
+    def print_tree(io: $stdout)
+      print_rec(@root, io: io)
+      io.puts
     end
 
-    private def print_rec(node, indent: 2, name: "")
+    private def print_rec(node, indent: 2, name: "", io: )
       if node.nil?
-        puts " " * indent + "#{name} ∅️"
+        io.puts " " * indent + "#{name} ∅️"
       else
-        puts " " * indent + "#{name} #{node.key} annotate: #{node.annotate}".strip
-        print_rec(node.right, indent: indent + 2, name: "R:")
-        print_rec(node.left, indent: indent + 2, name: "L:")
+        io.puts " " * indent + "#{name} #{node.key} annotate: #{node.annotate}".strip
+        print_rec(node.right, indent: indent + 2, name: "R:", io: io)
+        print_rec(node.left, indent: indent + 2, name: "L:", io: io)
       end
     end
 
