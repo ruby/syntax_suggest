@@ -19,7 +19,7 @@ module DeadEnd
       tree.push(RangeCmp.new(1..2), "a")
       tree.push(RangeCmp.new(2..2), "b")
 
-      out = tree.search_contains_key(RangeCmp.new(0..3))
+      out = tree.search_all_covers_slow(RangeCmp.new(0..3))
       expect(out.count).to eq(2)
       expect(out.map(&:value).sort).to eq(["a", "b"].sort)
     end
@@ -31,13 +31,13 @@ module DeadEnd
       tree.push(RangeCmp.new(5..5), "not_match")
       tree.push(RangeCmp.new(11..11), "b")
 
-      out = tree.search_contains_key(
+      out = tree.search_all_covers_slow(
         RangeCmp.new(0..3)
       )
       expect(out.count).to eq(1)
       expect(out.map(&:value)).to eq(["a"])
 
-      out = tree.search_contains_key(
+      out = tree.search_all_covers_slow(
         RangeCmp.new(10..12)
       )
       expect(out.count).to eq(1)
@@ -51,13 +51,13 @@ module DeadEnd
       tree.push(RangeCmpRev.new(5..5), "not_match")
       tree.push(RangeCmpRev.new(11..11), "b")
 
-      out = tree.search_contains_key(
+      out = tree.search_all_covers_slow(
         RangeCmpRev.new(0..3)
       )
       expect(out.count).to eq(1)
       expect(out.map(&:value)).to eq(["a"])
 
-      out = tree.search_contains_key(
+      out = tree.search_all_covers_slow(
         RangeCmpRev.new(10..12)
       )
       expect(out.count).to eq(1)
@@ -114,27 +114,27 @@ module DeadEnd
 
       # skip("Work on reverse later")
 
-      # out = tree.search_contains_key(
+      # out = tree.search_all_covers_slow(
       #   RangeCmpRev.new(20..36)
       # )
       # expect(out.map(&:value)).to eq([0])
 
-      # out = tree.search_contains_key(
+      # out = tree.search_all_covers_slow(
       #   RangeCmpRev.new(29..99)
       # )
       # expect(out.map(&:value)).to eq([1])
 
-      # out = tree.search_contains_key(
+      # out = tree.search_all_covers_slow(
       #   RangeCmpRev.new(3..41)
       # )
       # expect(out.map(&:value)).to eq([0, 2, 4])
 
-      # out = tree.search_contains_key(
+      # out = tree.search_all_covers_slow(
       #   RangeCmpRev.new(0..1)
       # )
       # expect(out.map(&:value)).to eq([3])
 
-      # out = tree.search_contains_key(
+      # out = tree.search_all_covers_slow(
       #   RangeCmpRev.new(10..15)
       # )
       # expect(out.map(&:value)).to eq([4])
@@ -151,13 +151,13 @@ module DeadEnd
       tree.push(RangeCmp.new(11..11), "b")
 
       key = RangeCmp.new(0..3)
-      out = tree.search_contains_key(key)
+      out = tree.search_all_covers_slow(key)
       expect(out.count).to eq(1)
       expect(out.map(&:value)).to eq(["a"])
 
       out.each { |node| tree.delete(node.key) }
 
-      out = tree.search_contains_key(key)
+      out = tree.search_all_covers_slow(key)
       expect(out.count).to eq(0)
       expect(out.map(&:value)).to eq([])
     end
@@ -173,6 +173,22 @@ module DeadEnd
       end
     end
 
+    it "delete_engulf" do
+      ranges = [11..11, 23..27, 10..10]
+      tree = BinaryIntervalTree::Debug.new
+      ranges.each do |range|
+        tree.push(RangeCmp.new(range), RangeCmp.new(range))
+      end
+
+      tree.print_tree
+
+      key = RangeCmp.new(10..12)
+      from_all = tree.search_all_covers_slow(key).map(&:value).sort
+      from_optimized = tree.delete_engulf(key).sort
+
+      expect(from_optimized).to eq(from_all)
+    end
+
     it "hahah" do
       tree = BinaryIntervalTree.new
       [
@@ -182,7 +198,7 @@ module DeadEnd
         tree.push(RangeCmp.new(range), i)
       end
 
-      out = tree.search_contains_key(RangeCmp.new(1..3))
+      out = tree.search_all_covers_slow(RangeCmp.new(1..3))
       expect(out.count).to eq(2)
       tree.delete(RangeCmp.new(2..2))
     end

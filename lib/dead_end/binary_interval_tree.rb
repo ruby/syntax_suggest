@@ -765,13 +765,11 @@ module DeadEnd
     private def search_overlap(node, search)
       return if node.nil?
 
-      # i1.low <= i2.high && i2.low <= i1.high
-
       if node.key.low <= search.high && search.low <= node.key.high
         return node
       end
 
-      if node.left && node.left.annotate > search.low
+      if node.left && node.left.annotate >= search.low
         search_overlap(node.left, search)
       else
         search_overlap(node.right, search)
@@ -808,7 +806,7 @@ module DeadEnd
     end
 
     # No elimination logic, checks all nodes
-    def search_contains_key(key)
+    def search_all_covers_slow(key)
       search_contains_rec(@root, key)
     end
 
