@@ -146,7 +146,12 @@ module DeadEnd
     # block from the frontier. This prevents double expansions and all-around
     # weird behavior. However this guarantee is quite expensive to maintain
     def register_engulf_block(block)
-      if block.starts_at != block.ends_at # A block of size 1 cannot engulf another since
+      # If we're about to pop off the same block, we can skip deleting
+      # things from the frontier this iteration since we'll get it
+      # on the next iteration
+      return if @frontier.peek && (block <=> @frontier.peek) == 1
+
+      if block.starts_at != block.ends_at # A block of size 1 cannot engulf another
         @frontier.to_a.each { |b|
           if b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
             b.delete
@@ -171,7 +176,6 @@ module DeadEnd
 
       @check_next = true if block.invalid?
       @frontier << block
-      # @frontier.sort!
 
       self
     end
