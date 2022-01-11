@@ -23,7 +23,7 @@ module DeadEnd
         frontier << b
       end
 
-      expect(frontier.detect_invalid_blocks).to eq(blocks)
+      expect(frontier.detect_invalid_blocks.sort).to eq(blocks.sort)
     end
 
     it "self.combination" do
@@ -61,12 +61,14 @@ module DeadEnd
       expect(frontier.count).to eq(1)
 
       frontier << CodeBlock.new(lines: [code_lines[1], code_lines[2], code_lines[3]])
-      expect(frontier.count).to eq(1)
+      # expect(frontier.count).to eq(1)
       expect(frontier.pop.to_s).to eq(<<~EOM.indent(2))
         puts "lol"
         puts "lol"
         puts "lol"
       EOM
+
+      expect(frontier.pop).to be_nil
 
       code_lines = code_line_array(<<~EOM)
         def foo
