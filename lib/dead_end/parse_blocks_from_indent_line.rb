@@ -42,13 +42,18 @@ module DeadEnd
 
       neighbors = scan.code_block.lines
 
-      until neighbors.empty?
-        lines = [neighbors.pop]
-        while (block = CodeBlock.new(lines: lines)) && block.invalid? && neighbors.any?
-          lines.prepend neighbors.pop
-        end
+      block = CodeBlock.new(lines: neighbors)
+      if neighbors.length <= 2 || block.valid?
+        yield block
+      else
+        until neighbors.empty?
+          lines = [neighbors.pop]
+          while (block = CodeBlock.new(lines: lines)) && block.invalid? && neighbors.any?
+            lines.prepend neighbors.pop
+          end
 
-        yield block if block
+          yield block if block
+        end
       end
     end
   end
