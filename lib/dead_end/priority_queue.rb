@@ -9,12 +9,12 @@ module DeadEnd
   #
   # Example:
   #
-  #   sorted = InsertionSort.new
-  #   sorted << 33
-  #   sorted << 44
-  #   sorted << 1
-  #   puts sorted.to_a
-  #   # => [1, 44, 33]
+  #   queue = PriorityQueue.new
+  #   queue << 33
+  #   queue << 44
+  #   queue << 1
+  #
+  #   puts queue.peek # => 44
   #
   class PriorityQueue
     attr_reader :elements
