@@ -89,25 +89,15 @@ module DeadEnd
       frontier << block
     end
 
-    # Removes the block without putting it back in the frontier
-    def sweep(block:, name:)
-      record(block: block, name: name)
-
-      block.lines.each(&:mark_invisible)
-      frontier.register_indent_block(block)
-    end
-
     # Parses the most indented lines into blocks that are marked
     # and added to the frontier
     def visit_new_blocks
       max_indent = frontier.next_indent_line&.indent
 
       while (line = frontier.next_indent_line) && (line.indent == max_indent)
-
         @parse_blocks_from_indent_line.each_neighbor_block(frontier.next_indent_line) do |block|
           record(block: block, name: "add")
 
-          block.mark_invisible if block.valid?
           push(block, name: "add")
         end
       end
