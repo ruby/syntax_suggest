@@ -22,6 +22,8 @@ module DeadEnd
   #   left_right.missing.first
   #   # => "}"
   class LeftRightLexCount
+    attr_reader :kw_count, :end_count
+
     def initialize
       @kw_count = 0
       @end_count = 0
@@ -37,12 +39,30 @@ module DeadEnd
       }
     end
 
+    def concat(other)
+      @count_for_char.each do |(k, _)|
+        @count_for_char[k] += other[k]
+      end
+
+      @kw_count += other.kw_count
+      @end_count += other.end_count
+      self
+    end
+
     def count_kw
       @kw_count += 1
     end
 
     def count_end
       @end_count += 1
+    end
+
+    def count_lines(lines)
+      lines.each do |line|
+        line.lex.each do |lex|
+          count_lex(lex)
+        end
+      end
     end
 
     # Count source code characters
@@ -120,6 +140,18 @@ module DeadEnd
       "[" => "]",
       "(" => ")"
     }.freeze
+
+    def curly_diff
+      @count_for_char["{"] - @count_for_char["}"]
+    end
+
+    def square_diff
+      @count_for_char["["] - @count_for_char["]"]
+    end
+
+    def parens_diff
+      @count_for_char["("] - @count_for_char[")"]
+    end
 
     # Opening characters like `{` need closing characters # like `}`.
     #

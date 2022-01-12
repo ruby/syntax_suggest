@@ -15,7 +15,7 @@ module DeadEnd
   #
   #  - CodeFrontier (Holds information for generating blocks and determining if we can stop searching)
   #  - ParseBlocksFromLine (Creates blocks into the frontier)
-  #  - BlockExpand (Expands existing blocks to search more code)
+  #  - IndentBlockExpand (Expands existing blocks to search more code)
   #
   # ## Syntax error detection
   #
@@ -61,7 +61,7 @@ module DeadEnd
       @code_lines = CleanDocument.new(source: source).call.lines
 
       @frontier = CodeFrontier.new(code_lines: @code_lines)
-      @block_expand = BlockExpand.new(code_lines: @code_lines)
+      @indent_block_expand = IndentBlockExpand.new(code_lines: @code_lines)
       @parse_blocks_from_indent_line = ParseBlocksFromIndentLine.new(code_lines: @code_lines)
     end
 
@@ -88,6 +88,7 @@ module DeadEnd
       end
     end
 
+    # Add a block back onto the frontier
     def push(block, name:)
       record(block: block, name: name)
 
@@ -100,6 +101,10 @@ module DeadEnd
     def create_blocks_from_untracked_lines
       max_indent = frontier.next_indent_line&.indent
 
+      # Expand an unvisited line into a block and put it on the frontier
+      # This registers all lines and removes "univisted" lines from the
+      # frontier. The process continues until all unvisited lines at a given
+      # indentation are added
       while (line = frontier.next_indent_line) && (line.indent == max_indent)
         @parse_blocks_from_indent_line.each_neighbor_block(frontier.next_indent_line) do |block|
           push(block, name: "add")
@@ -115,7 +120,37 @@ module DeadEnd
 
       record(block: block, name: "before-expand")
 
-      block = @block_expand.call(block)
+      if block.invalid?
+        # When a block is invalid the BalanceHeuristicExpand class tends to make it valid
+        # again. This property reduces the number of Ripper calls to
+        # `frontier.holds_all_syntax_errors?`.
+        #
+        # This class tends to produce larger expansions meaning fewer
+        # total expansion steps.
+        blocks = []
+        expand = BalanceHeuristicExpand.new(code_lines: code_lines, block: block)
+
+        # Expand magic number 3 times
+        #
+        # There's likely a hidden property that explains why. I
+        # guessed it accidentally and it works really well. Reducing or increasing
+        # call count produces awful results. I'm not entirely sure why.
+        blocks << expand.call.to_block
+        blocks << expand.to_block if expand.call.balanced?
+        blocks << expand.to_block if expand.call.balanced?
+
+        # Take the largest generated, valid block
+        block = blocks.reverse_each.detect(&:valid?) || blocks.first
+      else
+        # The original block expansion process works well when it starts
+        # with good i.e. "valid" input. Unlike BalanceHeuristicExpand, it does not self-correct
+        # towards a valid state. This naive property is desireable since
+        # we want to generate invalid code blocks (that make logical sense)
+        # or the algorithm will tend towards matching incorrect pairs
+        # at the expense of an incorrect result.
+        block = @indent_block_expand.call(block)
+      end
+
       push(block, name: "expand")
     end
 
