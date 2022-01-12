@@ -38,7 +38,7 @@ module DeadEnd
       end
     end
 
-    attr_reader :line, :index, :lex, :line_number, :indent
+    attr_reader :line, :index, :lex, :line_number, :indent, :lex_diff
     def initialize(line:, index:, lex:)
       @lex = lex
       @line = line
@@ -57,6 +57,16 @@ module DeadEnd
       end
 
       set_kw_end
+
+      @lex_diff = LexPairDiff.from_lex(
+        lex: @lex,
+        is_kw: is_kw?,
+        is_end: is_end?
+      )
+    end
+
+    def balanced?
+      @lex_diff.balanced?
     end
 
     # Used for stable sort via indentation level

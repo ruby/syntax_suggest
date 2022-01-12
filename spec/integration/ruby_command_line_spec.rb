@@ -4,7 +4,7 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "Requires with ruby cli" do
-    it "namespaces all monkeypatched methods" do
+    it "namespaces all monkeypatched methods", slow: true do
       Dir.mktmpdir do |dir|
         tmpdir = Pathname(dir)
         script = tmpdir.join("script.rb")
@@ -43,7 +43,7 @@ module DeadEnd
       end
     end
 
-    it "detects require error and adds a message with auto mode" do
+    it "detects require error and adds a message with auto mode", slow: true do
       Dir.mktmpdir do |dir|
         tmpdir = Pathname(dir)
         script = tmpdir.join("script.rb")

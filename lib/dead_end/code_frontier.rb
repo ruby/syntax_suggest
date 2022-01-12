@@ -50,6 +50,8 @@ module DeadEnd
   #   CodeFrontier#detect_invalid_blocks
   #
   class CodeFrontier
+    attr_reader :queue
+
     def initialize(code_lines:, unvisited: UnvisitedLines.new(code_lines: code_lines))
       @code_lines = code_lines
       @unvisited = unvisited

@@ -4,9 +4,7 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
-    it "does not timeout on massive files" do
-      next unless ENV["DEAD_END_TIMEOUT"]
-
+    it "does not timeout on massive files", slow: true do
       file = fixtures_dir.join("syntax_tree.rb.txt")
       lines = file.read.lines
       lines.delete_at(768 - 1)
@@ -140,6 +138,8 @@ module DeadEnd
 
       expect(out).to include(<<~EOM)
            16  class Rexe
+           18    VERSION = '1.5.1'
+           20    PROJECT_URL = 'https://github.com/keithrbennett/rexe'
         ❯  77    class Lookups
         ❯  78      def input_modes
         ❯ 148    end
