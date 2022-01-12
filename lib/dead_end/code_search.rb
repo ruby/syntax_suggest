@@ -41,9 +41,11 @@ module DeadEnd
 
     attr_reader :invalid_blocks, :record_dir, :code_lines
 
-    def initialize(source, record_dir: DEFAULT_VALUE )
+    def initialize(source, record_dir: DEFAULT_VALUE)
       record_dir = if record_dir == DEFAULT_VALUE
         ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil
+      else
+        record_dir
       end
 
       if record_dir
