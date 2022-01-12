@@ -95,7 +95,7 @@ module DeadEnd
 
     # Parses the most indented lines into blocks that are marked
     # and added to the frontier
-    def visit_new_blocks
+    def create_blocks_from_untracked_lines
       max_indent = frontier.next_indent_line&.indent
 
       while (line = frontier.next_indent_line) && (line.indent == max_indent)
@@ -109,7 +109,7 @@ module DeadEnd
 
     # Given an already existing block in the frontier, expand it to see
     # if it contains our invalid syntax
-    def expand_invalid_block
+    def expand_existing
       block = frontier.pop
       return unless block
 
@@ -126,9 +126,9 @@ module DeadEnd
         @tick += 1
 
         if frontier.expand?
-          expand_invalid_block
+          expand_existing
         else
-          visit_new_blocks
+          create_blocks_from_untracked_lines
         end
       end
 
