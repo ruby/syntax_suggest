@@ -59,7 +59,7 @@ module DeadEnd
   # DeadEnd.call [Private]
   #
   # Main private interface
-  def self.call(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: nil, timeout: TIMEOUT_DEFAULT, io: $stderr)
+  def self.call(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: DEFAULT_VALUE, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     filename = nil if filename == DEFAULT_VALUE
     Timeout.timeout(timeout) do
