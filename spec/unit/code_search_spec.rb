@@ -100,8 +100,8 @@ module DeadEnd
         EOM
         search.call
 
-        expect(search.record_dir.entries.map(&:to_s)).to include("1-add-1.txt")
-        expect(search.record_dir.join("1-add-1.txt").read).to eq(<<~EOM)
+        expect(search.record_dir.entries.map(&:to_s)).to include("1-add-1-(3__4).txt")
+        expect(search.record_dir.join("1-add-1-(3__4).txt").read).to include(<<~EOM)
             1  class OH
             2    def hello
           ❯ 3    def hai

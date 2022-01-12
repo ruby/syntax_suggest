@@ -69,7 +69,7 @@ module DeadEnd
     def record(block:, name: "record")
       return unless @record_dir
       @name_tick[name] += 1
-      filename = "#{@write_count += 1}-#{name}-#{@name_tick[name]}.txt"
+      filename = "#{@write_count += 1}-#{name}-#{@name_tick[name]}-(#{block.starts_at}__#{block.ends_at}).txt"
       if ENV["DEBUG"]
         puts "\n\n==== #{filename} ===="
         puts "\n```#{block.starts_at}..#{block.ends_at}"
@@ -84,7 +84,7 @@ module DeadEnd
           highlight_lines: block.lines
         ).call
 
-        f.write(document)
+        f.write("    Block lines: #{block.starts_at..block.ends_at} (#{name}) \n\n#{document}")
       end
     end
 
@@ -102,8 +102,6 @@ module DeadEnd
 
       while (line = frontier.next_indent_line) && (line.indent == max_indent)
         @parse_blocks_from_indent_line.each_neighbor_block(frontier.next_indent_line) do |block|
-          record(block: block, name: "add")
-
           push(block, name: "add")
         end
       end
@@ -115,9 +113,8 @@ module DeadEnd
       block = frontier.pop
       return unless block
 
-      record(block: block, name: "pop")
+      record(block: block, name: "before-expand")
 
-      # block = block.expand_until_next_boundry
       block = @block_expand.call(block)
       push(block, name: "expand")
     end
