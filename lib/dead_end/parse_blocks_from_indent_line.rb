@@ -26,6 +26,10 @@ module DeadEnd
   #
   # At this point it has no where else to expand, and it will yield this inner
   # code as a block
+  #
+  # The other major concern is eliminating all lines that do not contain
+  # an end. In the above example, if we started from the top and moved
+  # down we might accidentally eliminate everything but `end`
   class ParseBlocksFromIndentLine
     attr_reader :code_lines
 
@@ -42,6 +46,19 @@ module DeadEnd
 
       neighbors = scan.code_block.lines
 
+      # Block production here greatly affects quality and performance.
+      #
+      # Larger blocks produce a faster search as the frontier must go
+      # through fewer iterations. However too large of a block, will
+      # degrade output quality if too many unrelated lines are caught
+      # in an invalid block.
+      #
+      # Another concern is being too clever with block production.
+      # Quality of the end result depends on sometimes including unrelated
+      # lines. For example in code like `deffoo; end` we want to match
+      # both lines as the programmer's mistake was missing a space in the
+      # `def` even though technically we could make it valid by simply
+      # removing the "extra" `end`.
       block = CodeBlock.new(lines: neighbors)
       if neighbors.length <= 2 || block.valid?
         yield block

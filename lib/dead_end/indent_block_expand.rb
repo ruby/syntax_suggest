@@ -10,7 +10,7 @@ module DeadEnd
   #     puts "wow"
   #   end
   #
-  # block = BlockExpand.new(code_lines: code_lines)
+  # block = IndentBlockExpand.new(code_lines: code_lines)
   #   .call(CodeBlock.new(lines: code_lines[1]))
   #
   # puts block.to_s
@@ -21,7 +21,7 @@ module DeadEnd
   # Once a code block has captured everything at a given indentation level
   # then it will expand to capture surrounding indentation.
   #
-  # block = BlockExpand.new(code_lines: code_lines)
+  # block = IndentBlockExpand.new(code_lines: code_lines)
   #   .call(block)
   #
   # block.to_s
@@ -30,7 +30,7 @@ module DeadEnd
   #        puts "wow"
   #      end
   #
-  class BlockExpand
+  class IndentBlockExpand
     def initialize(code_lines:)
       @code_lines = code_lines
     end

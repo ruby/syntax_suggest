@@ -16,7 +16,7 @@ module DeadEnd
 
   # DeadEnd.handle_error [Public]
   #
-  # Takes a `SyntaxError`` exception, uses the
+  # Takes a `SyntaxError` exception, uses the
   # error message to locate the file. Then the file
   # will be analyzed to find the location of the syntax
   # error and emit that location to stderr.
@@ -187,12 +187,14 @@ require_relative "clean_document"
 require_relative "lex_all"
 require_relative "code_line"
 require_relative "code_block"
-require_relative "block_expand"
+require_relative "lex_pair_diff"
 require_relative "ripper_errors"
 require_relative "priority_queue"
 require_relative "unvisited_lines"
 require_relative "around_block_scan"
+require_relative "indent_block_expand"
 require_relative "priority_engulf_queue"
 require_relative "pathname_from_message"
 require_relative "display_invalid_blocks"
+require_relative "balance_heuristic_expand"
 require_relative "parse_blocks_from_indent_line"

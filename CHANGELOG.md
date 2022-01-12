@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 4.0.0
+
+- Introduce experimental algorithm for block expansion, 1.7x faster overall search (https://github.com/zombocom/dead_end/pull/129)
+
 ## 3.1.1
 
 - Fix case where Ripper lexing identified incorrect code as a keyword (https://github.com/zombocom/dead_end/pull/122)
