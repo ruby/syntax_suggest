@@ -178,6 +178,49 @@ module DeadEnd
       "(" => ")"
     }.freeze
 
+    class LexDiff
+      BALANCED = {
+        "{}" => 0,
+        "[]" => 0,
+        "()" => 0,
+        "kw_end" => 0,
+      }.freeze
+
+      def initialize(hash = BALANCED.dup)
+        @diff = hash
+      end
+
+      def leaning
+        return :equal if balanced?
+        return :left if @diff.each_value.all? {|v| v >= 0 }
+        return :right if @diff.each_value.all? {|v| v <= 0 }
+        return :unknown
+      end
+
+      def as_hash
+        @diff
+      end
+
+      def balanced?
+        BALANCED == @diff
+      end
+
+      def concat(other)
+        @diff.each_key do |k|
+          @diff[k] += other.as_hash[k]
+        end
+        self
+      end
+    end
+
+    def pair_diff
+      diff = LexDiff.new
+      PAIRS.each do |(left, right)|
+        diff.as_hash["#{left}#{right}"] = @count_for_char[left] - @count_for_char[right]
+      end
+      diff
+    end
+
     # Opening characters like `{` need closing characters # like `}`.
     #
     # When a mis-match count is detected, suggest the

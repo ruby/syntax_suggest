@@ -10,11 +10,19 @@ module DeadEnd
       @code_lines = code_lines
       @last_index = @code_lines.length - 1
       @block = block
-      @lex_count = LeftRightLexCount.new
-      @lex_count.count_lines(block.lines)
+
+      @lex_diff = nil
+      block.lines.each do |line|
+        if @lex_diff.nil?
+          @lex_diff = line.lex_diff.dup
+        else
+          @lex_diff.concat(line.lex_diff)
+        end
+      end
 
       @start_index = block.lines.first.index
       @end_index = block.lines.last.index
+      @last_equal_range = nil
     end
 
     def to_s
@@ -29,42 +37,90 @@ module DeadEnd
       @end_index == @last_index
     end
 
+    def balanced?
+      @lex_diff.balanced?
+    end
+
+    def unbalanced?
+      !balanced?
+    end
+
     def direction
-      leaning = @lex_count.leaning
+      leaning = @lex_diff.leaning
       case leaning
-      when :left
-        return :stop if stop_bottom?
-      when :right
-        return :stop if stop_top?
+      when :left # go down
+        if stop_bottom?
+          :stop
+        else
+          :down
+        end
+      when :right # go up
+        if stop_top?
+          :stop
+        else
+          :up
+        end
       when :equal, :unknown
         if stop_top? && stop_bottom?
           return :stop
         elsif stop_top? && !stop_bottom?
-          return :right
+          return :down
         elsif !stop_top? && stop_bottom?
-          return :left
+          return :up
         end
+        leaning
       end
-
-      leaning
     end
 
     def call
-      case direction
-      when :right
-        while direction == :right
+      dir = direction
+      case dir
+      when :up
+        while direction == :up && unbalanced?
           expand_up
         end
-      when :left
-        while direction == :left
+      when :down
+        while direction == :down && unbalanced?
           expand_down
         end
       when :equal
+        # TODO
+        # peek up, if equal, go up
+        # peek down, if equal go down
+        # if one of them moved loop
+        # else
+        #
+        # neither up nor down produce equality
+        # record current position go up, re-trigger logic
         while direction == :equal
-          expand_up
+
+          did_expand = false
+          if above.lex_diff.balanced?
+            did_expand = true
+            expand_up
+          end
+
+          if below.lex_diff.balanced?
+            did_expand = true
+            expand_down
+          end
+
+          next if did_expand
+
+          if above.lex_diff.leaning == :left && below.lex_diff.leaning == :right && @lex_diff.dup.concat(above.lex_diff).concat(below.lex_diff).balanced?
+            expand_up
+            expand_down
+          else
+            @last_equal_range = @start_index..@end_index
+
+            # Cannot create a balanced expansion, choose to be unbalanced
+            expand_up
+          end
         end
+
         call
       when :unkown
+        raise "lol"
         # Go slowly and in both directions?
         # stop at the next set of new matched pairs
       when :stop
@@ -74,21 +130,154 @@ module DeadEnd
       self
     end
 
+    def above
+      @code_lines[@start_index - 1]
+    end
+
+    def below
+      @code_lines[@end_index + 1]
+    end
+
     def expand_up
       @start_index -= 1
-      @code_lines[@start_index].lex.each do |lex|
-        @lex_count.count_lex(lex)
-      end
+      @lex_diff.concat(@code_lines[@start_index].lex_diff)
     end
 
     def expand_down
       @end_index += 1
-      @code_lines[@end_index].lex.each do |lex|
-        @lex_count.count_lex(lex)
-      end
+      @lex_diff.concat(@code_lines[@end_index].lex_diff)
     end
   end
+
   RSpec.describe UpDownExpand do
+    it "does not generate (known) invalid blocks when started at different positions" do
+      source = <<~EOM
+        Foo.call do |a
+          # inner
+        end # one
+
+        print lol
+        class Foo
+        end # two
+      EOM
+      lines = CodeLine.from_source(source)
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[1])
+      )
+      expect(expand.direction).to eq(:equal)
+      expand.call
+      expect(expand.to_s).to eq(<<~'EOM')
+        Foo.call do |a
+          # inner
+        end # one
+      EOM
+
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[0])
+      )
+      expect(expand.call.to_s).to eq(<<~'EOM')
+        Foo.call do |a
+          # inner
+        end # one
+      EOM
+
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[2])
+      )
+      expect(expand.direction).to eq(:up)
+
+      expand.call
+
+      expect(expand.to_s).to eq(<<~'EOM')
+        Foo.call do |a
+          # inner
+        end # one
+      EOM
+
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[3])
+      )
+      expect(expand.direction).to eq(:equal)
+      expand.call
+      expect(expand.to_s).to eq(<<~'EOM')
+        Foo.call do |a
+          # inner
+        end # one
+
+        print lol
+      EOM
+
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[4])
+      )
+      expect(expand.direction).to eq(:equal)
+      expand.call
+      expect(expand.to_s).to eq(<<~'EOM')
+        Foo.call do |a
+          # inner
+        end # one
+
+        print lol
+      EOM
+
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[5])
+      )
+      expect(expand.direction).to eq(:down)
+      expand.call
+      expect(expand.to_s).to eq(<<~'EOM')
+        class Foo
+        end # two
+      EOM
+    end
+
+    it "expands" do
+      source = <<~EOM
+        class Blerg
+          Foo.call do |a
+          end # one
+
+          print lol
+          class Foo
+          end # two
+        end # three
+      EOM
+      lines = CodeLine.from_source(source)
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[5])
+      )
+      expect(expand.call.to_s).to eq(<<~'EOM'.indent(2))
+        class Foo
+        end # two
+      EOM
+      expect(expand.call.to_s).to eq(<<~'EOM'.indent(2))
+        Foo.call do |a
+        end # one
+
+        print lol
+        class Foo
+        end # two
+      EOM
+
+      expect(expand.call.to_s).to eq(<<~'EOM'.indent(0))
+        class Blerg
+          Foo.call do |a
+          end # one
+
+          print lol
+          class Foo
+          end # two
+        end # three
+      EOM
+    end
+
     it "expands up when on an end" do
       lines = CodeLine.from_source(<<~'EOM')
         Foo.new do
@@ -98,7 +287,7 @@ module DeadEnd
         code_lines: lines,
         block: CodeBlock.new(lines: lines[1])
       )
-      expect(expand.direction).to eq(:right)
+      expect(expand.direction).to eq(:up)
       expand.call
       expect(expand.direction).to eq(:stop)
 
@@ -116,7 +305,7 @@ module DeadEnd
         code_lines: lines,
         block: CodeBlock.new(lines: lines[0])
       )
-      expect(expand.direction).to eq(:left)
+      expect(expand.direction).to eq(:down)
       expand.call
       expect(expand.direction).to eq(:stop)
 

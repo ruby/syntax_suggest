@@ -38,7 +38,7 @@ module DeadEnd
       end
     end
 
-    attr_reader :line, :index, :lex, :line_number, :indent
+    attr_reader :line, :index, :lex, :line_number, :indent, :lex_diff
     def initialize(line:, index:, lex:)
       @lex = lex
       @line = line
@@ -57,7 +57,31 @@ module DeadEnd
       end
 
       set_kw_end
+      set_lex_diff
     end
+
+    def set_lex_diff
+      lr = LeftRightLexCount.new
+      lex.each do |l|
+        lr.count_lex(l)
+      end
+
+      @lex_diff = lr.pair_diff
+
+      @lex_diff.as_hash["kw_end"] += 1 if is_kw?
+      @lex_diff.as_hash["kw_end"] -= 1 if is_end?
+    end
+
+    def ballanced?
+      @lex_diff == BALANCED_LEX_DIFF
+    end
+
+    BALANCED_LEX_DIFF = {
+      "{}" => 0,
+      "[]" => 0,
+      "()" => 0,
+      "kw_end" => 0,
+    }
 
     # Used for stable sort via indentation level
     #
