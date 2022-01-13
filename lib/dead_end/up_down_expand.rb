@@ -72,12 +72,12 @@ module DeadEnd
 
     def grab_equal_or
       did_expand = false
-      if above && above.lex_diff.balanced?
+      if above&.balanced?
         did_expand = true
         expand_up
       end
 
-      if below && below.lex_diff.balanced?
+      if below&.balanced?
         did_expand = true
         expand_down
       end

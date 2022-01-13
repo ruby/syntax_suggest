@@ -72,16 +72,9 @@ module DeadEnd
       @lex_diff.as_hash["kw_end"] -= 1 if is_end?
     end
 
-    def ballanced?
-      @lex_diff == BALANCED_LEX_DIFF
+    def balanced?
+      @lex_diff.balanced?
     end
-
-    BALANCED_LEX_DIFF = {
-      "{}" => 0,
-      "[]" => 0,
-      "()" => 0,
-      "kw_end" => 0,
-    }
 
     # Used for stable sort via indentation level
     #
