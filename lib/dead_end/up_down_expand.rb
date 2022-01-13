@@ -27,6 +27,10 @@ module DeadEnd
       @code_lines[start_index..end_index].join
     end
 
+    def to_block
+      CodeBlock.new(lines: @code_lines[start_index..end_index])
+    end
+
     def stop_top?
       @start_index == 0
     end
