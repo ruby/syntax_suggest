@@ -50,13 +50,12 @@ module DeadEnd
   #   CodeFrontier#detect_invalid_blocks
   #
   class CodeFrontier
-    def initialize(code_lines:)
-      @code_lines = code_lines
-      @frontier = PriorityQueue.new
-      @unvisited_lines = @code_lines.sort_by(&:indent_index)
-      @visited_lines = {}
 
-      @has_run = false
+    def initialize(code_lines:, unvisited: UnvisitedLines.new(code_lines: code_lines))
+      @code_lines = code_lines
+      @unvisited = unvisited
+      @queue = PriorityEngulfQueue.new
+
       @check_next = true
     end
 
@@ -107,12 +106,12 @@ module DeadEnd
     end
 
     def next_indent_line
-      @unvisited_lines.last
+      @unvisited.peek
     end
 
     def expand?
       return false if @frontier.empty?
-      return true if @unvisited_lines.to_a.empty?
+      return true if @unvisited.empty?
 
       frontier_indent = @frontier.peek.current_indent
       unvisited_indent = next_indent_line.indent
@@ -132,13 +131,7 @@ module DeadEnd
     # Keeps track of what lines have been added to blocks and which are not yet
     # visited.
     def register_indent_block(block)
-      block.lines.each do |line|
-        next if @visited_lines[line]
-        @visited_lines[line] = true
-
-        index = @unvisited_lines.bsearch_index { |l| line.indent_index <=> l.indent_index }
-        @unvisited_lines.delete_at(index)
-      end
+      @unvisited.visit_block(block)
       self
     end
 
@@ -171,7 +164,7 @@ module DeadEnd
     # and that each code block's lines are removed from the indentation hash so we
     # don't re-evaluate the same line multiple times.
     def <<(block)
-      register_indent_block(block)
+      @unvisited.visit_block(block)
       register_engulf_block(block)
 
       @check_next = true if block.invalid?
