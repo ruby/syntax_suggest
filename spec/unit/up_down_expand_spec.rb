@@ -72,57 +72,56 @@ module DeadEnd
       end
     end
 
+    def grab_equal_or
+      did_expand = false
+      if above && above.lex_diff.balanced?
+        did_expand = true
+        expand_up
+      end
+
+      if below && below.lex_diff.balanced?
+        did_expand = true
+        expand_down
+      end
+
+      return true if did_expand
+
+      if above && below && above.lex_diff.leaning == :left && below.lex_diff.leaning == :right && @lex_diff.dup.concat(above.lex_diff).concat(below.lex_diff).balanced?
+        expand_up
+        expand_down
+        true
+      else
+        yield
+        false
+      end
+    end
+
     def call
-      dir = direction
-      case dir
+      case self.direction
       when :up
+        # the goal is to become balanced
         while direction == :up && unbalanced?
           expand_up
         end
       when :down
+        # the goal is to become balanced
         while direction == :down && unbalanced?
           expand_down
         end
       when :equal
-        # TODO
-        # peek up, if equal, go up
-        # peek down, if equal go down
-        # if one of them moved loop
-        # else
-        #
-        # neither up nor down produce equality
-        # record current position go up, re-trigger logic
-        while direction == :equal
-
-          did_expand = false
-          if above.lex_diff.balanced?
-            did_expand = true
-            expand_up
-          end
-
-          if below.lex_diff.balanced?
-            did_expand = true
-            expand_down
-          end
-
-          next if did_expand
-
-          if above.lex_diff.leaning == :left && below.lex_diff.leaning == :right && @lex_diff.dup.concat(above.lex_diff).concat(below.lex_diff).balanced?
-            expand_up
-            expand_down
-          else
-            @last_equal_range = @start_index..@end_index
-
-            # Cannot create a balanced expansion, choose to be unbalanced
-            expand_up
-          end
+        # Cannot create a balanced expansion, choose to be unbalanced
+        while grab_equal_or {
+          expand_up unless stop_top?
+        }
         end
 
         call
       when :unkown
-        raise "lol"
-        # Go slowly and in both directions?
-        # stop at the next set of new matched pairs
+        while grab_equal_or {
+          expand_up unless stop_top?
+          expand_down unless stop_bottom?
+        }
+        end
       when :stop
         return
       end
@@ -131,11 +130,11 @@ module DeadEnd
     end
 
     def above
-      @code_lines[@start_index - 1]
+      @code_lines[@start_index - 1] unless stop_top?
     end
 
     def below
-      @code_lines[@end_index + 1]
+      @code_lines[@end_index + 1] unless stop_bottom?
     end
 
     def expand_up
@@ -171,6 +170,8 @@ module DeadEnd
         Foo.call do |a
           # inner
         end # one
+
+        print lol
       EOM
 
       expand = UpDownExpand.new(
@@ -266,7 +267,7 @@ module DeadEnd
         end # two
       EOM
 
-      expect(expand.call.to_s).to eq(<<~'EOM'.indent(0))
+      expect(expand.call.to_s).to eq(<<~'EOM')
         class Blerg
           Foo.call do |a
           end # one
