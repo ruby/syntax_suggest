@@ -4,7 +4,7 @@ module DeadEnd
   # Tracks which lines various code blocks have expanded to
   # and which are still unexplored
   class UnvisitedLines
-    def initialize(code_lines: )
+    def initialize(code_lines:)
       @unvisited = code_lines.sort_by(&:indent_index)
       @visited_lines = {}
       @visited_lines.compare_by_identity

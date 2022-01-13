@@ -50,7 +50,6 @@ module DeadEnd
   #   CodeFrontier#detect_invalid_blocks
   #
   class CodeFrontier
-
     def initialize(code_lines:, unvisited: UnvisitedLines.new(code_lines: code_lines))
       @code_lines = code_lines
       @unvisited = unvisited
@@ -60,7 +59,7 @@ module DeadEnd
     end
 
     def count
-      @frontier.length
+      @queue.length
     end
 
     # Performance optimization
@@ -87,7 +86,7 @@ module DeadEnd
     # removed. By default it checks all blocks in present in
     # the frontier array, but can be used for arbitrary arrays
     # of codeblocks as well
-    def holds_all_syntax_errors?(block_array = @frontier, can_cache: true)
+    def holds_all_syntax_errors?(block_array = @queue, can_cache: true)
       return false if can_cache && can_skip_check?
 
       without_lines = block_array.to_a.flat_map do |block|
@@ -102,7 +101,7 @@ module DeadEnd
 
     # Returns a code block with the largest indentation possible
     def pop
-      @frontier.pop
+      @queue.pop
     end
 
     def next_indent_line
@@ -110,15 +109,15 @@ module DeadEnd
     end
 
     def expand?
-      return false if @frontier.empty?
+      return false if @queue.empty?
       return true if @unvisited.empty?
 
-      frontier_indent = @frontier.peek.current_indent
+      frontier_indent = @queue.peek.current_indent
       unvisited_indent = next_indent_line.indent
 
       if ENV["DEBUG"]
         puts "```"
-        puts @frontier.peek.to_s
+        puts @queue.peek.to_s
         puts "```"
         puts "  @frontier indent:  #{frontier_indent}"
         puts "  @unvisited indent: #{unvisited_indent}"
@@ -139,23 +138,6 @@ module DeadEnd
     # block from the frontier. This prevents double expansions and all-around
     # weird behavior. However this guarantee is quite expensive to maintain
     def register_engulf_block(block)
-      # If we're about to pop off the same block, we can skip deleting
-      # things from the frontier this iteration since we'll get it
-      # on the next iteration
-      return if @frontier.peek && (block <=> @frontier.peek) == 1
-
-      if block.starts_at != block.ends_at # A block of size 1 cannot engulf another
-        @frontier.to_a.each { |b|
-          if b.starts_at >= block.starts_at && b.ends_at <= block.ends_at
-            b.delete
-            true
-          end
-        }
-      end
-
-      while (last = @frontier.peek) && last.deleted?
-        @frontier.pop
-      end
     end
 
     # Add a block to the frontier
@@ -165,10 +147,10 @@ module DeadEnd
     # don't re-evaluate the same line multiple times.
     def <<(block)
       @unvisited.visit_block(block)
-      register_engulf_block(block)
+
+      @queue.push(block)
 
       @check_next = true if block.invalid?
-      @frontier << block
 
       self
     end
@@ -188,7 +170,7 @@ module DeadEnd
     # Given that we know our syntax error exists somewhere in our frontier, we want to find
     # the smallest possible set of blocks that contain all the syntax errors
     def detect_invalid_blocks
-      self.class.combination(@frontier.to_a.select(&:invalid?)).detect do |block_array|
+      self.class.combination(@queue.to_a.select(&:invalid?)).detect do |block_array|
         holds_all_syntax_errors?(block_array, can_cache: false)
       end || []
     end
