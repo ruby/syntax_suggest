@@ -22,6 +22,8 @@ module DeadEnd
   #   left_right.missing.first
   #   # => "}"
   class LeftRightLexCount
+    attr_reader :count_for_char, :kw_count, :end_count
+
     def initialize
       @kw_count = 0
       @end_count = 0
@@ -37,12 +39,30 @@ module DeadEnd
       }
     end
 
+    def concat(other)
+      @count_for_char.each do |(k, _)|
+        @count_for_char[k] += other[k]
+      end
+
+      @kw_count += other.kw_count
+      @end_count += other.end_count
+      self
+    end
+
     def count_kw
       @kw_count += 1
     end
 
     def count_end
       @end_count += 1
+    end
+
+    def count_lines(lines)
+      lines.each do |line|
+        line.lex.each do |lex|
+          count_lex(lex)
+        end
+      end
     end
 
     # Count source code characters
@@ -115,6 +135,43 @@ module DeadEnd
       out
     end
 
+    def leaning
+      leaning = nil
+      PAIRS.each do |(left, right)|
+        out = case @count_for_char[left] <=> @count_for_char[right]
+        when 1
+          :left # i.e. need to go right
+        when 0
+          nil
+        when -1
+          :right
+        end
+
+        leaning ||= out
+        if out && leaning != out
+          return :unknown
+        end
+      end
+
+      out = case @kw_count <=> @end_count
+      when 1
+        :left
+      when 0
+        nil
+      when -1
+        :right
+      end
+
+      leaning ||= out
+      if out && leaning != out
+        return :unknown
+      end
+
+      leaning || :equal
+    end
+
+    LEFT = {"{" => :left, "[" => :left, "(" => :left, "keyword" => :left}
+    RIGHT = {"}" => :right, "]" => :right, ")" => :right, "end" => :right}
     PAIRS = {
       "{" => "}",
       "[" => "]",
