@@ -36,14 +36,31 @@ module DeadEnd
     end
 
     def leaning
-      return :equal if balanced?
-      return :left if @diff.all? {|v| v >= 0 }
-      return :right if @diff.all? {|v| v <= 0 }
-      return :unknown
+      left = 0
+      right = 0
+      @diff.each do |v|
+        case v <=> 0
+        when 1
+          left = 1
+          return :unknown if right == 1
+        when 0
+        when -1
+          right = 1
+          return :unknown if left == 1
+        end
+      end
+
+      if left == 1
+        :left
+      elsif right == 1
+        :right
+      else
+        :equal
+      end
     end
 
     def balanced?
-      BALANCED_ARRAY == @diff
+      @diff[0] == 0 && @diff[1] == 0 && @diff[2] == 0 && @diff[3] == 0
     end
 
     def to_a
@@ -51,11 +68,11 @@ module DeadEnd
     end
 
     def concat(other)
-      return self if other.balanced?
-
-      other.to_a.each_with_index do |value, i|
-        @diff[i] += value
-      end
+      other = other.to_a
+      @diff[0] += other[0]
+      @diff[1] += other[1]
+      @diff[2] += other[2]
+      @diff[3] += other[3]
       self
     end
   end
