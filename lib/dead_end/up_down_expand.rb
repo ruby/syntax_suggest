@@ -125,7 +125,7 @@ module DeadEnd
         }
         end
       when :stop
-        return
+        return self
       end
 
       self

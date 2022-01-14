@@ -185,6 +185,7 @@ require_relative "clean_document"
 
 # Helpers
 require_relative "lex_all"
+require_relative "lex_diff"
 require_relative "code_line"
 require_relative "code_block"
 require_relative "block_expand"

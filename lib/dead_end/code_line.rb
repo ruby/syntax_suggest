@@ -57,19 +57,12 @@ module DeadEnd
       end
 
       set_kw_end
-      set_lex_diff
-    end
 
-    def set_lex_diff
-      lr = LeftRightLexCount.new
-      lex.each do |l|
-        lr.count_lex(l)
-      end
-
-      @lex_diff = lr.pair_diff
-
-      @lex_diff.as_hash["kw_end"] += 1 if is_kw?
-      @lex_diff.as_hash["kw_end"] -= 1 if is_end?
+      @lex_diff = LexDiff.from_lex(
+        lex: @lex,
+        is_kw: is_kw?,
+        is_end: is_end?
+      )
     end
 
     def balanced?
