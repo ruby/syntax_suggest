@@ -11,11 +11,8 @@ module DeadEnd
 
       @lex_diff = nil
       block.lines.each do |line|
-        if @lex_diff.nil?
-          @lex_diff = line.lex_diff.dup
-        else
-          @lex_diff.concat(line.lex_diff)
-        end
+        @lex_diff ||= LexDiff.new(line.lex_diff.to_a.dup)
+        @lex_diff.concat(line.lex_diff)
       end
 
       @start_index = block.lines.first.index
