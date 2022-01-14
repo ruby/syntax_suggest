@@ -42,7 +42,16 @@ module DeadEnd
 
       neighbors = scan.code_block.lines
 
-      block = CodeBlock.new(lines: neighbors)
+      blocks = []
+      blocks << CodeBlock.new(lines: neighbors)
+
+      # expand = UpDownExpand.new(code_lines: code_lines, block: blocks.first)
+      # blocks << expand.to_block if expand.call.balanced?
+      # blocks << expand.to_block if expand.call.balanced?
+
+      # block = blocks.reverse_each.detect(&:valid?) || blocks.first
+      block = blocks.first
+
       if neighbors.length <= 2 || block.valid?
         yield block
       else
