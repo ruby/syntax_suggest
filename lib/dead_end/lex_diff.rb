@@ -14,12 +14,12 @@ module DeadEnd
       pair_diff["kw_end"] += 1 if is_kw
       pair_diff["kw_end"] -= 1 if is_end
 
-      array = BALANCED_ARRAY.dup
-      BALANCED_HASH.each.with_index do |(k, _), i|
-        array[i] = pair_diff[k]
-      end
-
-      LexDiff.new(array)
+      LexDiff.new(
+        curly: pair_diff["{}"],
+        square: pair_diff["[]"],
+        parens: pair_diff["()"],
+        kw_end: pair_diff["kw_end"]
+      )
     end
 
     BALANCED_HASH = {
@@ -31,14 +31,26 @@ module DeadEnd
 
     BALANCED_ARRAY = BALANCED_HASH.values
 
-    def initialize(array = BALANCED_ARRAY.dup)
-      @diff = array
+    attr_reader :curly, :square, :parens, :kw_end
+
+    def initialize(curly: , square:, parens:, kw_end: )
+      @curly = curly
+      @square = square
+      @parens = parens
+      @kw_end = kw_end
+    end
+
+    def each
+      yield @curly
+      yield @square
+      yield @parens
+      yield @kw_end
     end
 
     def leaning
       left = 0
       right = 0
-      @diff.each do |v|
+      each do |v|
         case v <=> 0
         when 1
           left = 1
@@ -60,20 +72,17 @@ module DeadEnd
     end
 
     def balanced?
-      @diff[0] == 0 && @diff[1] == 0 && @diff[2] == 0 && @diff[3] == 0
-    end
-
-    def to_a
-      @diff
+      @curly == 0 && @square == 0 && @parens == 0 && @kw_end == 0
     end
 
     def concat(other)
-      other = other.to_a
-      @diff[0] += other[0]
-      @diff[1] += other[1]
-      @diff[2] += other[2]
-      @diff[3] += other[3]
+      @curly += other.curly
+      @square += other.square
+      @parens += other.parens
+      @kw_end += other.kw_end
       self
     end
   end
+
+
 end

@@ -11,8 +11,16 @@ module DeadEnd
 
       @lex_diff = nil
       block.lines.each do |line|
-        @lex_diff ||= LexDiff.new(line.lex_diff.to_a.dup)
-        @lex_diff.concat(line.lex_diff)
+        if @lex_diff.nil?
+          @lex_diff = LexDiff.new(
+            curly: line.lex_diff.curly,
+            square: line.lex_diff.square,
+            parens: line.lex_diff.parens,
+            kw_end: line.lex_diff.kw_end,
+          )
+        else
+          @lex_diff.concat(line.lex_diff)
+        end
       end
 
       @start_index = block.lines.first.index
