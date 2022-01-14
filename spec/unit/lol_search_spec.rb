@@ -73,6 +73,7 @@ module DeadEnd
 
 
     it "flerb" do
+      skip
       file = fixtures_dir.join("syntax_tree.rb.txt")
       lines = file.read.lines
       lines.delete_at(768 - 1)

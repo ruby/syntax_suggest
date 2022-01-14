@@ -79,6 +79,8 @@ module DeadEnd
         end # one
 
         print lol
+        class Foo
+        end # two
       EOM
 
       expand = UpDownExpand.new(
@@ -89,6 +91,10 @@ module DeadEnd
         Foo.call do |a
           # inner
         end # one
+
+        print lol
+        class Foo
+        end # two
       EOM
 
       expand = UpDownExpand.new(

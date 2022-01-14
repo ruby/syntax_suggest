@@ -37,6 +37,9 @@ module DeadEnd
 
     def initialize(code_lines: , block: )
       @code_lines = code_lines
+      @max_iterations = @code_lines.length * 2
+      @iterations = 0
+
       @last_index = @code_lines.length - 1
       @block = block
 
@@ -75,31 +78,34 @@ module DeadEnd
       !balanced?
     end
 
-
+    # Main search entrypoint
+    #
+    # Essentially a state machine, determine the leaning
+    # of the given block, then figure out how to either
+    # move it towards balanced, or expand it while keeping
+    # it balanced.
     def call
       case self.direction
       when :up
         # the goal is to become balanced
-        while direction == :up && unbalanced?
-          expand_up
+        while keep_going? && direction == :up && try_expand_up
         end
       when :down
         # the goal is to become balanced
-        while direction == :down && unbalanced?
-          expand_down
+        while keep_going? && direction == :down && try_expand_down
         end
       when :equal
-        # Cannot create a balanced expansion, choose to be unbalanced
-        while grab_equal_or {
-          expand_up unless stop_top?
+        while keep_going? &&  grab_equal_or {
+          # Cannot create a balanced expansion, choose to be unbalanced
+          try_expand_up
         }
         end
 
-        call
+        call # Recurse
       when :unknown
-        while grab_equal_or {
-          expand_up unless stop_top?
-          expand_down unless stop_bottom?
+        while keep_going? && grab_equal_or {
+          try_expand_up
+          try_expand_down
         }
         end
       when :stop
@@ -109,21 +115,18 @@ module DeadEnd
       self
     end
 
+    # Convert a lex diff to a direction to search
+    #
+    # leaning left -> down
+    # leaning right -> up
+    #
     def direction
       leaning = @lex_diff.leaning
       case leaning
       when :left # go down
-        if stop_bottom?
-          :stop
-        else
-          :down
-        end
+        stop_bottom? ? :stop : :down
       when :right # go up
-        if stop_top?
-          :stop
-        else
-          :up
-        end
+        stop_top? ? :stop : :up
       when :equal, :unknown
         if stop_top? && stop_bottom?
           return :stop
@@ -131,29 +134,71 @@ module DeadEnd
           return :down
         elsif !stop_top? && stop_bottom?
           return :up
+        else
+          leaning
         end
-        leaning
       end
     end
 
+    # Limit rspec failure output
+    def inspect
+      "#<DeadEnd::UpDownExpand:0x0000000115lol too big>"
+    end
 
+    # Upper bound on iterations
+    private def keep_going?
+      if @iterations < @max_iterations
+        @iterations += 1
+        true
+      else
+        warn <<~EOM
+        DeadEnd: Internal problem detected, possible infinite loop in #{self.class}
+
+        Please open a ticket with the following information. Max: #{@max_iterations}, actual: #{@iterations}
+
+        Original block:
+
+        ```
+        #{@block.lines.map(&:original).join}```
+
+        Stuck at:
+
+        ```
+        #{to_block.lines.map(&:original).join}```
+        EOM
+
+        false
+      end
+    end
+
+    # Attempt to grab "free" lines
+    #
+    # if either above, below or both are
+    # balanced, take them, return true.
+    #
+    # If above is leaning left and below
+    # is leaning right and they cancel out
+    # take them, return true.
+    #
+    # If we couldn't grab any balanced lines
+    # then call the block and return false.
     private def grab_equal_or
       did_expand = false
       if above&.balanced?
         did_expand = true
-        expand_up
+        try_expand_up
       end
 
       if below&.balanced?
         did_expand = true
-        expand_down
+        try_expand_down
       end
 
       return true if did_expand
 
-      if above && below && above.lex_diff.leaning == :left && below.lex_diff.leaning == :right && @lex_diff.dup.concat(above.lex_diff).concat(below.lex_diff).balanced?
-        expand_up
-        expand_down
+      if make_balanced_from_up_down?
+        try_expand_up
+        try_expand_down
         true
       else
         yield
@@ -161,32 +206,57 @@ module DeadEnd
       end
     end
 
+    # If up is leaning left and down is leaning right
+    # they might cancel out, to make a complete
+    # and balanced block
+    private def make_balanced_from_up_down?
+      return false if above.nil? || below.nil?
+      return false if above.lex_diff.leaning != :left
+      return false if below.lex_diff.leaning != :right
+
+      @lex_diff.dup.concat(above.lex_diff).concat(below.lex_diff).balanced?
+    end
+
+    # The line above the current location
     private def above
       @code_lines[@start_index - 1] unless stop_top?
     end
 
+    # The line below the current location
     private def below
       @code_lines[@end_index + 1] unless stop_bottom?
     end
 
+    # Mutates the start index and applies the new line's
+    # lex diff
     private def expand_up
       @start_index -= 1
       @lex_diff.concat(@code_lines[@start_index].lex_diff)
     end
 
+    private def try_expand_up
+      stop_top? ? false : expand_up
+    end
+
+    private def try_expand_down
+      stop_bottom? ? false : expand_down
+    end
+
+    # Mutates the end index and applies the new line's
+    # lex diff
     private def expand_down
       @end_index += 1
       @lex_diff.concat(@code_lines[@end_index].lex_diff)
     end
 
+    # Returns true when we can no longer expand up
     private def stop_top?
       @start_index == 0
     end
 
+    # Returns true when we can no longer expand down
     private def stop_bottom?
       @end_index == @last_index
     end
-
   end
-
 end

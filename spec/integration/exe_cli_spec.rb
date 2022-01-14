@@ -14,7 +14,7 @@ module DeadEnd
       out
     end
 
-    it "prints the version" do
+    it "prints the version", slow: true do
       out = exe("-v")
       expect(out.strip).to include(DeadEnd::VERSION)
     end

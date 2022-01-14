@@ -4,7 +4,7 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
-    it "does not timeout on massive files" do
+    it "does not timeout on massive files", slow: true do
       file = fixtures_dir.join("syntax_tree.rb.txt")
       lines = file.read.lines
       lines.delete_at(768 - 1)
