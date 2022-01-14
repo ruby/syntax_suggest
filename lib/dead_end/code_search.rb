@@ -115,7 +115,18 @@ module DeadEnd
 
       record(block: block, name: "before-expand")
 
-      block = @block_expand.call(block)
+      if block.invalid?
+        blocks = []
+        expand = UpDownExpand.new(code_lines: code_lines, block: block)
+        blocks << expand.call.to_block
+        blocks << expand.to_block if expand.call.balanced?
+        blocks << expand.to_block if expand.call.balanced?
+
+        block = blocks.reverse_each.detect(&:valid?) || blocks.first
+      else
+        block = @block_expand.call(block)
+      end
+
       push(block, name: "expand")
     end
 

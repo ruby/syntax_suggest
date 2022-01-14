@@ -5,6 +5,57 @@ require_relative "../spec_helper"
 module DeadEnd
 
   RSpec.describe UpDownExpand do
+    it "can handle 'unknown' direction code" do
+      source = <<~'EOM'
+        parser.on('-r', '--require REQUIRE(S)',
+                  'Gems and built-in libraries (e.g. shellwords, yaml) to require, comma separated, or ! to clear') do |v|
+          if v == '!'
+            options.requires.clear
+          else
+            v.split(',').map(&:strip).each do |r|
+              if r[0] == '-'
+                options.requires -= [r[1..-1]]
+              else
+                options.requires << r
+              end
+            end
+          end
+        end
+      EOM
+
+      lines = CleanDocument.new(source: source).call.lines
+      expand = UpDownExpand.new(
+        code_lines: lines,
+        block: CodeBlock.new(lines: lines[1])
+      )
+
+      expect(expand.direction).to eq(:unknown)
+      expand.call
+      expect(expand.to_s).to eq(<<~'EOM')
+        parser.on('-r', '--require REQUIRE(S)',
+                  'Gems and built-in libraries (e.g. shellwords, yaml) to require, comma separated, or ! to clear') do |v|
+          if v == '!'
+      EOM
+
+      expand.call
+      expect(expand.to_s).to eq(<<~'EOM')
+        parser.on('-r', '--require REQUIRE(S)',
+                  'Gems and built-in libraries (e.g. shellwords, yaml) to require, comma separated, or ! to clear') do |v|
+          if v == '!'
+            options.requires.clear
+          else
+            v.split(',').map(&:strip).each do |r|
+              if r[0] == '-'
+                options.requires -= [r[1..-1]]
+              else
+                options.requires << r
+              end
+            end
+          end
+        end
+      EOM
+    end
+
     it "does not generate (known) invalid blocks when started at different positions" do
       source = <<~EOM
         Foo.call do |a

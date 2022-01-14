@@ -123,7 +123,7 @@ module DeadEnd
         end
 
         call
-      when :unkown
+      when :unknown
         while grab_equal_or {
           expand_up unless stop_top?
           expand_down unless stop_bottom?
