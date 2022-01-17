@@ -472,11 +472,28 @@ module DeadEnd
 
         self
       end
+
+      def eat_above(node)
+        return unless now = node&.eat_above
+
+        node.above.delete
+        node.delete
+
+        while queue&.peek&.deleted?
+          queue.pop
+        end
+
+        now
+      end
+
+      def eat_below(node)
+        eat_above(node&.below)
+      end
     end
 
     class BlockNode
       attr_accessor :above, :below
-      attr_reader :lines, :start_index, :end_index
+      attr_reader :lines, :start_index, :end_index, :parents
 
       def initialize(lines: , parents: nil)
         lines = Array(lines)
@@ -485,8 +502,17 @@ module DeadEnd
         @parents = parents
         @start_index = lines.first.index
         @end_index = lines.last.index
+        @deleted = false
 
         set_lex_diff_from(@lines)
+      end
+
+      def delete
+        @deleted = true
+      end
+
+      def deleted?
+        @deleted
       end
 
       def valid?
@@ -539,6 +565,98 @@ module DeadEnd
           @lex_diff.concat(line.lex_diff)
         end
       end
+
+      def eat_above
+        return nil if above.nil?
+
+        node = BlockNode.new(lines: above.lines + lines, parents: [above, self])
+        if above.above
+          node.above = above.above
+          above.above.below = node
+        end
+
+        if below
+          node.below = below
+          below.above = node
+        end
+
+
+        node
+      end
+
+      def eat_below
+        return nil if below.nil?
+        below.eat_above
+      end
+    end
+
+    it "eats blerg" do
+      code_lines = CodeLine.from_source(<<~'EOM')
+        def foo
+          print "hello"
+            end # one
+        end # two
+      EOM
+
+      document = BlockDocument.new(code_lines: code_lines).call
+      node = document.queue.pop
+      document.eat_above(node)
+
+      node = document.queue.pop
+      document.eat_above(node)
+      node = document.queue.pop
+      out = document.eat_below(node)
+
+      expect(out.to_s).to eq(code_lines.join)
+      expect(out.valid?).to be_falsey
+      expect(out.balanced?).to be_falsey
+      expect(out.parents.map(&:leaning)).to eq([:left, :right])
+    end
+
+    it "eats nodes up" do
+      code_lines = CodeLine.from_source(<<~'EOM')
+        def foo
+          print "hello"
+            end # one
+        end # two
+      EOM
+
+      document = BlockDocument.new(code_lines: code_lines).call
+      node = document.queue.pop
+      out = node.eat_above
+      expect(out.to_s).to eq(<<~'EOM'.indent(2))
+        print "hello"
+          end # one
+      EOM
+
+      expect(out.above.to_s.strip).to eq("def foo")
+      expect(out.below.to_s.strip).to eq("end # two")
+
+      expect(out.above.below).to eq(out)
+      expect(out.below.above).to eq(out)
+
+      out = out.eat_below
+      expect(out.to_s).to eq(<<~'EOM')
+          print "hello"
+            end # one
+        end # two
+      EOM
+
+      out = out.eat_above
+      expect(out.to_s).to eq(<<~'EOM')
+        def foo
+          print "hello"
+            end # one
+        end # two
+      EOM
+
+      expect(out.valid?).to be_falsey
+      expect(out.balanced?).to be_falsey
+      expect(out.parents.map(&:leaning)).to eq([:left, :right])
+
+      frontier = out.parents.dup
+
+      # Find the innermost invalid block
     end
 
     it "prioritizes indent" do
