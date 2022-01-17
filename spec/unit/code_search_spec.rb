@@ -443,5 +443,134 @@ module DeadEnd
         end
       EOM
     end
+
+    class BlockDocument
+      attr_reader :blocks, :queue
+
+      def initialize(code_lines: )
+        @code_lines = code_lines
+        @blocks = nil
+        @queue = PriorityQueue.new
+      end
+
+      def call
+        last = nil
+        @blocks = @code_lines.map.with_index do |line, i|
+          next if line.empty?
+
+
+          node = BlockNode.new(lines: line)
+          queue << node
+          node.above = last
+          last&.below = node
+          last = node
+          node
+        end
+        if node = @blocks[-2]
+          node.below = @blocks[-1]
+        end
+
+        self
+      end
+    end
+
+    class BlockNode
+      attr_accessor :above, :below
+      attr_reader :lines, :start_index, :end_index
+
+      def initialize(lines: , parents: nil)
+        lines = Array(lines)
+        parents = Array(parents)
+        @lines = lines
+        @parents = parents
+        @start_index = lines.first.index
+        @end_index = lines.last.index
+
+        set_lex_diff_from(@lines)
+      end
+
+      def valid?
+        return @valid if defined?(@valid)
+
+        @valid = DeadEnd.valid?(@lines.join)
+      end
+
+      def unbalanced?
+        !balanced?
+      end
+
+      def balanced?
+        @lex_diff.balanced?
+      end
+
+      def leaning
+        @lex_diff.leaning
+      end
+
+      def to_s
+        @lines.join
+      end
+
+      def <=>(other)
+        case indent <=> other.indent
+        when 1 then 1
+        when -1 then -1
+        when 0
+          end_index <=> other.end_index
+        end
+      end
+
+      def indent
+        @indent ||= lines.map(&:indent).min || 0
+      end
+
+      def inspect
+        "#<DeadEnd::BlockNode 0x000000010cbfelol #{@start_index}..#{@end_index} >"
+      end
+
+      private def set_lex_diff_from(lines)
+        @lex_diff = LexPairDiff.new(
+          curly: 0,
+          square: 0,
+          parens: 0,
+          kw_end: 0
+        )
+        lines.each do |line|
+          @lex_diff.concat(line.lex_diff)
+        end
+      end
+    end
+
+    it "prioritizes indent" do
+      code_lines = CodeLine.from_source(<<~'EOM')
+        def foo
+          end # one
+        end # two
+      EOM
+
+      document = BlockDocument.new(code_lines: code_lines).call
+      one = document.queue.pop
+      expect(one.to_s.strip).to eq("end # one")
+    end
+
+    it "Block document dequeues from bottom to top" do
+      code_lines = CodeLine.from_source(<<~'EOM')
+        Foo.call
+        end
+      EOM
+
+      document = BlockDocument.new(code_lines: code_lines).call
+      one = document.queue.pop
+      expect(one.to_s.strip).to eq("end")
+
+      two = document.queue.pop
+      expect(two.to_s.strip).to eq("Foo.call")
+
+      expect(one.above).to eq(two)
+      expect(two.below).to eq(one)
+
+      expect(document.queue.pop).to eq(nil)
+    end
+
   end
 end
