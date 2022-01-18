@@ -451,6 +451,7 @@ module DeadEnd
         @code_lines = code_lines
         @blocks = nil
         @queue = PriorityQueue.new
+        @root = nil
       end
 
       def call
@@ -460,12 +461,14 @@ module DeadEnd
 
 
           node = BlockNode.new(lines: line)
+          @root ||= node
           queue << node
           node.above = last
           last&.below = node
           last = node
           node
         end
+
         if node = @blocks[-2]
           node.below = @blocks[-1]
         end
@@ -475,6 +478,10 @@ module DeadEnd
 
       def eat_above(node)
         return unless now = node&.eat_above
+
+        if node.above == @root
+          @root = now
+        end
 
         node.above.delete
         node.delete
@@ -489,22 +496,40 @@ module DeadEnd
       def eat_below(node)
         eat_above(node&.below)
       end
+
+      def pop
+        @queue.pop
+      end
+
+      def peek
+        @queue.peek
+      end
     end
 
     class BlockNode
       attr_accessor :above, :below
-      attr_reader :lines, :start_index, :end_index, :parents
+      attr_reader :lines, :start_index, :end_index, :parents, :lex_diff
 
       def initialize(lines: , parents: nil)
         lines = Array(lines)
         parents = Array(parents)
         @lines = lines
         @parents = parents
-        @start_index = lines.first.index
-        @end_index = lines.last.index
+
+        if @parents.empty?
+          @start_index = lines.first.index
+          @end_index = lines.last.index
+          set_lex_diff_from(@lines)
+        else
+          @lex_diff = LexPairDiff.new_empty
+          @parents.each do |p|
+            @lex_diff.concat(p.lex_diff)
+          end
+          @start_index = @parents.first.start_index
+          @end_index = @parents.last.end_index
+        end
         @deleted = false
 
-        set_lex_diff_from(@lines)
       end
 
       def delete
@@ -555,12 +580,7 @@ module DeadEnd
       end
 
       private def set_lex_diff_from(lines)
-        @lex_diff = LexPairDiff.new(
-          curly: 0,
-          square: 0,
-          parens: 0,
-          kw_end: 0
-        )
+        @lex_diff = LexPairDiff.new_empty
         lines.each do |line|
           @lex_diff.concat(line.lex_diff)
         end

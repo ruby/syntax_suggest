@@ -40,6 +40,10 @@ module DeadEnd
       )
     end
 
+    def self.new_empty
+      self.new(curly: 0, square: 0, parens: 0, kw_end: 0)
+    end
+
     attr_reader :curly, :square, :parens, :kw_end
 
     def initialize(curly:, square:, parens:, kw_end:)
