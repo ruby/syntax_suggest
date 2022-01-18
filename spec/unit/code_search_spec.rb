@@ -445,18 +445,44 @@ module DeadEnd
     end
 
     class BlockDocument
+      def self.from_code_lines(code_lines)
+        blocks = @code_lines.map.with_index do |line, i|
+          next if line.empty?
+
+          node = BlockNode.new(lines: line)
+        end
+      end
+
       attr_reader :blocks, :queue
+
+      include Enumerable
 
       def initialize(code_lines: )
         @code_lines = code_lines
-        @blocks = nil
+        blocks = nil
         @queue = PriorityQueue.new
         @root = nil
       end
 
+      def each
+        node = @root
+        while node
+          yield node
+          node = node.below
+        end
+      end
+
+      def to_s
+        string = String.new
+        each do |block|
+          string << block.to_s
+        end
+        string
+      end
+
       def call
         last = nil
-        @blocks = @code_lines.map.with_index do |line, i|
+        blocks = @code_lines.map.with_index do |line, i|
           next if line.empty?
 
 
@@ -469,8 +495,8 @@ module DeadEnd
           node
         end
 
-        if node = @blocks[-2]
-          node.below = @blocks[-1]
+        if node = blocks[-2]
+          node.below = blocks[-1]
         end
 
         self
@@ -608,6 +634,111 @@ module DeadEnd
         return nil if below.nil?
         below.eat_above
       end
+    end
+
+    class BlockSearch
+      attr_reader :document
+
+      def initialize(document: )
+        @document = document
+        @last_length = Float::INFINITY
+      end
+
+      def call
+        reduce
+        loop do
+          requeue
+          if document.queue.length >= @last_length
+            break
+          else
+            @last_length = document.queue.length
+            reduce
+          end
+        end
+
+        self
+      end
+
+      def reduce
+        while block = document.pop
+          case block.leaning
+          when :left
+            document.eat_below(block)
+          when :right
+            document.eat_above(block)
+          when :equal
+            if block.above&.balanced?
+              document.eat_above(block)
+            end
+          when :both
+            document.eat_below(block)
+            document.eat_above(block)
+          else
+            raise "Unknown direction #{block.leaning}"
+          end
+        end
+        self
+      end
+
+      def requeue
+        document.each do |block|
+          document.queue << block
+        end
+      end
+
+      def to_s
+        @document.to_s
+      end
+    end
+
+    it "overdrive" do
+      file = fixtures_dir.join("syntax_tree.rb.txt")
+      lines = file.read.lines
+      lines.delete_at(768 - 1)
+
+      io = StringIO.new
+      code_lines  = CleanDocument.new(source: lines.join).call.lines
+      # start with 5473
+      # reduce to 1726
+      # reduce to 707
+      document = BlockDocument.new(code_lines: code_lines).call
+      search = BlockSearch.new(document: document)
+
+      # 4.times.each do
+      #   puts "=="
+
+      #   search.reduce
+      #   search.requeue
+
+      #   blocks = document.map {|b| b}
+      #   block = blocks[1]
+      #   puts block
+      #   puts block.leaning
+      # end
+
+      search.call
+      blocks = document.map {|b| b}
+      # puts blocks.length
+      block = blocks.last
+      puts block.parents.length
+      expect(block.parents.map(&:leaning)).to eq([:left, :right])
+      puts block.parents.last.parents.first.valid?
+      puts block.parents.last.parents.last
+      puts block.parents.last.parents.last.parents.first.valid?
+    end
+
+    it "search builds" do
+      code_lines = CodeLine.from_source(<<~'EOM')
+        def foo
+          print "hello"
+            end # one
+        end # two
+      EOM
+      document = BlockDocument.new(code_lines: code_lines).call
+      search = BlockSearch.new(document: document).call
+
+      expect(search.to_s).to eq(code_lines.join)
+      expect(search.document.map(&:valid?)).to eq([false])
     end
 
     it "eats blerg" do
