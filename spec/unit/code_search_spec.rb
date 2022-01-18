@@ -503,14 +503,6 @@ module DeadEnd
     end
 
     class BlockDocument
-      def self.from_code_lines(code_lines)
-        blocks = @code_lines.map.with_index do |line, i|
-          next if line.empty?
-
-          node = BlockNode.new(lines: line)
-        end
-      end
-
       attr_reader :blocks, :queue
 
       include Enumerable
@@ -587,6 +579,14 @@ module DeadEnd
 
       def peek
         @queue.peek
+      end
+    end
+
+    class Parents
+      def initialize
+        @left = []
+        @equal = []
+        @right = []
       end
     end
 
@@ -692,6 +692,10 @@ module DeadEnd
         return nil if below.nil?
         below.eat_above
       end
+
+      def without(other)
+        BlockNode.new(lines: self.lines - other.lines)
+      end
     end
 
     class BlockSearch
@@ -721,9 +725,9 @@ module DeadEnd
         while block = document.pop
           case block.leaning
           when :left
-            document.eat_below(block)
+            document.eat_below(block) # if block.below&.leaning != :left
           when :right
-            document.eat_above(block)
+            document.eat_above(block) # if block.above&.leaning != :right
           when :equal
             if block.above&.balanced?
               document.eat_above(block)
@@ -747,6 +751,68 @@ module DeadEnd
       def to_s
         @document.to_s
       end
+    end
+
+    it "smaller" do
+      source = <<~'EOM'
+      class Animal
+        class Cow
+          def speak
+            puts "moo"
+          end
+
+          def milk
+            puts 'milk'
+
+          def eat
+            puts "munch"
+          end
+        end
+      end
+      EOM
+
+      code_lines  = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      search = BlockSearch.new(document: document)
+
+      search.call
+      blocks = document.map {|b| b}
+      block = blocks[0]
+      # puts blocks.length
+
+      # puts block.leaning # leans left
+      # puts block.parents.last.leaning # leans right, go first
+      # puts block.parents.last.parents.first.leaning # Leans left, go last
+      # puts block.parents.last.parents.first.parents.last.leaning # equal, too far ... not the problem
+
+      frontier = []
+      frontier << block
+      count = 0
+      out = nil
+      while node = frontier.pop
+        if !node.valid?
+          parent = case node.leaning
+          when :left
+            node.parents[1]
+          when :right
+            node.parents[0]
+          else
+            raise "Blerg unknown lean #{node.leaning}"
+          end
+
+          next unless parent
+          if parent.balanced?
+            out = node
+            break
+          else
+            frontier << parent
+          end
+        end
+      end
+      expect(out.to_s).to eq(<<~'EOM'.indent(4))
+        def milk
+          puts 'milk'
+      EOM
     end
 
     it "overdrive" do
@@ -776,13 +842,38 @@ module DeadEnd
 
       search.call
       blocks = document.map {|b| b}
-      # puts blocks.length
-      block = blocks.last
-      puts block.parents.length
-      expect(block.parents.map(&:leaning)).to eq([:left, :right])
-      puts block.parents.last.parents.first.valid?
-      puts block.parents.last.parents.last
-      puts block.parents.last.parents.last.parents.first.valid?
+      puts blocks.length
+      block = blocks[1]
+
+      puts block.leaning # :left, go last
+      puts block.parents[1].leaning # :left, go last
+
+      frontier = []
+      frontier << block
+      count = 0
+      while node = frontier.pop
+        if !node.valid?
+          parent = case node.leaning
+          when :left
+            # puts "left"
+            node.parents[1]
+          when :right
+            # puts "right"
+            node.parents[0]
+          else
+            raise "Blerg unknown lean #{node.leaning}"
+          end
+
+          next unless parent
+          if parent.balanced?
+            # puts "yolo"
+            # puts node
+            break
+          else
+            frontier << parent
+          end
+        end
+      end
     end
 
     it "search builds" do
