@@ -4,12 +4,39 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe BlockExpand do
+    it "doesn't stop when invisible" do
+      source = <<~'EOM'
+        class OH
+          def hello
+            print "hi"
+
+          def hai
+            print "lol"
+          end
+        end
+      EOM
+      code_lines = CodeLine.from_source(source)
+
+      code_lines[2..6].each(&:mark_invisible)
+      expect(code_lines.join).to eq(<<~'EOM')
+        class OH
+          def hello
+        end
+      EOM
+
+      block = CodeBlock.new(lines: code_lines[2..3])
+      expansion = BlockExpand.new(code_lines: code_lines)
+      block = expansion.call(block)
+
+      expect(block.starts_at..block.ends_at).to eq(2..7)
+    end
+
     it "captures multiple empty and hidden lines" do
       source_string = <<~EOM
         def foo
           Foo.call
 
-
+            print "haha"
             puts "lol"
 
             # hidden
@@ -27,34 +54,19 @@ module DeadEnd
 
       expect(block.to_s).to eq(<<~EOM.indent(4))
 
-
+        print "haha"
         puts "lol"
-
-      EOM
-    end
-
-    it "captures multiple empty lines" do
-      source_string = <<~EOM
-        def foo
-          Foo.call
-
-
-            puts "lol"
-
-          end
-        end
       EOM
 
-      code_lines = code_line_array(source_string)
-      block = CodeBlock.new(lines: [code_lines[3]])
-      expansion = BlockExpand.new(code_lines: code_lines)
       block = expansion.call(block)
 
-      expect(block.to_s).to eq(<<~EOM.indent(4))
+      expect(block.to_s).to eq(<<~EOM.indent(2))
+        Foo.call
 
+          print "haha"
+          puts "lol"
 
-        puts "lol"
-
+        end
       EOM
     end
 

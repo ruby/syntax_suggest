@@ -111,7 +111,7 @@ module DeadEnd
       end
     end
 
-    it "def with missing end" do
+    it "def with missing end (add phase)" do
       search = CodeSearch.new(<<~EOM)
         class OH
           def hello
@@ -124,7 +124,6 @@ module DeadEnd
       search.call
 
       expect(search.invalid_blocks.join.strip).to eq("def hello")
-
       search = CodeSearch.new(<<~EOM)
         class OH
           def hello
@@ -149,6 +148,22 @@ module DeadEnd
       expect(search.invalid_blocks.join).to eq(<<~EOM.indent(2))
         def hello
       EOM
+    end
+
+    it "def with missing end (expand phase)" do
+      search = CodeSearch.new(<<~EOM)
+        class OH
+          def hello
+            print "hi"
+
+          def hai
+            print "lol"
+          end
+        end
+      EOM
+      search.call
+
+      expect(search.invalid_blocks.join.strip).to eq("def hello")
     end
 
     describe "real world cases" do
