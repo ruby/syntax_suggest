@@ -120,7 +120,8 @@ module DeadEnd
 
       record(block: block, name: "before-expand")
 
-      if block.invalid?
+      if block.invalid? &&
+        (expand = BalanceHeuristicExpand.new(code_lines: code_lines, block: block))&& expand.balanced?
         # When a block is invalid the BalanceHeuristicExpand class tends to make it valid
         # again. This property reduces the number of Ripper calls to
         # `frontier.holds_all_syntax_errors?`.
@@ -128,7 +129,6 @@ module DeadEnd
         # This class tends to produce larger expansions meaning fewer
         # total expansion steps.
         blocks = []
-        expand = BalanceHeuristicExpand.new(code_lines: code_lines, block: block)
 
         # Expand magic number 3 times
         #
