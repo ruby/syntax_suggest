@@ -29,7 +29,6 @@ module DeadEnd
              6  class SyntaxTree < Ripper
            170    def self.parse(source)
            174    end
-           176    private
         ❯  754    def on_args_add(arguments, argument)
         ❯  776    class ArgsAddBlock
         ❯  810    end
@@ -119,7 +118,6 @@ module DeadEnd
            7      REQUIRED_BY = {}
            9      attr_reader   :name
           10      attr_writer   :cost
-          11      attr_accessor :parent
         ❯ 13      def initialize(name)
         ❯ 18      def self.reset!
         ❯ 25      end

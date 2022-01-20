@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Fixed internal class AroundBlockScan, minor changes in outputs (https://github.com/zombocom/dead_end/pull/131)
+
 ## 3.1.1
 
 - Fix case where Ripper lexing identified incorrect code as a keyword (https://github.com/zombocom/dead_end/pull/122)

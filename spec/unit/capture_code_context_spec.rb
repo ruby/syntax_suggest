@@ -4,6 +4,35 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CaptureCodeContext do
+    it "capture_before_after_kws" do
+      source = <<~'EOM'
+        def sit
+        end
+
+        def bark
+
+        def eat
+        end
+      EOM
+
+      code_lines = CodeLine.from_source(source)
+
+      block = CodeBlock.new(lines: code_lines[0])
+
+      display = CaptureCodeContext.new(
+        blocks: [block],
+        code_lines: code_lines
+      )
+      lines = display.call
+      expect(lines.join).to eq(<<~EOM)
+        def sit
+        end
+        def bark
+        def eat
+        end
+      EOM
+    end
+
     it "handles ambiguous end" do
       source = <<~'EOM'
         def call          # 1
@@ -94,7 +123,6 @@ module DeadEnd
       expect(lines.join).to eq(<<~EOM)
         class Rexe
           VERSION = '1.5.1'
-          PROJECT_URL = 'https://github.com/keithrbennett/rexe'
           class Lookups
             def format_requires
           end
