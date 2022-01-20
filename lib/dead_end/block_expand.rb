@@ -56,7 +56,7 @@ module DeadEnd
         .skip(:hidden?)
         .stop_after_kw
         .scan_neighbors
-        .scan_while { |line| line.empty? || line.hidden? }
+        .scan_while { |line| line.empty? } # Slurp up empties
         .code_block
 
       if block.lines == expanded.lines
