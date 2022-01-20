@@ -87,7 +87,7 @@ module DeadEnd
       end_count = 0
       index = after_lines.take_while do |line|
         next false if stop_next
-        next true if @skip_hidden &&  line.hidden?
+        next true if @skip_hidden && line.hidden?
         next true if @skip_empty && line.empty?
 
         kw_count += 1 if line.is_kw?
@@ -198,7 +198,11 @@ module DeadEnd
     end
 
     def code_block
-      CodeBlock.new(lines: @code_lines[before_index..after_index])
+      CodeBlock.new(lines: lines)
+    end
+
+    def lines
+      @code_lines[before_index..after_index]
     end
 
     def before_index
