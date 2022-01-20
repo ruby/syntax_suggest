@@ -54,7 +54,7 @@ module DeadEnd
 
       kw_count = 0
       end_count = 0
-      @before_index = before_lines.reverse_each.take_while do |line|
+      index = before_lines.reverse_each.take_while do |line|
         next false if stop_next
         next true if @skip_array.detect { |meth| line.send(meth) }
 
@@ -67,10 +67,14 @@ module DeadEnd
         block.call(line)
       end.last&.index
 
+      if index && index < before_index
+        @before_index = index
+      end
+
       stop_next = false
       kw_count = 0
       end_count = 0
-      @after_index = after_lines.take_while do |line|
+      index = after_lines.take_while do |line|
         next false if stop_next
         next true if @skip_array.detect { |meth| line.send(meth) }
 
@@ -82,6 +86,10 @@ module DeadEnd
 
         block.call(line)
       end.last&.index
+
+      if index && index > after_index
+        @after_index = index
+      end
       self
     end
 
@@ -190,11 +198,7 @@ module DeadEnd
     end
 
     private def before_lines
-      @code_lines[0...@orig_before_index] || []
-    end
-
-    private def before_lines
-      now = @code_lines[0...before_index] || []
+      @code_lines[0...before_index] || []
     end
 
     private def after_lines

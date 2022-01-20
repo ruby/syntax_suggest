@@ -4,6 +4,23 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe AroundBlockScan do
+    it "continues scan from last location even if scan is false" do
+      source = <<~'EOM'
+        print 'omg'
+        print 'lol'
+        print 'haha'
+      EOM
+      code_lines = CodeLine.from_source(source)
+      block = CodeBlock.new(lines: code_lines[1])
+      expand = AroundBlockScan.new(code_lines: code_lines, block: block)
+        .scan_neighbors
+
+      expect(expand.code_block.to_s).to eq(source)
+      expand.scan_while { |line| false }
+
+      expect(expand.code_block.to_s).to eq(source)
+    end
+
     it "scan_adjacent_indent works on first or last line" do
       source_string = <<~EOM
         def foo
