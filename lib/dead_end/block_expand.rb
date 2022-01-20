@@ -36,7 +36,7 @@ module DeadEnd
     end
 
     def call(block)
-      if (next_block = expand_neighbors(block, grab_empty: true))
+      if (next_block = expand_neighbors(block))
         return next_block
       end
 
@@ -51,24 +51,18 @@ module DeadEnd
         .code_block
     end
 
-    def expand_neighbors(block, grab_empty: true)
-      scan = AroundBlockScan.new(code_lines: @code_lines, block: block)
+    def expand_neighbors(block)
+      expanded = AroundBlockScan.new(code_lines: @code_lines, block: block)
         .skip(:hidden?)
         .stop_after_kw
         .scan_neighbors
+        .scan_while { |line| line.empty? || line.hidden? }
+        .code_block
 
-      # Slurp up empties
-      if grab_empty
-        scan = AroundBlockScan.new(code_lines: @code_lines, block: scan.code_block)
-          .scan_while { |line| line.empty? || line.hidden? }
-      end
-
-      new_block = scan.code_block
-
-      if block.lines == new_block.lines
+      if block.lines == expanded.lines
         nil
       else
-        new_block
+        expanded
       end
     end
   end
