@@ -37,10 +37,20 @@ module DeadEnd
       @after_array = []
       @before_array = []
       @stop_after_kw = false
+
+      @skip_hidden = false
+      @skip_empty = false
     end
 
     def skip(name)
-      @skip_array << name
+      case name
+      when :hidden?
+        @skip_hidden = true
+      when :empty?
+        @skip_empty = true
+      else
+        raise "Unsupported skip #{name}"
+      end
       self
     end
 
@@ -49,14 +59,15 @@ module DeadEnd
       self
     end
 
-    def scan_while(&block)
+    def scan_while
       stop_next = false
 
       kw_count = 0
       end_count = 0
       index = before_lines.reverse_each.take_while do |line|
         next false if stop_next
-        next true if @skip_array.detect { |meth| line.send(meth) }
+        next true if @skip_hidden && line.hidden?
+        next true if @skip_empty && line.empty?
 
         kw_count += 1 if line.is_kw?
         end_count += 1 if line.is_end?
@@ -64,7 +75,7 @@ module DeadEnd
           stop_next = true
         end
 
-        block.call(line)
+        yield line
       end.last&.index
 
       if index && index < before_index
@@ -76,7 +87,8 @@ module DeadEnd
       end_count = 0
       index = after_lines.take_while do |line|
         next false if stop_next
-        next true if @skip_array.detect { |meth| line.send(meth) }
+        next true if @skip_hidden &&  line.hidden?
+        next true if @skip_empty && line.empty?
 
         kw_count += 1 if line.is_kw?
         end_count += 1 if line.is_end?
@@ -84,7 +96,7 @@ module DeadEnd
           stop_next = true
         end
 
-        block.call(line)
+        yield line
       end.last&.index
 
       if index && index > after_index
