@@ -65,19 +65,13 @@ module DeadEnd
 
     def scan_current_indent
       inners = []
-      while !scan.captured_current_indent? && scan.meaningless_capture?
-        scan
-          .scan_while { |line| line.not_empty? && line.indent >= @indent }
-          .scan_while { |line| line.empty? } # Slurp up empties
-      end
-      inners << scan.lines
+      while inners.last != scan.lines
 
-      while !scan.captured_current_indent?
         scan
           .scan_while { |line| line.not_empty? && line.indent >= @indent }
           .scan_while { |line| line.empty? } # Slurp up empties
+        inners << scan.lines
       end
-      inners << scan.lines
       inners
     end
 
