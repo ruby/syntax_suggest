@@ -171,12 +171,15 @@ module DeadEnd
     end
 
     def next_up
+      return nil if before_index == 0
       @code_lines[before_index.pred]
     end
+    alias :above :next_up
 
     def next_down
       @code_lines[after_index.next]
     end
+    alias :below next_down
 
     def scan_adjacent_indent
       before_after_indent = []
@@ -199,6 +202,25 @@ module DeadEnd
 
     def code_block
       CodeBlock.new(lines: lines)
+    end
+
+    def captured_current_indent?
+      if line = next_up
+        return false if line.empty? || line.hidden? || line.indent >= @orig_indent
+      end
+      if line = next_down
+        return false if line.empty? || line.hidden? || line.indent >= @orig_indent
+      end
+      true
+    end
+
+    EMPTY = [].freeze
+    def line_diff
+      if before_index == @orig_before_index && after_index == @orig_after_index
+        EMPTY
+      else
+        lines - @code_lines[@orig_before_index..@orig_after_index]
+      end
     end
 
     def lines

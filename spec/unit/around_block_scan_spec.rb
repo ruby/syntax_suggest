@@ -4,6 +4,22 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe AroundBlockScan do
+
+    it "knows if current indent is captured" do
+      source = <<~'EOM'
+        print 'omg'
+        print 'lol'
+        print 'haha'
+      EOM
+      code_lines = CodeLine.from_source(source)
+      block = CodeBlock.new(lines: code_lines[1])
+      expand = AroundBlockScan.new(code_lines: code_lines, block: block)
+      expect(expand.captured_current_indent?).to be_falsey
+
+      expand.scan_neighbors
+      expect(expand.captured_current_indent?).to be_truthy
+    end
+
     it "continues scan from last location even if scan is false" do
       source = <<~'EOM'
         print 'omg'
