@@ -192,12 +192,16 @@ module DeadEnd
     end
     alias :below next_down
 
-    def scan_adjacent_indent
+    def next_indent
       before_after_indent = []
       before_after_indent << (next_up&.indent || 0)
       before_after_indent << (next_down&.indent || 0)
 
-      indent = before_after_indent.min
+      before_after_indent.min
+    end
+
+    def scan_adjacent_indent
+      indent = next_indent
       scan_while { |line| line.not_empty? && line.indent >= indent }
 
       self

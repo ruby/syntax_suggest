@@ -52,12 +52,16 @@ module DeadEnd
       @lines.all?(&:hidden?)
     end
 
+    def priority
+      current_indent
+    end
+
     # This is used for frontier ordering, we are searching from
     # the largest indentation to the smallest. This allows us to
     # populate an array with multiple code blocks then call `sort!`
     # on it without having to specify the sorting criteria
     def <=>(other)
-      out = current_indent <=> other.current_indent
+      out = priority <=> other.priority
       return out if out != 0
 
       # Stable sort
@@ -97,4 +101,16 @@ module DeadEnd
       @lines.join
     end
   end
+
+  class CodePriorityBlock < CodeBlock
+    def initialize(lines: [], next_indent: )
+      super(lines: lines)
+      @priority = next_indent
+    end
+
+    def priority
+      @priority
+    end
+  end
+
 end

@@ -47,10 +47,15 @@ module DeadEnd
 
       # Expand inside
       if !scan.captured_current_indent? || !scan.line_diff.empty? #.all? {|line| line.empty? || line.hidden? }
-        greedy = CodeBlock.new(lines: inners.last)
+        next_indent = if scan.captured_current_indent?
+          next_indent = scan.next_indent
+        else
+          next_indent = @indent
+        end
+        greedy = CodePriorityBlock.new(lines: inners.last, next_indent: next_indent)
         return greedy if inners.last == inners.first
 
-        safe = CodeBlock.new(lines: inners.first)
+        safe = CodePriorityBlock.new(lines: inners.first, next_indent: next_indent)
         if greedy.valid?
           return greedy
         else

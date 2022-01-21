@@ -76,6 +76,12 @@ module DeadEnd
       @check_next = false
 
       if check_next
+        # if check_next.is_a?(CodeBlock)
+        #   puts "=========="
+        #   puts check_next
+        #   puts "--"
+        #   puts ExpandMe.new(code_lines: @code_lines, block: check_next).call
+        # end
         false
       else
         true
@@ -112,7 +118,7 @@ module DeadEnd
       return false if @queue.empty?
       return true if @unvisited.empty?
 
-      frontier_indent = @queue.peek.current_indent
+      frontier_indent = @queue.peek.priority
       unvisited_indent = next_indent_line.indent
 
       if ENV["DEBUG"]
@@ -150,7 +156,7 @@ module DeadEnd
 
       @queue.push(block)
 
-      @check_next = true if block.invalid?
+      @check_next = block if block.invalid?
 
       self
     end

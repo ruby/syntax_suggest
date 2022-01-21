@@ -4,8 +4,70 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeSearch do
+    it "" do
+
+      source = <<~'EOM'
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+            # If this is the first argument being passed into the list of arguments,
+            # then we're going to use the bounds of the argument to override the
+            # parent node's location since this will be more accurate.
+            Args.new(parts: [argument], location: argument.location)
+          else
+            # Otherwise we're going to update the existing list with the argument
+            # being added as well as the new end bounds.
+            Args.new(
+              parts: arguments.parts << argument,
+              location: arguments.location.to(argument.location)
+            )
+          end
+        end
+      EOM
+      search = CodeSearch.new(source)
+      search.tick # Add
+      search.tick # Expand
+
+      expect(search.code_lines.join).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+
+
+
+            Args.new(parts: [argument], location: argument.location)
+          else
+
+
+          end
+        end
+      EOM
+
+      search.tick # Expand to capture lower empty
+
+      expect(search.code_lines.join).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+
+
+
+            Args.new(parts: [argument], location: argument.location)
+          else
+          end
+        end
+      EOM
+
+      search.tick # Add other branch
+
+      expect(search.code_lines.join).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+          else
+          end
+        end
+      EOM
+    end
+
     it "handles mismatched |" do
-      source = <<~EOM
+      source = <<~'EOM'
         class Blerg
           Foo.call do |a
           end # one
