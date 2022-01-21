@@ -204,6 +204,10 @@ module DeadEnd
       CodeBlock.new(lines: lines)
     end
 
+    def meaningless_capture?
+      line_diff.all? { |line| line.empty? || line.hidden? }
+    end
+
     def captured_current_indent?
       if line = next_up
         return false if line.empty? || line.hidden? || line.indent >= @orig_indent

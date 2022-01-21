@@ -36,34 +36,26 @@ module DeadEnd
     end
 
     def call(block)
-      if (next_block = expand_neighbors(block))
-        return next_block
-      end
+      scan = scan_current_indent(block)
 
-      expand_indent(block)
+      if scan.captured_current_indent? && scan.line_diff.empty? #.all? {|line| line.empty? || line.hidden? }
+        scan.scan_adjacent_indent
+      end
+      scan.code_block
     end
 
-    def expand_indent(block)
-      AroundBlockScan.new(code_lines: @code_lines, block: block)
+    def scan_current_indent(block)
+      indent = block.current_indent
+      scan = AroundBlockScan.new(code_lines: @code_lines, block: block)
         .skip(:hidden?)
         .stop_after_kw
-        .scan_adjacent_indent
-        .code_block
-    end
 
-    def expand_neighbors(block)
-      expanded_lines = AroundBlockScan.new(code_lines: @code_lines, block: block)
-        .skip(:hidden?)
-        .stop_after_kw
-        .scan_neighbors
-        .scan_while { |line| line.empty? } # Slurp up empties
-        .lines
-
-      if block.lines == expanded_lines
-        nil
-      else
-        CodeBlock.new(lines: expanded_lines)
+      while !scan.captured_current_indent? && scan.meaningless_capture?
+        scan
+          .scan_while { |line| line.not_empty? && line.indent >= indent }
+          .scan_while { |line| line.empty? } # Slurp up empties
       end
+      scan
     end
 
     # Managable rspec errors

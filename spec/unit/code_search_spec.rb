@@ -297,6 +297,7 @@ module DeadEnd
           search.call
 
           expect(search.invalid_blocks.join).to eq(<<~EOM)
+
             Foo.call do
             end # one
             end # two
