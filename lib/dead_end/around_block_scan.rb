@@ -40,6 +40,7 @@ module DeadEnd
 
       @skip_hidden = false
       @skip_empty = false
+      @meaningful_capture = false
     end
 
     def skip(name)
@@ -75,7 +76,12 @@ module DeadEnd
           stop_next = true
         end
 
-        yield line
+        if yield line
+          @meaningful_capture = true if !line.hidden? && !line.empty?
+          true
+        else
+          false
+        end
       end.last&.index
 
       if index && index < before_index
@@ -96,7 +102,12 @@ module DeadEnd
           stop_next = true
         end
 
-        yield line
+        if yield line
+          @meaningful_capture = true if !line.hidden? && !line.empty?
+          true
+        else
+          false
+        end
       end.last&.index
 
       if index && index > after_index
@@ -205,7 +216,7 @@ module DeadEnd
     end
 
     def meaningless_capture?
-      line_diff.all? { |line| line.empty? || line.hidden? }
+      !@meaningful_capture
     end
 
     def captured_current_indent?
