@@ -115,7 +115,8 @@ module DeadEnd
 
       record(block: block, name: "before-expand")
 
-      block = @block_expand.call(block)
+      block = ExpandMe.new(code_lines: code_lines, block: block).call
+
       push(block, name: "expand")
     end
 

@@ -30,6 +30,63 @@ module DeadEnd
   #        puts "wow"
   #      end
   #
+  class ExpandMe
+    attr_reader :scan
+
+    def initialize(code_lines: , block: )
+      @block = block
+      @indent = block.current_indent
+      @code_lines = code_lines
+      @scan = AroundBlockScan.new(code_lines: code_lines, block: block)
+        .skip(:hidden?)
+        .stop_after_kw
+    end
+
+    def call
+      inners = scan_current_indent
+
+      # Expand inside
+      if !scan.captured_current_indent? || !scan.line_diff.empty? #.all? {|line| line.empty? || line.hidden? }
+        greedy = CodeBlock.new(lines: inners.last)
+        return greedy if inners.last == inners.first
+
+        safe = CodeBlock.new(lines: inners.first)
+        if greedy.valid?
+          return greedy
+        else
+          return safe
+        end
+      else # Expand outside
+        scan.scan_adjacent_indent
+        safe = scan.code_block
+        return safe
+      end
+    end
+
+    def scan_current_indent
+      inners = []
+      while !scan.captured_current_indent? && scan.meaningless_capture?
+        scan
+          .scan_while { |line| line.not_empty? && line.indent >= @indent }
+          .scan_while { |line| line.empty? } # Slurp up empties
+      end
+      inners << scan.lines
+
+      while !scan.captured_current_indent?
+        scan
+          .scan_while { |line| line.not_empty? && line.indent >= @indent }
+          .scan_while { |line| line.empty? } # Slurp up empties
+      end
+      inners << scan.lines
+      inners
+    end
+
+    # Managable rspec errors
+    def inspect
+      "#<DeadEnd::ExpandMe:0x0000123843lol >"
+    end
+  end
+
   class BlockExpand
     def initialize(code_lines:)
       @code_lines = code_lines
