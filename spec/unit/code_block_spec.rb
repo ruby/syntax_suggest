@@ -15,22 +15,22 @@ module DeadEnd
       code_lines = CodeLine.from_source(source)
 
       expect(
-        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[0]), code_lines)
+        CodeBlock.new(lines: code_lines[0]).next_indent(code_lines: code_lines)
       ).to eq(0)
       expect(
-        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[1]), code_lines)
+        CodeBlock.new(lines: code_lines[1]).next_indent(code_lines: code_lines)
       ).to eq(2)
       expect(
-        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[2]), code_lines)
+        CodeBlock.new(lines: code_lines[2]).next_indent(code_lines: code_lines)
       ).to eq(2)
       expect(
-        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[3]), code_lines)
+        CodeBlock.new(lines: code_lines[3]).next_indent(code_lines: code_lines)
       ).to eq(2)
       expect(
-        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[4]), code_lines)
+        CodeBlock.new(lines: code_lines[4]).next_indent(code_lines: code_lines)
       ).to eq(1)
       expect(
-        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[1..3]), code_lines)
+        CodeBlock.new(lines: code_lines[1..3]).next_indent(code_lines: code_lines)
       ).to eq(0)
     end
 

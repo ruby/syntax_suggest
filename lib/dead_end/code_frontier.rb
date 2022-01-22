@@ -76,6 +76,10 @@ module DeadEnd
       @check_next = false
 
       if check_next
+        # if check_next != true
+        #   puts "=============="
+        #   puts check_next
+        # end
         false
       else
         true
@@ -104,6 +108,10 @@ module DeadEnd
       @queue.pop
     end
 
+    def peek
+      @queue.peek
+    end
+
     def next_indent_line
       @unvisited.peek
     end
@@ -113,18 +121,36 @@ module DeadEnd
       return true if @unvisited.empty?
 
       frontier_indent = @queue.peek.current_indent
+      frontier_next_indent = @queue.peek.priority
+
       unvisited_indent = next_indent_line.indent
+      unvisited_next_indent = CodeBlock.next_indent(
+        starts_at: next_indent_line.number,
+        ends_at: next_indent_line.number,
+        current_indent: next_indent_line.indent,
+        code_lines: @code_lines
+      )
 
       if ENV["DEBUG"]
         puts "```"
         puts @queue.peek.to_s
         puts "```"
-        puts "  @frontier indent:  #{frontier_indent}"
-        puts "  @unvisited indent: #{unvisited_indent}"
+        puts "  @frontier next_indent:  #{frontier_next_indent}"
+        puts "  @unvisited next_indent: #{unvisited_next_indent}"
+        puts ""
+        puts "  @frontier indent:       #{frontier_indent}"
+        puts "  @unvisited indent:      #{unvisited_indent}"
       end
 
       # Expand all blocks before moving to unvisited lines
-      frontier_indent >= unvisited_indent
+      case frontier_next_indent <=> unvisited_next_indent
+      when 1
+        true
+      when 0
+        frontier_indent >= unvisited_indent
+      when -1 then
+        false
+      end
     end
 
     # Keeps track of what lines have been added to blocks and which are not yet
@@ -146,11 +172,12 @@ module DeadEnd
     # and that each code block's lines are removed from the indentation hash so we
     # don't re-evaluate the same line multiple times.
     def <<(block)
+      block.priority = block.next_indent(code_lines: @code_lines)
       @unvisited.visit_block(block)
 
       @queue.push(block)
 
-      @check_next = true if block.invalid?
+      @check_next = block if block.invalid?
 
       self
     end

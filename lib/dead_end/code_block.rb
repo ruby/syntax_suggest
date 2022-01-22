@@ -19,6 +19,7 @@ module DeadEnd
   class CodeBlock
     UNSET = Object.new.freeze
     attr_reader :lines, :starts_at, :ends_at
+    attr_accessor :priority
 
     def initialize(lines: [])
       @lines = Array(lines)
@@ -28,14 +29,14 @@ module DeadEnd
       @ends_at = @lines.last.number
     end
 
-    def self.next_indent(block, code_lines)
-      before = code_lines[block.starts_at - 2] if block.starts_at > 0
-      after = code_lines[block.ends_at]
+    def self.next_indent(starts_at: , ends_at: , current_indent: , code_lines: )
+      before = code_lines[starts_at - 2] if starts_at > 0
+      after = code_lines[ends_at]
 
-      return block.current_indent if before&.hidden? || after&.hidden?
-      return block.current_indent if before&.empty? || after&.empty?
-      return block.current_indent if before && before.indent >= block.current_indent
-      return block.current_indent if after && after.indent >= block.current_indent
+      return current_indent if before&.hidden? || after&.hidden?
+      return current_indent if before&.empty? || after&.empty?
+      return current_indent if before && before.indent >= current_indent
+      return current_indent if after && after.indent >= current_indent
 
       if before
         if after
@@ -51,9 +52,18 @@ module DeadEnd
         if after
           after.indent
         else # no before, no after
-          block.current_indent
+          current_indent
         end
       end
+    end
+
+    def next_indent(code_lines: )
+      CodeBlock.next_indent(
+        starts_at: self.starts_at,
+        ends_at: self.ends_at,
+        current_indent: self.current_indent,
+        code_lines: code_lines
+      )
     end
 
     def delete
@@ -85,10 +95,12 @@ module DeadEnd
     # populate an array with multiple code blocks then call `sort!`
     # on it without having to specify the sorting criteria
     def <=>(other)
+      out = priority <=> other.priority
+      return out if out != 0
+
       out = current_indent <=> other.current_indent
       return out if out != 0
 
-      # Stable sort
       starts_at <=> other.starts_at
     end
 

@@ -55,7 +55,6 @@ module DeadEnd
       expect(io.string).to_not include("def ruby_install_binstub_path")
       expect(io.string).to include(<<~'EOM')
         ❯ 1067    def add_yarn_binary
-        ❯ 1068      return [] if yarn_preinstalled?
         ❯ 1069  |
         ❯ 1075    end
       EOM

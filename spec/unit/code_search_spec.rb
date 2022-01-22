@@ -81,6 +81,59 @@ module DeadEnd
 
       expect(search.invalid_blocks.join).to eq(<<~'EOM')
         class Dog
+    it "comments code in an expected order" do
+      source = <<~'EOM'
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+
+            Args.new(parts: [argument], location: argument.location)
+          else
+
+            Args.new(
+              parts: arguments.parts << argument,
+              location: arguments.location.to(argument.location)
+            )
+          end
+        end
+      EOM
+      search = CodeSearch.new(source)
+      search.tick # Add 1
+      search.tick # Expand 1
+      expect(search.code_lines.join).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+
+            Args.new(parts: [argument], location: argument.location)
+          else
+
+          end
+        end
+      EOM
+
+      search.tick # Expand 2
+      expect(search.code_lines.join).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+
+            Args.new(parts: [argument], location: argument.location)
+          else
+          end
+        end
+      EOM
+
+      search.tick # Add 2
+      expect(search.code_lines.join).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+          else
+          end
+        end
+      EOM
+
+      search.tick # Expand
+      expect(search.code_lines.join).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+        end
       EOM
       expect(search.invalid_blocks.first.lines.length).to eq(4)
     end
@@ -322,6 +375,17 @@ module DeadEnd
             Foo.call
             end # two
           EOM
+
+          io = StringIO.new
+          display = DisplayInvalidBlocks.new(
+            io: io,
+            blocks: search.invalid_blocks,
+            terminal: false,
+            code_lines: search.code_lines
+          )
+          display.call
+          expect(io.string).to include("Syntax OK")
+
         end
 
         it "stacked ends 2" do

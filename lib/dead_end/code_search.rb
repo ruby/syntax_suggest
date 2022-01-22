@@ -119,16 +119,20 @@ module DeadEnd
       push(block, name: "expand")
     end
 
+    def tick
+      @tick += 1
+
+      if frontier.expand?
+        expand_existing
+      else
+        create_blocks_from_untracked_lines
+      end
+    end
+
     # Main search loop
     def call
       until frontier.holds_all_syntax_errors?
-        @tick += 1
-
-        if frontier.expand?
-          expand_existing
-        else
-          create_blocks_from_untracked_lines
-        end
+        tick
       end
 
       @invalid_blocks.concat(frontier.detect_invalid_blocks)
