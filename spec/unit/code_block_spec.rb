@@ -4,6 +4,36 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeBlock do
+    it "knows the next line" do
+      source = <<~'EOM'
+        def foo # 0
+          hello # 1
+          hi    # 2
+          how   # 3
+         end    # 4
+      EOM
+      code_lines = CodeLine.from_source(source)
+
+      expect(
+        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[0]), code_lines)
+      ).to eq(0)
+      expect(
+        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[1]), code_lines)
+      ).to eq(2)
+      expect(
+        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[2]), code_lines)
+      ).to eq(2)
+      expect(
+        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[3]), code_lines)
+      ).to eq(2)
+      expect(
+        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[4]), code_lines)
+      ).to eq(1)
+      expect(
+        CodeBlock.next_indent(CodeBlock.new(lines: code_lines[1..3]), code_lines)
+      ).to eq(0)
+    end
+
     it "can detect if it's valid or not" do
       code_lines = code_line_array(<<~EOM)
         def foo

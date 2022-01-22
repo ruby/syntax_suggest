@@ -28,6 +28,34 @@ module DeadEnd
       @ends_at = @lines.last.number
     end
 
+    def self.next_indent(block, code_lines)
+      before = code_lines[block.starts_at - 2] if block.starts_at > 0
+      after = code_lines[block.ends_at]
+
+      return block.current_indent if before&.hidden? || after&.hidden?
+      return block.current_indent if before&.empty? || after&.empty?
+      return block.current_indent if before && before.indent >= block.current_indent
+      return block.current_indent if after && after.indent >= block.current_indent
+
+      if before
+        if after
+          case before <=> after
+          when 1 then after.indent
+          when 0 then before.indent
+          when -1 then before.indent
+          end
+        else
+          before.indent
+        end
+      else
+        if after
+          after.indent
+        else # no before, no after
+          block.current_indent
+        end
+      end
+    end
+
     def delete
       @deleted = true
     end
