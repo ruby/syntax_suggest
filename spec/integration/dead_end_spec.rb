@@ -146,5 +146,66 @@ module DeadEnd
           551  end
       EOM
     end
+
+    it "rexe" do
+      lines = fixtures_dir.join("rexe.rb.txt").read.lines
+      lines.delete_at(148 - 1)
+      source = lines.join
+
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source
+      )
+      out = io.string
+      expect(out).to include(<<~EOM)
+           16  class Rexe
+           18    VERSION = '1.5.1'
+        ❯  77    class Lookups
+        ❯ 140      def format_requires
+        ❯ 148    end
+          551  end
+      EOM
+    end
+
+    it "ambiguous end" do
+      source = <<~'EOM'
+        def call          # 0
+            print "lol"   # 1
+          end # one       # 2
+        end # two         # 3
+      EOM
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source
+      )
+      out = io.string
+      expect(out).to include(<<~EOM)
+        ❯ 1  def call          # 0
+        ❯ 3    end # one       # 2
+        ❯ 4  end # two         # 3
+      EOM
+    end
+
+    it "simple regression" do
+      source = <<~'EOM'
+        class Dog
+          def bark
+            puts "woof"
+        end
+      EOM
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source
+      )
+      out = io.string
+      expect(out).to include(<<~EOM)
+        ❯ 1  class Dog
+        ❯ 2    def bark
+        ❯ 4  end
+      EOM
+    end
   end
 end

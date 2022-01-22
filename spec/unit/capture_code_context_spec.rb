@@ -15,8 +15,7 @@ module DeadEnd
         end
       EOM
 
-      code_lines = CodeLine.from_source(source)
-
+      code_lines = CleanDocument.new(source: source).call.lines
       block = CodeBlock.new(lines: code_lines[0])
 
       display = CaptureCodeContext.new(
@@ -24,7 +23,7 @@ module DeadEnd
         code_lines: code_lines
       )
       lines = display.call
-      expect(lines.join).to eq(<<~EOM)
+      expect(lines.join).to eq(<<~'EOM')
         def sit
         end
         def bark
@@ -35,73 +34,28 @@ module DeadEnd
 
     it "handles ambiguous end" do
       source = <<~'EOM'
-        def call          # 1
-            puts "lol"    # 2
-          end # one       # 3
-        end # two         # 4
+        def call          # 0
+            print "lol"   # 1
+          end # one       # 2
+        end # two         # 3
       EOM
 
-      search = CodeSearch.new(source)
-      search.call
+      code_lines = CleanDocument.new(source: source).call.lines
+      code_lines[0..2].each(&:mark_invisible)
+      block = CodeBlock.new(lines: code_lines)
 
       display = CaptureCodeContext.new(
-        blocks: search.invalid_blocks,
-        code_lines: search.code_lines
+        blocks: [block],
+        code_lines: code_lines
       )
       lines = display.call
 
       lines = lines.sort.map(&:original)
 
-      expect(lines.join).to eq(<<~EOM)
-        def call          # 1
-          end # one       # 3
-        end # two         # 4
-      EOM
-    end
-
-    it "finds internal end associated with missing do" do
-      source = <<~'EOM'
-        def call
-          trydo
-
-            @options = CommandLineParser.new.parse
-
-            options.requires.each { |r| require!(r) }
-            load_global_config_if_exists
-            options.loads.each { |file| load(file) }
-
-            @user_source_code = ARGV.join(' ')
-            @user_source_code = 'self' if @user_source_code == ''
-
-            @callable = create_callable
-
-            init_rexe_context
-            init_parser_and_formatters
-
-            # This is where the user's source code will be executed; the action will in turn call `execute`.
-            lookup_action(options.input_mode).call unless options.noop
-
-            output_log_entry
-          end # one
-        end # two
-      EOM
-
-      search = CodeSearch.new(source)
-      search.call
-
-      display = CaptureCodeContext.new(
-        blocks: search.invalid_blocks,
-        code_lines: search.code_lines
-      )
-      lines = display.call
-
-      lines = lines.sort.map(&:original)
-
-      expect(lines.join).to eq(<<~EOM)
-        def call
-          trydo
-          end # one
-        end # two
+      expect(lines.join).to eq(<<~'EOM')
+        def call          # 0
+          end # one       # 2
+        end # two         # 3
       EOM
     end
 
@@ -110,22 +64,24 @@ module DeadEnd
       lines.delete_at(148 - 1)
       source = lines.join
 
-      search = CodeSearch.new(source)
-      search.call
+      code_lines = CleanDocument.new(source: source).call.lines
+
+      code_lines[0..75].each(&:mark_invisible)
+      code_lines[77..-1].each(&:mark_invisible)
+      expect(code_lines.join.strip).to eq("class Lookups")
+
+      block = CodeBlock.new(lines: code_lines[76..149])
 
       display = CaptureCodeContext.new(
-        blocks: search.invalid_blocks,
-        code_lines: search.code_lines
+        blocks: [block],
+        code_lines: code_lines
       )
       lines = display.call
 
       lines = lines.sort.map(&:original)
-      expect(lines.join).to eq(<<~EOM)
-        class Rexe
-          VERSION = '1.5.1'
-          class Lookups
-            def format_requires
-          end
+      expect(lines.join).to include(<<~'EOM'.indent(2))
+        class Lookups
+          def format_requires
         end
       EOM
     end
@@ -137,16 +93,19 @@ module DeadEnd
             puts "woof"
         end
       EOM
-      search = CodeSearch.new(source)
-      search.call
 
-      expect(search.invalid_blocks.join.strip).to eq("class Dog")
+      code_lines = CleanDocument.new(source: source).call.lines
+      block = CodeBlock.new(lines: code_lines)
+      code_lines[1..-1].each(&:mark_invisible)
+
+      expect(block.to_s.strip).to eq("class Dog")
+
       display = CaptureCodeContext.new(
-        blocks: search.invalid_blocks,
-        code_lines: search.code_lines
+        blocks: [block],
+        code_lines: code_lines
       )
       lines = display.call.sort.map(&:original)
-      expect(lines.join).to eq(<<~EOM)
+      expect(lines.join).to eq(<<~'EOM')
         class Dog
           def bark
         end
@@ -154,7 +113,7 @@ module DeadEnd
     end
 
     it "captures surrounding context on falling indent" do
-      syntax_string = <<~EOM
+      source = <<~'EOM'
         class Blerg
         end
 
@@ -168,18 +127,17 @@ module DeadEnd
         class Zerg
         end
       EOM
+      code_lines = CleanDocument.new(source: source).call.lines
+      block = CodeBlock.new(lines: code_lines[6])
 
-      search = CodeSearch.new(syntax_string)
-      search.call
-
-      expect(search.invalid_blocks.join.strip).to eq('it "foo" do')
+      expect(block.to_s.strip).to eq('it "foo" do')
 
       display = CaptureCodeContext.new(
-        blocks: search.invalid_blocks,
-        code_lines: search.code_lines
+        blocks: [block],
+        code_lines: code_lines
       )
       lines = display.call.sort.map(&:original)
-      expect(lines.join).to eq(<<~EOM)
+      expect(lines.join).to eq(<<~'EOM')
         class OH
           def hello
             it "foo" do
@@ -189,7 +147,7 @@ module DeadEnd
     end
 
     it "captures surrounding context on same indent" do
-      syntax_string = <<~EOM
+      source = <<~'EOM'
         class Blerg
         end
         class OH
@@ -200,7 +158,6 @@ module DeadEnd
           def lol
           end
 
-            puts "here"
           end # here
 
           def haha
@@ -214,26 +171,31 @@ module DeadEnd
         end
       EOM
 
-      search = CodeSearch.new(syntax_string)
-      search.call
+      code_lines = CleanDocument.new(source: source).call.lines
+      block = CodeBlock.new(lines: code_lines[7..10])
+      expect(block.to_s).to eq(<<~'EOM'.indent(2))
+        def lol
+        end
+
+        end # here
+      EOM
 
       code_context = CaptureCodeContext.new(
-        blocks: search.invalid_blocks,
-        code_lines: search.code_lines
+        blocks: [block],
+        code_lines: code_lines
       )
 
       lines = code_context.call
-
       out = DisplayCodeWithLineNumbers.new(
         lines: lines
       ).call
 
-      expect(out).to eq(<<~EOM.indent(2))
+      expect(out).to eq(<<~'EOM'.indent(2))
          3  class OH
          8    def lol
          9    end
-        12    end # here
-        19  end
+        11    end # here
+        18  end
       EOM
     end
   end

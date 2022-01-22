@@ -4,6 +4,55 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe CodeSearch do
+    it "rexe regression" do
+      lines = fixtures_dir.join("rexe.rb.txt").read.lines
+      lines.delete_at(148 - 1)
+      source = lines.join
+
+      search = CodeSearch.new(source)
+      search.call
+
+      expect(search.invalid_blocks.join.strip).to eq(<<~'EOM'.strip)
+        class Lookups
+      EOM
+    end
+
+    it "squished do regression" do
+      source = <<~'EOM'
+        def call
+          trydo
+
+            @options = CommandLineParser.new.parse
+
+            options.requires.each { |r| require!(r) }
+            load_global_config_if_exists
+            options.loads.each { |file| load(file) }
+
+            @user_source_code = ARGV.join(' ')
+            @user_source_code = 'self' if @user_source_code == ''
+
+            @callable = create_callable
+
+            init_rexe_context
+            init_parser_and_formatters
+
+            # This is where the user's source code will be executed; the action will in turn call `execute`.
+            lookup_action(options.input_mode).call unless options.noop
+
+            output_log_entry
+          end # one
+        end # two
+      EOM
+
+      search = CodeSearch.new(source)
+      search.call
+
+      expect(search.invalid_blocks.join).to eq(<<~'EOM'.indent(2))
+        trydo
+        end # one
+      EOM
+    end
+
     it "regression test ambiguous end" do
       source = <<~'EOM'
         def call          # 0
