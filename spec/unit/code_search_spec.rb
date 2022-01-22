@@ -81,6 +81,10 @@ module DeadEnd
 
       expect(search.invalid_blocks.join).to eq(<<~'EOM')
         class Dog
+      EOM
+      expect(search.invalid_blocks.first.lines.length).to eq(4)
+    end
+
     it "comments code in an expected order" do
       source = <<~'EOM'
         def on_args_add(arguments, argument)
@@ -375,17 +379,6 @@ module DeadEnd
             Foo.call
             end # two
           EOM
-
-          io = StringIO.new
-          display = DisplayInvalidBlocks.new(
-            io: io,
-            blocks: search.invalid_blocks,
-            terminal: false,
-            code_lines: search.code_lines
-          )
-          display.call
-          expect(io.string).to include("Syntax OK")
-
         end
 
         it "stacked ends 2" do
@@ -403,11 +396,10 @@ module DeadEnd
           EOM
           search.call
 
-          expect(search.invalid_blocks.join).to eq(<<~'EOM')
+          expect(search.invalid_blocks.join.strip).to eq(<<~'EOM'.strip)
             Foo.call do
             end # one
             end # two
-
           EOM
         end
 

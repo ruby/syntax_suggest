@@ -123,13 +123,11 @@ module DeadEnd
       frontier_indent = @queue.peek.current_indent
       frontier_next_indent = @queue.peek.priority
 
+      scan = AroundBlockScan.new(code_lines: @code_lines, block: CodeBlock.new(lines: next_indent_line))
+        .scan_while { |line| line.empty? || line.hidden? }
+
       unvisited_indent = next_indent_line.indent
-      unvisited_next_indent = CodeBlock.next_indent(
-        starts_at: next_indent_line.number,
-        ends_at: next_indent_line.number,
-        current_indent: next_indent_line.indent,
-        code_lines: @code_lines
-      )
+      unvisited_next_indent = scan.next_indent
 
       if ENV["DEBUG"]
         puts "```"
@@ -147,10 +145,14 @@ module DeadEnd
       when 1
         true
       when 0
-        frontier_indent >= unvisited_indent
+        frontier_indent > unvisited_indent
       when -1 then
         false
       end
+    end
+
+    def inspect
+      "#<DeadEnd::CodeFrontier:0x000000010feclol >"
     end
 
     # Keeps track of what lines have been added to blocks and which are not yet

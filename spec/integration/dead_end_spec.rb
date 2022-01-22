@@ -138,11 +138,15 @@ module DeadEnd
       debug_display(out)
 
       expect(out).to include(<<~EOM)
-           16  class Rexe
-        ❯  77    class Lookups
-        ❯  78      def input_modes
-        ❯ 148    end
-          551  end
+         16  class Rexe
+         40    class Options < Struct.new(
+         71    end
+      ❯  77    class Lookups
+      ❯  78      def input_modes
+      ❯ 148    end
+        152    class CommandLineParser
+        418    end
+        551  end
       EOM
     end
 

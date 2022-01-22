@@ -171,11 +171,22 @@ module DeadEnd
     end
 
     def next_up
-      @code_lines[before_index.pred]
+      @code_lines[before_index.pred] if before_index > 0
     end
+    alias :above :next_up
 
     def next_down
       @code_lines[after_index.next]
+    end
+    alias :below :next_down
+
+    def next_indent
+      CodeBlock.next_indent(
+        starts_at: before_index + 1,
+        ends_at: after_index + 1,
+        code_lines: @code_lines,
+        current_indent: @orig_indent
+      )
     end
 
     def scan_adjacent_indent
