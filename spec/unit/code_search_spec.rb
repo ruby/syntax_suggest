@@ -139,7 +139,6 @@ module DeadEnd
         def on_args_add(arguments, argument)
         end
       EOM
-      expect(search.invalid_blocks.first.lines.length).to eq(4)
     end
 
     it "handles mismatched |" do

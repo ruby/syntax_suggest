@@ -29,7 +29,7 @@ module DeadEnd
       @ends_at = @lines.last.number
     end
 
-    def self.next_indent(starts_at: , ends_at: , current_indent: , code_lines: )
+    def self.next_indent(starts_at:, ends_at:, current_indent:, code_lines:)
       before = code_lines[starts_at - 2] if starts_at > 0
       after = code_lines[ends_at]
 
@@ -48,20 +48,18 @@ module DeadEnd
         else
           before.indent
         end
-      else
-        if after
-          after.indent
-        else # no before, no after
-          current_indent
-        end
+      elsif after
+        after.indent
+      else # no before, no after
+        current_indent
       end
     end
 
-    def next_indent(code_lines: )
+    def next_indent(code_lines:)
       CodeBlock.next_indent(
-        starts_at: self.starts_at,
-        ends_at: self.ends_at,
-        current_indent: self.current_indent,
+        starts_at: starts_at,
+        ends_at: ends_at,
+        current_indent: current_indent,
         code_lines: code_lines
       )
     end

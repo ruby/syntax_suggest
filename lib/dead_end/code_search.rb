@@ -101,9 +101,13 @@ module DeadEnd
       max_indent = frontier.next_indent_line&.indent
 
       while (line = frontier.next_indent_line) && (line.indent == max_indent)
-        @parse_blocks_from_indent_line.each_neighbor_block(frontier.next_indent_line) do |block|
-          push(block, name: "add")
+        block = CodeBlock.new(lines: frontier.next_indent_line)
+
+        if block.next_indent(code_lines: @code_lines) == block.current_indent
+          block = BlockExpand.new(code_lines: @code_lines).call(block)
         end
+
+        push(block, name: "add")
       end
     end
 

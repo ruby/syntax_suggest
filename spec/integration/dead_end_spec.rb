@@ -139,13 +139,9 @@ module DeadEnd
 
       expect(out).to include(<<~EOM)
          16  class Rexe
-         40    class Options < Struct.new(
-         71    end
       ❯  77    class Lookups
       ❯  78      def input_modes
       ❯ 148    end
-        152    class CommandLineParser
-        418    end
         551  end
       EOM
     end
@@ -208,6 +204,26 @@ module DeadEnd
         ❯ 1  class Dog
         ❯ 2    def bark
         ❯ 4  end
+      EOM
+    end
+
+    it "finds hanging def in this project" do
+      source = fixtures_dir.join("this_project_extra_def.rb.txt").read
+
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source
+      )
+      out = io.string
+      expect(out).to include(<<~EOM)
+          1  module SyntaxErrorSearch
+          3    class DisplayInvalidBlocks
+       ❯ 36      def filename
+       ❯ 38      def code_with_filename
+       ❯ 45      end
+         63    end
+         64  end
       EOM
     end
   end

@@ -173,12 +173,12 @@ module DeadEnd
     def next_up
       @code_lines[before_index.pred] if before_index > 0
     end
-    alias :above :next_up
+    alias_method :above, :next_up
 
     def next_down
       @code_lines[after_index.next]
     end
-    alias :below :next_down
+    alias_method :below, :next_down
 
     def next_indent
       CodeBlock.next_indent(
