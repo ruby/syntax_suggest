@@ -82,6 +82,7 @@ module DeadEnd
       expect(search.invalid_blocks.join).to eq(<<~'EOM')
         class Dog
       EOM
+      expect(search.invalid_blocks.first.lines.length).to eq(4)
     end
 
     it "handles mismatched |" do
