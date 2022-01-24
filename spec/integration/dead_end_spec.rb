@@ -114,9 +114,6 @@ module DeadEnd
       expect(io.string).to include(<<~'EOM')
            5  module DerailedBenchmarks
            6    class RequireTree
-           7      REQUIRED_BY = {}
-           9      attr_reader   :name
-          10      attr_writer   :cost
         ❯ 13      def initialize(name)
         ❯ 18      def self.reset!
         ❯ 25      end

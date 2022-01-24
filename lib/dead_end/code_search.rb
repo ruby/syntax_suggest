@@ -140,6 +140,18 @@ module DeadEnd
       end
 
       @invalid_blocks.concat(frontier.detect_invalid_blocks)
+      @invalid_blocks.map! do |block|
+        parent = block.parent
+        next block if parent.nil?
+
+        if parent.unchecked?
+          if parent.valid?
+            parent.lines.map(&:mark_invisible)
+          end
+        end
+        block
+      end
+
       @invalid_blocks.sort_by! { |block| block.starts_at }
       self
     end

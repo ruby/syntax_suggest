@@ -18,15 +18,16 @@ module DeadEnd
   #
   class CodeBlock
     UNSET = Object.new.freeze
-    attr_reader :lines, :starts_at, :ends_at
+    attr_reader :lines, :starts_at, :ends_at, :parent
     attr_accessor :priority
 
-    def initialize(lines: [])
+    def initialize(lines: [], parent: nil)
       @lines = Array(lines)
       @valid = UNSET
       @deleted = false
       @starts_at = @lines.first.number
       @ends_at = @lines.last.number
+      @parent = parent
     end
 
     def self.next_indent(starts_at:, ends_at:, current_indent:, code_lines:)
@@ -110,8 +111,12 @@ module DeadEnd
       !valid?
     end
 
+    def unchecked?
+      @valid == UNSET
+    end
+
     def valid?
-      if @valid == UNSET
+      if unchecked?
         # Performance optimization
         #
         # If all the lines were previously hidden

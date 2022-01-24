@@ -48,7 +48,7 @@ module DeadEnd
         .skip(:hidden?)
         .stop_after_kw
         .scan_adjacent_indent
-        .code_block
+        .code_block(parent: block)
     end
 
     def expand_neighbors(block)
@@ -62,7 +62,7 @@ module DeadEnd
       if block.lines == expanded_lines
         nil
       else
-        CodeBlock.new(lines: expanded_lines)
+        CodeBlock.new(lines: expanded_lines, parent: block)
       end
     end
 

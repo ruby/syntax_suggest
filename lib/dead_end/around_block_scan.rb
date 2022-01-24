@@ -208,8 +208,8 @@ module DeadEnd
       self
     end
 
-    def code_block
-      CodeBlock.new(lines: lines)
+    def code_block(parent: nil)
+      CodeBlock.new(lines: lines, parent: parent)
     end
 
     def lines
