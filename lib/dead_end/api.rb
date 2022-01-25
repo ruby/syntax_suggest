@@ -198,3 +198,7 @@ require_relative "pathname_from_message"
 require_relative "display_invalid_blocks"
 require_relative "balance_heuristic_expand"
 require_relative "parse_blocks_from_indent_line"
+
+require_relative "block_document"
+require_relative "block_node"
+

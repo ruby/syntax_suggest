@@ -502,202 +502,6 @@ module DeadEnd
       EOM
     end
 
-    class BlockDocument
-      attr_reader :blocks, :queue
-
-      include Enumerable
-
-      def initialize(code_lines: )
-        @code_lines = code_lines
-        blocks = nil
-        @queue = PriorityQueue.new
-        @root = nil
-      end
-
-      def each
-        node = @root
-        while node
-          yield node
-          node = node.below
-        end
-      end
-
-      def to_s
-        string = String.new
-        each do |block|
-          string << block.to_s
-        end
-        string
-      end
-
-      def call
-        last = nil
-        blocks = @code_lines.map.with_index do |line, i|
-          next if line.empty?
-
-
-          node = BlockNode.new(lines: line)
-          @root ||= node
-          queue << node
-          node.above = last
-          last&.below = node
-          last = node
-          node
-        end
-
-        if node = blocks[-2]
-          node.below = blocks[-1]
-        end
-
-        self
-      end
-
-      def eat_above(node)
-        return unless now = node&.eat_above
-
-        if node.above == @root
-          @root = now
-        end
-
-        node.above.delete
-        node.delete
-
-        while queue&.peek&.deleted?
-          queue.pop
-        end
-
-        now
-      end
-
-      def eat_below(node)
-        eat_above(node&.below)
-      end
-
-      def pop
-        @queue.pop
-      end
-
-      def peek
-        @queue.peek
-      end
-    end
-
-    class Parents
-      def initialize
-        @left = []
-        @equal = []
-        @right = []
-      end
-    end
-
-    class BlockNode
-      attr_accessor :above, :below
-      attr_reader :lines, :start_index, :end_index, :parents, :lex_diff
-
-      def initialize(lines: , parents: nil)
-        lines = Array(lines)
-        parents = Array(parents)
-        @lines = lines
-        @parents = parents
-
-        if @parents.empty?
-          @start_index = lines.first.index
-          @end_index = lines.last.index
-          set_lex_diff_from(@lines)
-        else
-          @lex_diff = LexPairDiff.new_empty
-          @parents.each do |p|
-            @lex_diff.concat(p.lex_diff)
-          end
-          @start_index = @parents.first.start_index
-          @end_index = @parents.last.end_index
-        end
-        @deleted = false
-
-      end
-
-      def delete
-        @deleted = true
-      end
-
-      def deleted?
-        @deleted
-      end
-
-      def valid?
-        return @valid if defined?(@valid)
-
-        @valid = DeadEnd.valid?(@lines.join)
-      end
-
-      def unbalanced?
-        !balanced?
-      end
-
-      def balanced?
-        @lex_diff.balanced?
-      end
-
-      def leaning
-        @lex_diff.leaning
-      end
-
-      def to_s
-        @lines.join
-      end
-
-      def <=>(other)
-        case indent <=> other.indent
-        when 1 then 1
-        when -1 then -1
-        when 0
-          end_index <=> other.end_index
-        end
-      end
-
-      def indent
-        @indent ||= lines.map(&:indent).min || 0
-      end
-
-      def inspect
-        "#<DeadEnd::BlockNode 0x000000010cbfelol #{@start_index}..#{@end_index} >"
-      end
-
-      private def set_lex_diff_from(lines)
-        @lex_diff = LexPairDiff.new_empty
-        lines.each do |line|
-          @lex_diff.concat(line.lex_diff)
-        end
-      end
-
-      def eat_above
-        return nil if above.nil?
-
-        node = BlockNode.new(lines: above.lines + lines, parents: [above, self])
-        if above.above
-          node.above = above.above
-          above.above.below = node
-        end
-
-        if below
-          node.below = below
-          below.above = node
-        end
-
-
-        node
-      end
-
-      def eat_below
-        return nil if below.nil?
-        below.eat_above
-      end
-
-      def without(other)
-        BlockNode.new(lines: self.lines - other.lines)
-      end
-    end
-
     class BlockSearch
       attr_reader :document
 
@@ -723,21 +527,9 @@ module DeadEnd
 
       def reduce
         while block = document.pop
-          case block.leaning
-          when :left
-            document.eat_below(block) # if block.below&.leaning != :left
-          when :right
-            document.eat_above(block) # if block.above&.leaning != :right
-          when :equal
-            if block.above&.balanced?
-              document.eat_above(block)
-            end
-          when :both
-            document.eat_below(block)
-            document.eat_above(block)
-          else
-            raise "Unknown direction #{block.leaning}"
-          end
+          # Take up   >= current indent
+          # Take down >= current indent
+
         end
         self
       end
@@ -753,210 +545,129 @@ module DeadEnd
       end
     end
 
-    it "smaller" do
+    it "simple" do
       source = <<~'EOM'
-      class Animal
-        class Cow
-          def speak
-            puts "moo"
-          end
-
-          def milk
-            puts 'milk'
-
-          def eat
-            puts "munch"
-          end
+        Foo.call # missing do
         end
-      end
       EOM
 
-      code_lines  = CleanDocument.new(source: source).call.lines
+      code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
-      search = BlockSearch.new(document: document)
-
+      search = BlockSearch.new(document: document).call
       search.call
-      blocks = document.map {|b| b}
-      block = blocks[0]
-      # puts blocks.length
 
-      # puts block.leaning # leans left
-      # puts block.parents.last.leaning # leans right, go first
-      # puts block.parents.last.parents.first.leaning # Leans left, go last
-      # puts block.parents.last.parents.first.parents.last.leaning # equal, too far ... not the problem
+      expect(search.document.root).to eq(
+        BlockNode.new(lines: code_lines[0..1], indent: 0).tap { |node|
+          node.inner << BlockNode.new(lines: code_lines[0], indent: 0)
+          node.right = BlockNode.new(lines: code_lines[1], indent: 0)
+        }
+      )
+    end
 
-      frontier = []
-      frontier << block
-      count = 0
-      out = nil
-      while node = frontier.pop
-        if !node.valid?
-          parent = case node.leaning
-          when :left
-            node.parents[1]
-          when :right
-            node.parents[0]
-          else
-            raise "Blerg unknown lean #{node.leaning}"
-          end
+    it "simple" do
+      source = <<~'EOM'
+        print 'lol'
+        print 'lol'
 
-          next unless parent
-          if parent.balanced?
-            out = node
-            break
-          else
-            frontier << parent
-          end
+        Foo.call # missing do
         end
-      end
-      expect(out.to_s).to eq(<<~'EOM'.indent(4))
-        def milk
-          puts 'milk'
       EOM
-    end
 
-    it "overdrive" do
-      file = fixtures_dir.join("syntax_tree.rb.txt")
-      lines = file.read.lines
-      lines.delete_at(768 - 1)
-
-      io = StringIO.new
-      code_lines  = CleanDocument.new(source: lines.join).call.lines
-      # start with 5473
-      # reduce to 1726
-      # reduce to 707
+      code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
-      search = BlockSearch.new(document: document)
-
-      # 4.times.each do
-      #   puts "=="
-
-      #   search.reduce
-      #   search.requeue
-
-      #   blocks = document.map {|b| b}
-      #   block = blocks[1]
-      #   puts block
-      #   puts block.leaning
-      # end
-
+      search = BlockSearch.new(document: document).call
       search.call
-      blocks = document.map {|b| b}
-      puts blocks.length
-      block = blocks[1]
 
-      puts block.leaning # :left, go last
-      puts block.parents[1].leaning # :left, go last
-
-      frontier = []
-      frontier << block
-      count = 0
-      while node = frontier.pop
-        if !node.valid?
-          parent = case node.leaning
-          when :left
-            # puts "left"
-            node.parents[1]
-          when :right
-            # puts "right"
-            node.parents[0]
-          else
-            raise "Blerg unknown lean #{node.leaning}"
-          end
-
-          next unless parent
-          if parent.balanced?
-            # puts "yolo"
-            # puts node
-            break
-          else
-            frontier << parent
-          end
-        end
-      end
+      expect(search.document.root).to eq(
+        BlockNode.new(lines: code_lines[0..1], indent: 0).tap { |node|
+          node.inner << BlockNode.new(lines: code_lines[0], indent: 0)
+          node.right = BlockNode.new(lines: code_lines[1], indent: 0)
+        }
+      )
     end
 
-    it "search builds" do
-      code_lines = CodeLine.from_source(<<~'EOM')
-        def foo
-          print "hello"
-            end # one
+    it "lol" do
+      # source = <<~'EOM'
+      #   Args.new(
+      #     parts: arguments.parts << argument,
+      #     location: arguments.location.to(argument.location)
+      #   )
+      # EOM
+      # code_lines = CleanDocument.new(source: source).call.lines
+      # document = BlockDocument.new(code_lines: code_lines).call
+      # search = BlockSearch.new(document: document).call
+      # search.call
+      # inner = BlockNode.new(lines: code_lines[1..2])
+      # left = BlockNode.new(lines: code_lines[0])
+      # right = BlockNode.new(lines: code_lines[3])
+
+      # expected = BlockNode.new(lines: code_lines[0..3])
+      # expected.left = left
+      # expected.right = right
+      # expected.inner = [inner]
+
+      # source = <<~'EOM'
+      #   if arguments.parts.empty?
+      #     Args.new(parts: [argument], location: argument.location)
+      #   else
+      #     Args.new(
+      #       parts: arguments.parts << argument,
+      #       location: arguments.location.to(argument.location)
+      #     )
+      #   end
+      # EOM
+
+      # code_lines = CleanDocument.new(source: source).call.lines
+      # document = BlockDocument.new(code_lines: code_lines).call
+      # search = BlockSearch.new(document: document).call
+      # search.call
+
+      # one = BlockNode.new(lines: code_lines[1..1])
+
+      # inner = BlockNode.new(lines: code_lines[4..5])
+      # left = BlockNode.new(lines: code_lines[3])
+      # right = BlockNode.new(lines: code_lines[7])
+
+      # two = BlockNode.new(lines: code_lines[3..7])
+      # two.left = left
+      # two.right = right
+      # two.inner = [inner]
+
+      # three = BlockNode.new(lines: code_lines[0..7])
+      # three.left = BlockNode.new(lines: code_lines[0])
+      # three.left = BlockNode.new(lines: code_lines[7])
+      # three.inner = [
+      #   one,
+      #   BlockNode.new(lines: code_lines[2]),
+      #   two
+      # ]
+    end
+
+    it "extra space before end" do
+      source = <<~'EOM'
+        Foo.call
+          def foo
+            print "lol"
+            print "lol"
+           end # one
         end # two
       EOM
+      code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
       search = BlockSearch.new(document: document).call
 
-      expect(search.to_s).to eq(code_lines.join)
-      expect(search.document.map(&:valid?)).to eq([false])
-    end
+      inner = BlockNode.new(lines: code_lines[1..4], indent: 2)
+      inner.left = BlockNode.new(lines: code_lines[1], indent: 2)
+      inner.right = BlockNode.new(lines: code_lines[4], indent: 2)
+      inner.inner = BlockNode.new(lines: code_lines[2..3], indent: 4)
 
-    it "eats blerg" do
-      code_lines = CodeLine.from_source(<<~'EOM')
-        def foo
-          print "hello"
-            end # one
-        end # two
-      EOM
+      outer = BlockNode.new(lines: code_lines[0..5], indent: 0)
+      outer.right = BlockNode.new(lines: code_lines[5], indent: 0)
+      outer.inner = [inner]
 
-      document = BlockDocument.new(code_lines: code_lines).call
-      node = document.queue.pop
-      document.eat_above(node)
-
-      node = document.queue.pop
-      document.eat_above(node)
-      node = document.queue.pop
-      out = document.eat_below(node)
-
-      expect(out.to_s).to eq(code_lines.join)
-      expect(out.valid?).to be_falsey
-      expect(out.balanced?).to be_falsey
-      expect(out.parents.map(&:leaning)).to eq([:left, :right])
-    end
-
-    it "eats nodes up" do
-      code_lines = CodeLine.from_source(<<~'EOM')
-        def foo
-          print "hello"
-            end # one
-        end # two
-      EOM
-
-      document = BlockDocument.new(code_lines: code_lines).call
-      node = document.queue.pop
-      out = node.eat_above
-      expect(out.to_s).to eq(<<~'EOM'.indent(2))
-        print "hello"
-          end # one
-      EOM
-
-      expect(out.above.to_s.strip).to eq("def foo")
-      expect(out.below.to_s.strip).to eq("end # two")
-
-      expect(out.above.below).to eq(out)
-      expect(out.below.above).to eq(out)
-
-      out = out.eat_below
-      expect(out.to_s).to eq(<<~'EOM')
-          print "hello"
-            end # one
-        end # two
-      EOM
-
-      out = out.eat_above
-      expect(out.to_s).to eq(<<~'EOM')
-        def foo
-          print "hello"
-            end # one
-        end # two
-      EOM
-
-      expect(out.valid?).to be_falsey
-      expect(out.balanced?).to be_falsey
-      expect(out.parents.map(&:leaning)).to eq([:left, :right])
-
-      frontier = out.parents.dup
-
-      # Find the innermost invalid block
+      expect(search.document.root.indent).to eq(0)
+      search.call
+      expect(search.document.map {|x| x}.length).to eq(1)
     end
 
     it "prioritizes indent" do
