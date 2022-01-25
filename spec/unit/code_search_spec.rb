@@ -525,11 +525,30 @@ module DeadEnd
         self
       end
 
+
       def reduce
         while block = document.pop
-          # Take up   >= current indent
-          # Take down >= current indent
+          original = block
+          if block.leaning == :equal
+            block = original
+            indent = original.next_indent
+            while (above = block.above) && above.indent >= indent
+              block = document.eat_above(block)
+            end
 
+            while (below = block.below) && below.indent >= indent
+              block = document.eat_below(block)
+            end
+
+            # block = original
+            # while (below = block.below) && below.indent >= indent
+            #   block = below
+            # end
+
+            if block.next_indent != original.next_indent
+              document.queue << block
+            end
+          end
         end
         self
       end
@@ -545,7 +564,52 @@ module DeadEnd
       end
     end
 
-    it "simple" do
+    it "nested valid code" do
+      source = <<~'EOM'
+        if true
+          print "one"
+          print "two"
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      search = BlockSearch.new(document: document).call
+      search.call
+
+      one = BlockNode.new(lines: code_lines[1], indent: 2, next_indent: 2)
+      two = BlockNode.new(lines: code_lines[2], indent: 2, next_indent: 2)
+
+      outer = BlockNode.new(lines: code_lines[0..3], indent: 0, next_indent: 0).tap {|node|
+        node.inner << one
+        node.inner << two
+      }
+
+      expect(search.document.root).to eq(outer)
+    end
+
+    it "simple valid code" do
+      source = <<~'EOM'
+        print "zero"
+        print "one"
+        print "two"
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      search = BlockSearch.new(document: document).call
+      search.call
+
+      expect(search.document.root).to eq(
+        BlockNode.new(lines: code_lines[0..2], indent: 0).tap { |node|
+          node.inner << BlockNode.new(lines: code_lines[0], indent: 0)
+          node.inner << BlockNode.new(lines: code_lines[1], indent: 0)
+          node.inner << BlockNode.new(lines: code_lines[2], indent: 0)
+        }
+      )
+    end
+
+    it "simple missing do" do
       source = <<~'EOM'
         Foo.call # missing do
         end
@@ -584,63 +648,6 @@ module DeadEnd
           node.right = BlockNode.new(lines: code_lines[1], indent: 0)
         }
       )
-    end
-
-    it "lol" do
-      # source = <<~'EOM'
-      #   Args.new(
-      #     parts: arguments.parts << argument,
-      #     location: arguments.location.to(argument.location)
-      #   )
-      # EOM
-      # code_lines = CleanDocument.new(source: source).call.lines
-      # document = BlockDocument.new(code_lines: code_lines).call
-      # search = BlockSearch.new(document: document).call
-      # search.call
-      # inner = BlockNode.new(lines: code_lines[1..2])
-      # left = BlockNode.new(lines: code_lines[0])
-      # right = BlockNode.new(lines: code_lines[3])
-
-      # expected = BlockNode.new(lines: code_lines[0..3])
-      # expected.left = left
-      # expected.right = right
-      # expected.inner = [inner]
-
-      # source = <<~'EOM'
-      #   if arguments.parts.empty?
-      #     Args.new(parts: [argument], location: argument.location)
-      #   else
-      #     Args.new(
-      #       parts: arguments.parts << argument,
-      #       location: arguments.location.to(argument.location)
-      #     )
-      #   end
-      # EOM
-
-      # code_lines = CleanDocument.new(source: source).call.lines
-      # document = BlockDocument.new(code_lines: code_lines).call
-      # search = BlockSearch.new(document: document).call
-      # search.call
-
-      # one = BlockNode.new(lines: code_lines[1..1])
-
-      # inner = BlockNode.new(lines: code_lines[4..5])
-      # left = BlockNode.new(lines: code_lines[3])
-      # right = BlockNode.new(lines: code_lines[7])
-
-      # two = BlockNode.new(lines: code_lines[3..7])
-      # two.left = left
-      # two.right = right
-      # two.inner = [inner]
-
-      # three = BlockNode.new(lines: code_lines[0..7])
-      # three.left = BlockNode.new(lines: code_lines[0])
-      # three.left = BlockNode.new(lines: code_lines[7])
-      # three.inner = [
-      #   one,
-      #   BlockNode.new(lines: code_lines[2]),
-      #   two
-      # ]
     end
 
     it "extra space before end" do
@@ -669,37 +676,5 @@ module DeadEnd
       search.call
       expect(search.document.map {|x| x}.length).to eq(1)
     end
-
-    it "prioritizes indent" do
-      code_lines = CodeLine.from_source(<<~'EOM')
-        def foo
-          end # one
-        end # two
-      EOM
-
-      document = BlockDocument.new(code_lines: code_lines).call
-      one = document.queue.pop
-      expect(one.to_s.strip).to eq("end # one")
-    end
-
-    it "Block document dequeues from bottom to top" do
-      code_lines = CodeLine.from_source(<<~'EOM')
-        Foo.call
-        end
-      EOM
-
-      document = BlockDocument.new(code_lines: code_lines).call
-      one = document.queue.pop
-      expect(one.to_s.strip).to eq("end")
-
-      two = document.queue.pop
-      expect(two.to_s.strip).to eq("Foo.call")
-
-      expect(one.above).to eq(two)
-      expect(two.below).to eq(one)
-
-      expect(document.queue.pop).to eq(nil)
-    end
-
   end
 end

@@ -34,18 +34,21 @@ module DeadEnd
       blocks = @code_lines.map.with_index do |line, i|
         next if line.empty?
 
-
         node = BlockNode.new(lines: line, indent: line.indent)
         @root ||= node
-        queue << node
         node.above = last
         last&.below = node
         last = node
         node
       end
 
-      if node = blocks[-2]
-        node.below = blocks[-1]
+      if last.above
+        last.above.below = last
+      end
+
+      # Need all above/below set to determine correct next_indent
+      blocks.each do |b|
+        queue << b
       end
 
       self
