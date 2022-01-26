@@ -10,8 +10,6 @@ module DeadEnd
       @indent = indent
       @next_indent = next_indent
       @lines = lines
-      @left = nil
-      @right = nil
       @inner = []
 
       @start_index = lines.first.index

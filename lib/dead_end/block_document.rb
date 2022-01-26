@@ -59,14 +59,9 @@ module DeadEnd
       self
     end
 
-    def capture(node: , captured: )
-      inner = []
-      inner.concat(Array(captured))
-      inner << node
-      inner.sort_by! {|block| block.start_index }
-
+    def capture_all(inner)
       lines = []
-      indent = node.indent
+      indent = inner.first.indent
       lex_diff = LexPairDiff.new_empty
       inner.each do |block|
         lines.concat(block.lines)
@@ -98,6 +93,15 @@ module DeadEnd
       now
     end
 
+    def capture(node: , captured: )
+      inner = []
+      inner.concat(Array(captured))
+      inner << node
+      inner.sort_by! {|block| block.start_index }
+
+      capture_all(inner)
+    end
+
     def eat_above(node)
       return unless now = node&.eat_above
 
@@ -125,6 +129,10 @@ module DeadEnd
 
     def peek
       @queue.peek
+    end
+
+    def inspect
+      "#<DeadEnd::BlockDocument:0x000000010b375lol >"
     end
   end
 end
