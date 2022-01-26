@@ -9,7 +9,7 @@ module DeadEnd
     def initialize(code_lines: )
       @code_lines = code_lines
       blocks = nil
-      @queue = PriorityQueue.new
+      @queue = InsertionSortQueue.new
       @root = nil
     end
 

@@ -1,6 +1,68 @@
 # frozen_string_literal: true
 
 module DeadEnd
+  # Sort elements on insert
+  #
+  # Instead of constantly calling `sort!`, put
+  # the element where it belongs the first time
+  # around
+  #
+  # Example:
+  #
+  #   sorted = InsertionSort.new
+  #   sorted << 33
+  #   sorted << 44
+  #   sorted << 1
+  #   puts sorted.to_a
+  #   # => [1, 44, 33]
+  #
+  class InsertionSortQueue
+    def initialize
+      @array = []
+    end
+
+    def <<(value)
+      index = @array.bsearch_index do |existing|
+        case value <=> existing
+        when -1
+          true
+        when 0
+          false
+        when 1
+          false
+        end
+      end || @array.length
+
+
+      @array.insert(index, value)
+    end
+
+    def to_a
+      @array
+    end
+
+    def pop
+      @array.pop
+    end
+
+    def length
+      @array.length
+    end
+
+    def empty?
+      @array.empty?
+    end
+
+    def peek
+      @array.last
+    end
+
+    # Legacy for testing PriorityQueue
+    def sorted
+      @array
+    end
+  end
+
   # Holds elements in a priority heap on insert
   #
   # Instead of constantly calling `sort!`, put
