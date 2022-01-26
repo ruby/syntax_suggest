@@ -32,6 +32,7 @@ module DeadEnd
 
         indent = original.next_indent
         while (above = blocks.last.above) && above.indent >= indent
+          break if above.leaning == :right
           blocks << above
           break if above.leaning == :left
         end
@@ -39,6 +40,7 @@ module DeadEnd
         blocks.reverse!
 
         while (below = blocks.last.below) && below.indent >= indent
+          break if below.leaning == :left
           blocks << below
           break if below.leaning == :right
         end
