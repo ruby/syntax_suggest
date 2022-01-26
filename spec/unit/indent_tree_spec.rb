@@ -4,6 +4,19 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "WIP syntax_tree.rb.txt for performance validation" do
+      file = fixtures_dir.join("syntax_tree.rb.txt")
+      lines = file.read.lines
+      lines.delete_at(768 - 1)
+      source = lines.join
+
+      debug_perf do
+        code_lines = CleanDocument.new(source: source).call.lines
+        document = BlockDocument.new(code_lines: code_lines).call
+        tree = IndentTree.new(document: document).call
+      end
+    end
+
     it "invalid if/else end with surrounding code" do
       source = <<~'EOM'
         class Foo
