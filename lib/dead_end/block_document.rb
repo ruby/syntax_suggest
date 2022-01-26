@@ -70,6 +70,10 @@ module DeadEnd
         indent = block.indent if block.indent < indent
       end
 
+      while queue&.peek&.deleted?
+        queue.pop
+      end
+
       now = BlockNode.new(
         lines: lines,
         lex_diff: lex_diff,
@@ -100,27 +104,6 @@ module DeadEnd
       inner.sort_by! {|block| block.start_index }
 
       capture_all(inner)
-    end
-
-    def eat_above(node)
-      return unless now = node&.eat_above
-
-      if node.above == @root
-        @root = now
-      end
-
-      node.above.delete
-      node.delete
-
-      while queue&.peek&.deleted?
-        queue.pop
-      end
-
-      now
-    end
-
-    def eat_below(node)
-      eat_above(node&.below)
     end
 
     def pop
