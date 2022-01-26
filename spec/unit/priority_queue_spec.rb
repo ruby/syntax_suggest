@@ -20,6 +20,34 @@ module DeadEnd
   end
 
   RSpec.describe CodeFrontier do
+    it "benchmark/ips" do
+      skip unless ENV["DEBUG_PERF"]
+      require 'benchmark/ips'
+
+      values = 5000.times.map { rand(0..100) }.freeze
+
+      Benchmark.ips do |x|
+        x.report("Bsearch insertion") {
+          q = InsertionSortQueue.new
+          values.each do |v|
+            q << v
+          end
+          while q.pop() do
+          end
+        }
+
+        x.report("Priority queue   ") {
+          q = PriorityQueue.new
+          values.each do |v|
+            q << v
+          end
+          while q.pop() do
+          end
+        }
+        x.compare!
+      end
+    end
+
     it "works" do
       q = PriorityQueue.new
       q << 1
@@ -63,7 +91,7 @@ module DeadEnd
     end
 
     it "priority queue" do
-      frontier = PriorityQueue.new
+      frontier = InsertionSortQueue.new
       frontier << CurrentIndex.new(0)
       frontier << CurrentIndex.new(1)
 
