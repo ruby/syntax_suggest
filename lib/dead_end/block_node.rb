@@ -5,7 +5,7 @@ module DeadEnd
     attr_accessor :above, :below, :left, :right, :inner
     attr_reader :lines, :start_index, :end_index, :lex_diff, :indent
 
-    def initialize(lines: , indent: , next_indent: nil)
+    def initialize(lines: , indent: , next_indent: nil, lex_diff: nil)
       lines = Array(lines)
       @indent = indent
       @next_indent = next_indent
@@ -16,7 +16,12 @@ module DeadEnd
 
       @start_index = lines.first.index
       @end_index = lines.last.index
-      set_lex_diff_from(@lines)
+
+      if lex_diff.nil?
+        set_lex_diff_from(@lines)
+      else
+        @lex_diff = lex_diff
+      end
 
       @deleted = false
     end

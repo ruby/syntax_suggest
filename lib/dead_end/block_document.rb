@@ -13,6 +13,10 @@ module DeadEnd
       @root = nil
     end
 
+    def to_a
+      map(&:itself)
+    end
+
     def each
       node = @root
       while node
@@ -48,10 +52,50 @@ module DeadEnd
 
       # Need all above/below set to determine correct next_indent
       blocks.each do |b|
+        next if b.nil?
         queue << b
       end
 
       self
+    end
+
+    def capture(node: , captured: )
+      inner = []
+      inner.concat(Array(captured))
+      inner << node
+      inner.sort_by! {|block| block.start_index }
+
+      lines = []
+      indent = node.indent
+      lex_diff = LexPairDiff.new_empty
+      inner.each do |block|
+        lines.concat(block.lines)
+        lex_diff.concat(block.lex_diff)
+        block.delete
+        indent = block.indent if block.indent < indent
+      end
+
+      now = BlockNode.new(
+        lines: lines,
+        lex_diff: lex_diff,
+        indent: indent
+      )
+      now.inner = inner
+
+      if inner.first == @root
+        @root = now
+      end
+
+      if inner.first&.above
+        inner.first.above.below = now
+        now.above = inner.first.above
+      end
+
+      if inner.last&.below
+        inner.last.below.above = now
+        now.below = inner.last.below
+      end
+      now
     end
 
     def eat_above(node)

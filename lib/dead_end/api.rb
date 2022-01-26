@@ -201,4 +201,4 @@ require_relative "parse_blocks_from_indent_line"
 
 require_relative "block_document"
 require_relative "block_node"
-
+require_relative "indent_tree"
