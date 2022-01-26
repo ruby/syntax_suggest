@@ -4,6 +4,84 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "invalid if/else end with surrounding code" do
+      source = <<~'EOM'
+        class Foo
+          def to_json(*opts)
+            { type: :args, parts: parts, loc: location }.to_json(*opts)
+          end
+        end
+
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+            Args.new(parts: [argument], location: argument.location)
+          else
+
+            Args.new(
+              parts: arguments.parts << argument,
+              location: arguments.location.to(argument.location)
+            )
+          end
+          # Missing end here, comments are erased via CleanDocument
+
+        class ArgsAddBlock
+          attr_reader :arguments
+
+          attr_reader :block
+
+          attr_reader :location
+
+          def initialize(arguments:, block:, location:)
+            @arguments = arguments
+            @block = block
+            @location = location
+          end
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      blocks = document.to_a
+      expect(blocks.length).to eq(1)
+      expect(document.root.leaning).to eq(:left)
+      expect(document.root.inner[0].to_s).to eq(<<~'EOM')
+        class Foo
+          def to_json(*opts)
+            { type: :args, parts: parts, loc: location }.to_json(*opts)
+          end
+        end
+      EOM
+      expect(document.root.inner[0].leaning).to eq(:equal)
+      expect(document.root.inner[1].inner[0].to_s).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+            Args.new(parts: [argument], location: argument.location)
+          else
+            Args.new(
+              parts: arguments.parts << argument,
+              location: arguments.location.to(argument.location)
+            )
+          end
+      EOM
+      expect(document.root.inner[1].inner[0].leaning).to eq(:left)
+
+      expect(document.root.inner[1].inner[1].to_s).to eq(<<~'EOM')
+        class ArgsAddBlock
+          attr_reader :arguments
+          attr_reader :block
+          attr_reader :location
+          def initialize(arguments:, block:, location:)
+            @arguments = arguments
+            @block = block
+            @location = location
+          end
+        end
+      EOM
+      expect(document.root.inner[1].inner[1].leaning).to eq(:equal)
+    end
+
     it "valid if/else end" do
       source = <<~'EOM'
         def on_args_add(arguments, argument)
