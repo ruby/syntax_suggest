@@ -3,7 +3,76 @@
 require_relative "../spec_helper"
 
 module DeadEnd
-  RSpec.describe BlockDocument do
+  RSpec.describe IndentTree do
+    it "valid if/else end" do
+      source = <<~'EOM'
+        def on_args_add(arguments, argument)
+          if arguments.parts.empty?
+
+            Args.new(parts: [argument], location: argument.location)
+          else
+
+            Args.new(
+              parts: arguments.parts << argument,
+              location: arguments.location.to(argument.location)
+            )
+          end
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      blocks = document.to_a
+      expect(blocks.length).to eq(1)
+      expect(document.root.leaning).to eq(:equal)
+      expect(document.root.inner.length).to eq(3)
+      expect(document.root.inner[0].to_s).to eq(<<~'EOM')
+        def on_args_add(arguments, argument)
+      EOM
+
+      expect(document.root.inner[1].to_s).to eq(<<~'EOM'.indent(2))
+        if arguments.parts.empty?
+          Args.new(parts: [argument], location: argument.location)
+        else
+          Args.new(
+            parts: arguments.parts << argument,
+            location: arguments.location.to(argument.location)
+          )
+        end
+      EOM
+
+      expect(document.root.inner[2].to_s).to eq(<<~'EOM')
+        end
+      EOM
+
+      inside = document.root.inner[1]
+      expect(inside.inner.length).to eq(5)
+      expect(inside.inner[0].to_s).to eq(<<~'EOM'.indent(2))
+        if arguments.parts.empty?
+      EOM
+
+      expect(inside.inner[1].to_s).to eq(<<~'EOM'.indent(4))
+          Args.new(parts: [argument], location: argument.location)
+      EOM
+
+      expect(inside.inner[2].to_s).to eq(<<~'EOM'.indent(2))
+        else
+      EOM
+
+      expect(inside.inner[3].to_s).to eq(<<~'EOM'.indent(4))
+          Args.new(
+            parts: arguments.parts << argument,
+            location: arguments.location.to(argument.location)
+          )
+      EOM
+
+      expect(inside.inner[4].to_s).to eq(<<~'EOM'.indent(2))
+        end
+      EOM
+    end
+
     it "extra space before end" do
       source = <<~'EOM'
         Foo.call
@@ -26,8 +95,6 @@ module DeadEnd
         Foo.call
       EOM
       expect(document.root.inner[0].indent).to eq(0)
-
-
       expect(document.root.inner[1].to_s).to eq(<<~'EOM'.indent(2))
         def foo
           print "lol"
@@ -140,7 +207,5 @@ module DeadEnd
         }
       )
     end
-
-
   end
 end
