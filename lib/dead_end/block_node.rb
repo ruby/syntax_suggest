@@ -3,7 +3,7 @@
 module DeadEnd
   class BlockNode
     attr_accessor :above, :below, :left, :right, :inner
-    attr_reader :lines, :start_index, :end_index, :lex_diff, :indent
+    attr_reader :lines, :start_index, :end_index, :lex_diff, :indent, :starts_at, :ends_at
 
     def initialize(lines: , indent: , next_indent: nil, lex_diff: nil)
       lines = Array(lines)
@@ -14,6 +14,9 @@ module DeadEnd
 
       @start_index = lines.first.index
       @end_index = lines.last.index
+
+      @starts_at = @start_index + 1
+      @ends_at = @end_index + 1
 
       if lex_diff.nil?
         set_lex_diff_from(@lines)

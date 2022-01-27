@@ -3,6 +3,7 @@
 module DeadEnd
   class BlockDocument
     attr_reader :blocks, :queue, :root
+    attr_reader :blocks, :queue, :root, :code_lines
 
     include Enumerable
 
