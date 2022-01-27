@@ -57,12 +57,6 @@ module DeadEnd
       end
 
       set_kw_end
-
-      @lex_diff = LexPairDiff.from_lex(
-        lex: @lex,
-        is_kw: is_kw?,
-        is_end: is_end?
-      )
     end
 
     def balanced?
@@ -216,7 +210,10 @@ module DeadEnd
       end_count = 0
 
       @ignore_newline_not_beg = false
+
+      left_right = LeftRightLexCount.new
       @lex.each do |lex|
+        left_right.count_lex(lex)
         kw_count += 1 if lex.is_kw?
         end_count += 1 if lex.is_end?
 
@@ -244,6 +241,13 @@ module DeadEnd
 
       @is_kw = (kw_count - end_count) > 0
       @is_end = (end_count - kw_count) > 0
+
+      @lex_diff = LexPairDiff.new(
+        curly: left_right.curly_diff,
+        square: left_right.square_diff,
+        parens: left_right.parens_diff,
+        kw_end: kw_count - end_count
+      )
     end
   end
 end
