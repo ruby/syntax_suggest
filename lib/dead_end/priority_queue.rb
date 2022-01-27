@@ -21,6 +21,10 @@ module DeadEnd
       @array = []
     end
 
+    def replace(array)
+      @array = array
+    end
+
     def <<(value)
       index = @array.bsearch_index do |existing|
         case value <=> existing

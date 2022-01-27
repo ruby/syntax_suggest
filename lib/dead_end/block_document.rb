@@ -2,7 +2,6 @@
 
 module DeadEnd
   class BlockDocument
-    attr_reader :blocks, :queue, :root
     attr_reader :blocks, :queue, :root, :code_lines
 
     include Enumerable
@@ -36,7 +35,7 @@ module DeadEnd
 
     def call
       last = nil
-      blocks = @code_lines.map.with_index do |line, i|
+      blocks = @code_lines.filter_map do |line|
         next if line.empty?
 
         node = BlockNode.new(lines: line, indent: line.indent)
@@ -52,10 +51,7 @@ module DeadEnd
       end
 
       # Need all above/below set to determine correct next_indent
-      blocks.each do |b|
-        next if b.nil?
-        queue << b
-      end
+      @queue.replace(blocks.sort)
 
       self
     end
