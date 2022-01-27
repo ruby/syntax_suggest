@@ -69,18 +69,21 @@ module DeadEnd
       expect(document.root.inner[0].leaning).to eq(:equal)
       expect(document.root.inner[1].inner[0].to_s).to eq(<<~'EOM')
         def on_args_add(arguments, argument)
-          if arguments.parts.empty?
-            Args.new(parts: [argument], location: argument.location)
-          else
-            Args.new(
-              parts: arguments.parts << argument,
-              location: arguments.location.to(argument.location)
-            )
-          end
       EOM
       expect(document.root.inner[1].inner[0].leaning).to eq(:left)
 
-      expect(document.root.inner[1].inner[1].to_s).to eq(<<~'EOM')
+      expect(document.root.inner[1].inner[1].to_s).to eq(<<~'EOM'.indent(2))
+        if arguments.parts.empty?
+          Args.new(parts: [argument], location: argument.location)
+        else
+          Args.new(
+            parts: arguments.parts << argument,
+            location: arguments.location.to(argument.location)
+          )
+        end
+      EOM
+
+      expect(document.root.inner[1].inner[2].to_s).to eq(<<~'EOM')
         class ArgsAddBlock
           attr_reader :arguments
           attr_reader :block
