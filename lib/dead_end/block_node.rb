@@ -96,10 +96,6 @@ module DeadEnd
       end
     end
 
-    def indent
-      @indent ||= lines.map(&:indent).min || 0
-    end
-
     def inspect
       "#<DeadEnd::BlockNode 0x000000010cbfelol range=#{@start_index}..#{@end_index}, @indent=#{indent}, @next_indent=#{next_indent}, @inner=#{@inner.inspect}>"
     end
@@ -113,52 +109,6 @@ module DeadEnd
 
     def ==(other)
       @lines == other.lines && @indent == other.indent && next_indent == other.next_indent && @inner == other.inner
-    end
-
-    def eat_above
-      return nil if above.nil?
-
-      node = BlockNode.new(
-        lines: above.lines + @lines,
-        indent: above.indent < @indent ? above.indent : @indent
-      )
-
-      if above.inner.empty?
-        node.inner << above
-      else
-        above.inner.each do |b|
-          node.inner << b
-        end
-      end
-
-      if self.inner.empty?
-        node.inner << self
-      else
-        self.inner.each do |b|
-          node.inner << b
-        end
-      end
-
-      if above.above
-        node.above = above.above
-        above.above.below = node
-      end
-
-      if below
-        node.below = below
-        below.above = node
-      end
-
-      node
-    end
-
-    def eat_below
-      # return nil if below.nil?
-      # below.eat_above
-    end
-
-    def without(other)
-      BlockNode.new(lines: self.lines - other.lines)
     end
   end
 end
