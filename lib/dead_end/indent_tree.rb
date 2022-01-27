@@ -38,12 +38,42 @@ module DeadEnd
       @invalid_blocks = []
     end
 
+
+    # Keep track of trail of how we got here, Introduce Trail class
+    # Each main block gets a trail with one or more paths
+    #
+    # Problem: We can follow valid/invalid for awhile but
+    # at the edges single lines of valid code look invalid
+    #
+    # Solution maybe: Hold a set of code that is invalid with
+    # a sub block, and valid without it. Goal: Make this block
+    # as small as possible to reduce parsing time
+    #
+    # Problem: when to stop looking? The old "when to stop looking"
+    # started from not capturing the syntax error and re-checking the
+    # whole document when a syntax error was found.
+    #
+    # We are reversing the idea on it's head by starting with a known
+    # invalid state, we know if we removed the given block the whole
+    # document would be valid, however we want to find the smallest
+    # block where this holds true
+    #
+    # Goal: Find the smallest block where it's removal will make a fork
+    # of the path valid again.
+
+    # Solution: Popstars never stop stopping
     def call
       frontier = @tree.inner.dup
+      # Check outer, check inner, map parents
       while block = frontier.pop
         next if block.valid?
 
-        #
+        if block.outer_nodes.valid?
+          frontier << block.inner_nodes
+        else
+          # frontier << block.outer_nodes
+          frontier << block.inner_nodes
+        end
       end
 
       self
