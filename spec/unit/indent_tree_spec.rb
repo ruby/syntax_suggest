@@ -35,6 +35,21 @@ module DeadEnd
       EOM
       expect(inner.outer_nodes.valid?).to be_truthy
       expect(inner.inner_nodes.valid?).to be_falsey
+
+      inner = inner.inner_nodes
+
+      expect(inner.parents[0].parents.length).to eq(31)
+      expect(inner.parents[0].parents.map(&:valid?)).to eq([true] * 30 + [false])
+
+      inner = inner.parents[0].parents.last
+
+      expect(inner.parents[0].parents.length).to eq(183)
+      expect(inner.parents[0].parents.map(&:valid?)).to eq([false] + [true] * 182)
+
+      inner = inner.parents[0].parents.first
+      expect(inner.to_s).to eq(<<~'EOM'.indent(2))
+        def on_args_add(arguments, argument)
+      EOM
     end
 
     it "invalid if/else end with surrounding code" do
