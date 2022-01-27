@@ -32,6 +32,24 @@ module DeadEnd
     end
   end
 
+  class IndentSearch
+    def initialize(tree: )
+      @tree = tree
+      @invalid_blocks = []
+    end
+
+    def call
+      frontier = @tree.inner.dup
+      while block = frontier.pop
+        next if block.valid?
+
+        #
+      end
+
+      self
+    end
+  end
+
   class IndentTree
     attr_reader :document
 
@@ -51,6 +69,14 @@ module DeadEnd
           @recorder = Recorder.new(dir: dir, code_lines: document.code_lines)
         end
       end
+    end
+
+    def to_a
+      @document.to_a
+    end
+
+    def root
+      @document.root
     end
 
     def call
