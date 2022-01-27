@@ -3,11 +3,11 @@
 module DeadEnd
   class BlockNode
 
-    def self.from_blocks(inner)
+    def self.from_blocks(parents)
       lines = []
-      indent = inner.first.indent
+      indent = parents.first.indent
       lex_diff = LexPairDiff.new_empty
-      inner.each do |block|
+      parents.each do |block|
         lines.concat(block.lines)
         lex_diff.concat(block.lex_diff)
         indent = block.indent if block.indent < indent
@@ -18,19 +18,19 @@ module DeadEnd
         lines: lines,
         lex_diff: lex_diff,
         indent: indent,
-        inner: inner
+        parents:parents
       )
     end
 
-    attr_accessor :above, :below, :left, :right, :inner
+    attr_accessor :above, :below, :left, :right, :parents
     attr_reader :lines, :start_index, :end_index, :lex_diff, :indent, :starts_at, :ends_at
 
-    def initialize(lines: , indent: , next_indent: nil, lex_diff: nil, inner: [])
+    def initialize(lines: , indent: , next_indent: nil, lex_diff: nil, parents: [])
       lines = Array(lines)
       @indent = indent
       @next_indent = next_indent
       @lines = lines
-      @inner = inner
+      @parents = parents
 
       @start_index = lines.first.index
       @end_index = lines.last.index
@@ -48,11 +48,11 @@ module DeadEnd
     end
 
     def outer_nodes
-      @outer_nodes ||= BlockNode.from_blocks inner.select {|block| block.indent == indent }
+      @outer_nodes ||= BlockNode.from_blocks(parents.select { |block| block.indent == indent })
     end
 
     def inner_nodes
-      @inner_nodes ||= BlockNode.from_blocks inner.select {|block| block.indent > indent }
+      @inner_nodes ||= BlockNode.from_blocks(parents.select { |block| block.indent > indent })
     end
 
     def self.next_indent(above, node, below)
@@ -125,7 +125,7 @@ module DeadEnd
     end
 
     def inspect
-      "#<DeadEnd::BlockNode 0x000000010cbfelol range=#{@start_index}..#{@end_index}, @indent=#{indent}, @next_indent=#{next_indent}, @inner=#{@inner.inspect}>"
+      "#<DeadEnd::BlockNode 0x000000010cbfelol range=#{@start_index}..#{@end_index}, @indent=#{indent}, @next_indent=#{next_indent}, @parents=#{@parents.inspect}>"
     end
 
     private def set_lex_diff_from(lines)
@@ -136,7 +136,7 @@ module DeadEnd
     end
 
     def ==(other)
-      @lines == other.lines && @indent == other.indent && next_indent == other.next_indent && @inner == other.inner
+      @lines == other.lines && @indent == other.indent && next_indent == other.next_indent && @parents == other.parents
     end
   end
 end
