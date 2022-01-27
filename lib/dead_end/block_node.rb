@@ -2,15 +2,35 @@
 
 module DeadEnd
   class BlockNode
+
+    def self.from_blocks(inner)
+      lines = []
+      indent = inner.first.indent
+      lex_diff = LexPairDiff.new_empty
+      inner.each do |block|
+        lines.concat(block.lines)
+        lex_diff.concat(block.lex_diff)
+        indent = block.indent if block.indent < indent
+        block.delete
+      end
+
+      BlockNode.new(
+        lines: lines,
+        lex_diff: lex_diff,
+        indent: indent,
+        inner: inner
+      )
+    end
+
     attr_accessor :above, :below, :left, :right, :inner
     attr_reader :lines, :start_index, :end_index, :lex_diff, :indent, :starts_at, :ends_at
 
-    def initialize(lines: , indent: , next_indent: nil, lex_diff: nil)
+    def initialize(lines: , indent: , next_indent: nil, lex_diff: nil, inner: [])
       lines = Array(lines)
       @indent = indent
       @next_indent = next_indent
       @lines = lines
-      @inner = []
+      @inner = inner
 
       @start_index = lines.first.index
       @end_index = lines.last.index
@@ -25,6 +45,14 @@ module DeadEnd
       end
 
       @deleted = false
+    end
+
+    def outer_nodes
+      @outer_nodes ||= BlockNode.from_blocks inner.select {|block| block.indent == indent }
+    end
+
+    def inner_nodes
+      @inner_nodes ||= BlockNode.from_blocks inner.select {|block| block.indent > indent }
     end
 
     def self.next_indent(above, node, below)

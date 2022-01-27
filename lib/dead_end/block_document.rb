@@ -57,26 +57,10 @@ module DeadEnd
     end
 
     def capture_all(inner)
-      lines = []
-      indent = inner.first.indent
-      lex_diff = LexPairDiff.new_empty
-      inner.each do |block|
-        lines.concat(block.lines)
-        lex_diff.concat(block.lex_diff)
-        block.delete
-        indent = block.indent if block.indent < indent
-      end
-
+      now = BlockNode.from_blocks(inner)
       while queue&.peek&.deleted?
         queue.pop
       end
-
-      now = BlockNode.new(
-        lines: lines,
-        lex_diff: lex_diff,
-        indent: indent
-      )
-      now.inner = inner
 
       if inner.first == @root
         @root = now

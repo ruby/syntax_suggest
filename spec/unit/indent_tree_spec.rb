@@ -10,11 +10,31 @@ module DeadEnd
       lines.delete_at(768 - 1)
       source = lines.join
 
+      tree = nil
+      document = nil
       debug_perf do
         code_lines = CleanDocument.new(source: source).call.lines
         document = BlockDocument.new(code_lines: code_lines).call
         tree = IndentTree.new(document: document).call
       end
+
+      expect(tree.to_a.length).to eq(1)
+      expect(tree.root.inner.length).to eq(3)
+      expect(tree.root.inner[0].to_s).to eq(<<~'EOM')
+        require 'ripper'
+      EOM
+
+      expect(tree.root.inner[1].to_s).to eq(<<~'EOM')
+        require_relative 'syntax_tree/version'
+      EOM
+
+      inner = tree.root.inner[2]
+      expect(inner.outer_nodes.to_s).to eq(<<~'EOM')
+        class SyntaxTree < Ripper
+        end
+      EOM
+      expect(inner.outer_nodes.valid?).to be_truthy
+      expect(inner.inner_nodes.valid?).to be_falsey
     end
 
     it "invalid if/else end with surrounding code" do
