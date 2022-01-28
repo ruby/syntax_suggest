@@ -4,6 +4,113 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "regression dog test" do
+      source = <<~'EOM'
+        class Dog
+          def bark
+            puts "woof"
+        end
+      EOM
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      expect(node.outer_nodes.valid?).to be_truthy
+      expect(node.inner_nodes.valid?).to be_falsey
+      node = node.inner_nodes.parents[0]
+
+      expect(node.outer_nodes.valid?).to be_falsey
+      expect(node.inner_nodes.valid?).to be_truthy
+
+      expect(node.outer_nodes.to_s).to eq(<<~'EOM'.indent(2))
+        def bark
+      EOM
+    end
+
+    it "regression test ambiguous end" do
+      # Even though you would think the first step is to
+      # expand the "print" line, we base priority off of
+      # "next_indent" so the actual highest "next indent" line
+      # comes from "end # one" which captures "print", then it
+      # expands out from there
+      source = <<~'EOM'
+        def call
+            print "lol"
+          end # one
+        end # two
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      expect(node.outer_nodes.valid?).to be_truthy
+      expect(node.outer_nodes.to_s).to eq(<<~'EOM')
+        def call
+        end # two
+      EOM
+
+      expect(node.inner_nodes.valid?).to be_falsey
+      expect(node.inner_nodes.to_s).to eq(<<~'EOM'.indent(2))
+          print "lol"
+        end # one
+      EOM
+
+      node = node.inner_nodes.parents[0]
+      expect(node.outer_nodes.valid?).to be_falsey
+      expect(node.inner_nodes.valid?).to be_truthy
+      expect(node.outer_nodes.to_s).to eq(<<~'EOM'.indent(2))
+      end # one
+      EOM
+    end
+
+    it "squished do regression" do
+      source = <<~'EOM'
+        def call
+          trydo
+
+            @options = CommandLineParser.new.parse
+
+            options.requires.each { |r| require!(r) }
+            load_global_config_if_exists
+            options.loads.each { |file| load(file) }
+
+            @user_source_code = ARGV.join(' ')
+            @user_source_code = 'self' if @user_source_code == ''
+
+            @callable = create_callable
+
+            init_rexe_context
+            init_parser_and_formatters
+
+            # This is where the user's source code will be executed; the action will in turn call `execute`.
+            lookup_action(options.input_mode).call unless options.noop
+
+            output_log_entry
+          end # one
+        end # two
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+
+      expect(node.outer_nodes.valid?).to be_truthy
+      expect(node.inner_nodes.valid?).to be_falsey
+
+      node = node.inner_nodes.parents[0]
+      expect(node.inner_nodes.valid?).to be_truthy
+      expect(node.outer_nodes.valid?).to be_falsey
+      expect(node.outer_nodes.to_s).to eq(<<~'EOM'.indent(2))
+        trydo
+        end # one
+      EOM
+    end
+
     it "rexe regression" do
       lines = fixtures_dir.join("rexe.rb.txt").read.lines
       lines.delete_at(148 - 1)
@@ -14,31 +121,24 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(tree.to_a.length).to eq(1)
-      expect(node.parents.length).to eq(6)
       expect(node.outer_nodes.valid?).to be_falsey
-      expect(node.outer_nodes.parents.length).to eq(6)
       expect(node.parents.map(&:valid?)).to eq([true] * 5 + [false])
 
       node = node.parents.last
-      expect(node.parents.length).to eq(3)
       expect(node.parents.map(&:valid?)).to eq([false, true, true])
 
       node = node.parents.first
-      expect(node.parents.length).to eq(3)
       expect(node.outer_nodes.valid?).to be_truthy
       node = node.inner_nodes.parents[0]
-      expect(node.parents.length).to eq(5)
       expect(node.parents.map(&:valid?)).to eq([true, true, true, true, false])
+
       node = node.parents.last
-      expect(node.parents.length).to eq(3)
       expect(node.parents.map(&:valid?)).to eq([false, true, true])
 
       node = node.parents.first
-
       expect(node.outer_nodes.valid?).to be_truthy
+
       node = node.inner_nodes.parents[0]
-      expect(node.parents.length).to eq(7)
       expect(node.parents.map(&:valid?)).to eq([true, true, true, true, true, false, true])
       node = node.parents[5]
       expect(node.to_s).to eq(<<~'EOM'.indent(4))

@@ -48,11 +48,22 @@ module DeadEnd
     end
 
     def outer_nodes
-      @outer_nodes ||= BlockNode.from_blocks(parents.select { |block| block.indent == indent })
+      outer = parents.select { |block| block.indent == indent }
+
+      if outer.any?
+        @outer_nodes ||= BlockNode.from_blocks(outer)
+      else
+        nil
+      end
     end
 
     def inner_nodes
-      @inner_nodes ||= BlockNode.from_blocks(parents.select { |block| block.indent > indent })
+      inner = parents.select { |block| block.indent > indent }
+      if inner.any?
+        @inner_nodes ||= BlockNode.from_blocks(inner)
+      else
+        nil
+      end
     end
 
     def self.next_indent(above, node, below)
