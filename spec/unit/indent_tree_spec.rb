@@ -4,6 +4,74 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "finds random pipe (|) wildly misindented" do
+      source = fixtures_dir.join("ruby_buildpack.rb.txt").read
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      expect(node.outer_nodes.valid?).to be_falsey
+      expect(node.inner_nodes).to be_falsey
+
+      node = node.outer_nodes
+      expect(node.parents.length).to eq(14)
+      expect(node.parents.map(&:valid?)).to eq([true] * 13 + [false])
+
+      node = node.parents.last
+      expect(node.outer_nodes.valid?).to be_falsey
+      expect(node.inner_nodes.valid?).to be_truthy
+
+      node = node.outer_nodes
+      expect(node.parents.length).to eq(3)
+      expect(node.parents.map(&:valid?)).to eq([false, true, false])
+
+      expect(node.outer_nodes&.valid?).to be_falsey
+      expect(node.inner_nodes&.valid?).to be_falsey
+      expect(node.invalid_count).to eq(2)
+
+      node = node.join_invalid
+      expect(node.outer_nodes&.valid?).to be_falsey
+      expect(node.inner_nodes&.valid?).to be_falsey
+      expect(node.parents.length).to eq(2)
+      expect(node.parents.map(&:valid?)).to eq([false, false])
+
+      expect(node.split_same_indent.parents.length).to eq(4)
+      expect(node.split_same_indent.parents.last.to_s).to eq("end\n")
+      expect(node.split_same_indent.parents.map(&:valid?)).to eq([false, false, false, false])
+      node = node.split_same_indent
+      expect(node.outer_nodes&.valid?).to be_falsey
+      expect(node.inner_nodes&.valid?).to be_truthy
+
+      # Problem
+      #
+      # The outer/inner logic isn't robust.
+      #
+      # Above we see two parents that are false
+      #
+      # The class line is on the first block
+      # and the matching end is on the second
+      # however, we can't join them purely by
+      # indentation
+      #
+      # I had the idea to split a block into it's
+      # parent blocks, which seems good. But i'm not totally sure when we can do this
+      # also after doing it only
+
+
+      puts node.inner_nodes
+      puts node.outer_nodes.starts_at
+
+      node = node.outer_nodes
+      expect(node.to_s).to eq(<<~'EOM')
+      EOM
+
+      expect(node.outer_nodes&.valid?).to be_falsey
+      expect(node.inner_nodes&.valid?).to be_falsey
+      expect(node.parents.length).to eq(2)
+      expect(node.parents.map(&:valid?)).to eq([false, false])
+    end
     it "finds hanging def in this project" do
       source = fixtures_dir.join("this_project_extra_def.rb.txt").read
 

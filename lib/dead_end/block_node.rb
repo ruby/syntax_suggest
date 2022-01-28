@@ -47,6 +47,39 @@ module DeadEnd
       @deleted = false
     end
 
+    def split_same_indent
+      output = []
+      parents.each do |block|
+        if block.indent == indent
+          block.parents.each do |b|
+            output << b
+          end
+        else
+          output << block
+        end
+      end
+
+      if output.any?
+        @split_same_indent ||= BlockNode.from_blocks(output)
+      else
+        nil
+      end
+    end
+
+    def invalid_count
+      parents.select{ |block| !block.valid? }.length
+    end
+
+    def join_invalid
+      invalid = parents.select{ |block| !block.valid? }
+
+      if invalid.any?
+        @join_invalid ||= BlockNode.from_blocks(invalid)
+      else
+        nil
+      end
+    end
+
     def outer_nodes
       outer = parents.select { |block| block.indent == indent }
 
