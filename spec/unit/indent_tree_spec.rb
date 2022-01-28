@@ -4,6 +4,48 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "rexe regression" do
+      lines = fixtures_dir.join("rexe.rb.txt").read.lines
+      lines.delete_at(148 - 1)
+      source = lines.join
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      expect(tree.to_a.length).to eq(1)
+      expect(node.parents.length).to eq(6)
+      expect(node.outer_nodes.valid?).to be_falsey
+      expect(node.outer_nodes.parents.length).to eq(6)
+      expect(node.parents.map(&:valid?)).to eq([true] * 5 + [false])
+
+      node = node.parents.last
+      expect(node.parents.length).to eq(3)
+      expect(node.parents.map(&:valid?)).to eq([false, true, true])
+
+      node = node.parents.first
+      expect(node.parents.length).to eq(3)
+      expect(node.outer_nodes.valid?).to be_truthy
+      node = node.inner_nodes.parents[0]
+      expect(node.parents.length).to eq(5)
+      expect(node.parents.map(&:valid?)).to eq([true, true, true, true, false])
+      node = node.parents.last
+      expect(node.parents.length).to eq(3)
+      expect(node.parents.map(&:valid?)).to eq([false, true, true])
+
+      node = node.parents.first
+
+      expect(node.outer_nodes.valid?).to be_truthy
+      node = node.inner_nodes.parents[0]
+      expect(node.parents.length).to eq(7)
+      expect(node.parents.map(&:valid?)).to eq([true, true, true, true, true, false, true])
+      node = node.parents[5]
+      expect(node.to_s).to eq(<<~'EOM'.indent(4))
+        def format_requires
+      EOM
+    end
+
     it "WIP syntax_tree.rb.txt for performance validation" do
       file = fixtures_dir.join("syntax_tree.rb.txt")
       lines = file.read.lines
