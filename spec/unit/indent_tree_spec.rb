@@ -4,6 +4,43 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "finds hanging def in this project" do
+      source = fixtures_dir.join("this_project_extra_def.rb.txt").read
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      expect(node.outer_nodes.valid?).to be_truthy
+      expect(node.inner_nodes.valid?).to be_falsey
+
+      node = node.inner_nodes.parents[0]
+
+      expect(node.outer_nodes.valid?).to be_truthy
+      expect(node.inner_nodes.valid?).to be_falsey
+
+      node = node.inner_nodes.parents[0]
+      expect(node.inner_nodes).to be_falsey
+
+      expect(node.outer_nodes.valid?).to be_falsey
+      node = node.outer_nodes
+      expect(node.inner_nodes).to be_falsey
+      expect(node.parents.map(&:valid?)).to eq([true, true, true, false])
+      node = node.parents.last
+      expect(node.inner_nodes).to be_falsey
+      expect(node.parents.map(&:valid?)).to eq([false, true, true])
+      node = node.parents.first
+      expect(node.inner_nodes).to be_falsey
+      expect(node.outer_nodes).to be_falsey
+      expect(node.parents).to be_empty
+
+      expect(node.to_s).to eq(<<~'EOM'.indent(4))
+        def filename
+      EOM
+    end
+
+
     it "regression dog test" do
       source = <<~'EOM'
         class Dog
