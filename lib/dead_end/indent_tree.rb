@@ -121,7 +121,8 @@ module DeadEnd
         blocks = [block]
 
         indent = original.next_indent
-        while (above = blocks.last.above) && above.indent >= indent
+        while blocks.last.expand_above?(with_indent: indent)
+          above = blocks.last.above
           leaning = above.leaning
           break if leaning == :right
           blocks << above
@@ -130,7 +131,8 @@ module DeadEnd
 
         blocks.reverse!
 
-        while (below = blocks.last.below) && below.indent >= indent
+        while blocks.last.expand_below?(with_indent: indent)
+          below = blocks.last.below
           leaning = below.leaning
           break if leaning == :left
           blocks << below

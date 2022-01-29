@@ -90,6 +90,18 @@ module DeadEnd
       end
     end
 
+    def expand_above?(with_indent: self.indent)
+      return false if above.nil?
+
+      above.indent >= with_indent
+    end
+
+    def expand_below?(with_indent: self.indent)
+      return false if below.nil?
+
+      below.indent >= with_indent
+    end
+
     def inner_nodes
       inner = parents.select { |block| block.indent > indent }
       if inner.any?
@@ -100,8 +112,7 @@ module DeadEnd
     end
 
     def self.next_indent(above, node, below)
-      return node.indent if above && above.indent >= node.indent
-      return node.indent if below && below.indent >= node.indent
+      return node.indent if node.expand_above? || node.expand_below?
 
       if above
         if below
