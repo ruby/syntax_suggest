@@ -4,6 +4,84 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+      it "(smaller) finds random pipe (|) wildly misindented" do
+        source = <<~'EOM'
+        class LanguagePack::Ruby < LanguagePack::Base
+          def allow_git(&blk)
+            git_dir = ENV.delete("GIT_DIR") # can mess with bundler
+            blk.call
+            ENV["GIT_DIR"] = git_dir
+          end
+
+          def add_dev_database_addon
+            pg_adapters.any? {|a| bundler.has_gem?(a) } ? ['heroku-postgresql'] : []
+          end
+
+          def pg_adapters
+            [
+              "pg",
+              "activerecord-jdbcpostgresql-adapter",
+              "jdbc-postgres",
+              "jdbc-postgresql",
+              "jruby-pg",
+              "rjack-jdbc-postgres",
+              "tgbyte-activerecord-jdbcpostgresql-adapter"
+            ]
+          end
+
+          def add_node_js_binary
+            return [] if node_js_preinstalled?
+
+            if Pathname(build_path).join("package.json").exist? ||
+                bundler.has_gem?('execjs') ||
+                bundler.has_gem?('webpacker')
+              [@node_installer.binary_path]
+            else
+              []
+            end
+          end
+
+          def add_yarn_binary
+            return [] if yarn_preinstalled?
+        |
+            if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
+              [@yarn_installer.name]
+            else
+              []
+            end
+        end
+
+          def has_yarn_binary?
+            add_yarn_binary.any?
+          end
+
+          def node_preinstall_bin_path
+            return @node_preinstall_bin_path if defined?(@node_preinstall_bin_path)
+
+            legacy_path = "#{Dir.pwd}/#{NODE_BP_PATH}"
+            path        = run("which node").strip
+            if path && $?.success?
+              @node_preinstall_bin_path = path
+            elsif run("#{legacy_path}/node -v") && $?.success?
+              @node_preinstall_bin_path = legacy_path
+            else
+              @node_preinstall_bin_path = false
+            end
+          end
+          alias :node_js_preinstalled? :node_preinstall_bin_path
+        end
+      EOM
+      # search = CodeSearch.new(source)
+      # search.call
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+
+    end
+
     it "finds random pipe (|) wildly misindented" do
       source = fixtures_dir.join("ruby_buildpack.rb.txt").read
 
