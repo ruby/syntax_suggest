@@ -63,18 +63,6 @@ module DeadEnd
 
     # Solution: Popstars never stop stopping
     def call
-      frontier = @tree.inner.dup
-      # Check outer, check inner, map parents
-      while block = frontier.pop
-        next if block.valid?
-
-        if block.outer_nodes.valid?
-          frontier << block.inner_nodes
-        else
-          # frontier << block.outer_nodes
-          frontier << block.inner_nodes
-        end
-      end
 
       self
     end
@@ -121,10 +109,11 @@ module DeadEnd
         blocks = [block]
 
         indent = original.next_indent
+
         while blocks.last.expand_above?(with_indent: indent)
           above = blocks.last.above
           leaning = above.leaning
-          break if leaning == :right
+          # break if leaning == :right
           blocks << above
           break if leaning == :left
         end
@@ -134,7 +123,7 @@ module DeadEnd
         while blocks.last.expand_below?(with_indent: indent)
           below = blocks.last.below
           leaning = below.leaning
-          break if leaning == :left
+          # break if leaning == :left
           blocks << below
           break if leaning == :right
         end

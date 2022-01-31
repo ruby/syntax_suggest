@@ -47,67 +47,79 @@ module DeadEnd
       @deleted = false
     end
 
-    def split_same_indent
-      output = []
-      parents.each do |block|
-        if block.indent == indent
-          block.parents.each do |b|
-            output << b
-          end
-        else
-          output << block
-        end
-      end
-
-      if output.any?
-        @split_same_indent ||= BlockNode.from_blocks(output)
-      else
-        nil
-      end
-    end
-
-    def invalid_count
-      parents.select{ |block| !block.valid? }.length
-    end
-
-    def join_invalid
-      invalid = parents.select{ |block| !block.valid? }
-
-      if invalid.any?
-        @join_invalid ||= BlockNode.from_blocks(invalid)
-      else
-        nil
-      end
-    end
-
-    def outer_nodes
-      outer = parents.select { |block| block.indent == indent }
-
-      if outer.any?
-        @outer_nodes ||= BlockNode.from_blocks(outer)
-      else
-        nil
-      end
-    end
-
     def expand_above?(with_indent: self.indent)
       return false if above.nil?
+      return false if leaf? && self.leaning == :left
 
-      above.indent >= with_indent
+      if above.leaning == :left
+        above.indent >= with_indent
+      else
+        true
+      end
     end
 
     def expand_below?(with_indent: self.indent)
       return false if below.nil?
+      return false if leaf? && self.leaning == :right
 
-      below.indent >= with_indent
+      if below.leaning == :right
+        below.indent >= with_indent
+      else
+        true
+      end
     end
 
-    def inner_nodes
-      inner = parents.select { |block| block.indent > indent }
-      if inner.any?
-        @inner_nodes ||= BlockNode.from_blocks(inner)
+    def leaf?
+      parents.empty?
+    end
+
+    def next_invalid
+      parents.detect(&:invalid?)
+    end
+
+    def diagnose
+      return :self if leaf?
+
+      invalid = parents.select(&:invalid?)
+      return :next_invalid if invalid.count == 1
+
+      return :split_leaning if split_leaning?
+
+      :multiple
+    end
+
+    def split_leaning
+      block = left_right_parents
+      invalid = parents.select(&:invalid?)
+
+      invalid.reject! {|x| block.parents.include?(x) }
+
+      @inner_leang ||= BlockNode.from_blocks(invalid)
+    end
+
+    def left_right_parents
+      invalid = parents.select(&:invalid?)
+      return false if invalid.length < 3
+
+      left = invalid.detect {|block| block.leaning == :left }
+
+      return false if left.nil?
+
+      right = invalid.reverse_each.detect {|block| block.leaning == :right }
+      return false if right.nil?
+
+      @left_right_parents ||= BlockNode.from_blocks([left, right])
+    end
+
+    # When a kw/end has an invalid block inbetween it will show up as [false, false, false]
+    # we can check if the first and last can be joined together for a valid block which
+    # effectively gives us [true, false, true]
+    def split_leaning?
+      block = left_right_parents
+      if block
+        block.leaning == :equal && block.valid?
       else
-        nil
+        false
       end
     end
 
@@ -143,6 +155,10 @@ module DeadEnd
       @deleted
     end
 
+    def invalid?
+      !valid?
+    end
+
     def valid?
       return @valid if defined?(@valid)
 
@@ -174,6 +190,11 @@ module DeadEnd
         when 1 then 1
         when -1 then -1
         when 0
+          # if leaning != other.leaning
+          #   return -1 if self.leaning == :equal
+          #   return 1 if other.leaning == :equal
+          # end
+
           end_index <=> other.end_index
         end
       end
