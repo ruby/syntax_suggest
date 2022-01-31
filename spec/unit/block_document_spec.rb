@@ -31,7 +31,7 @@ module DeadEnd
       node = document.capture(node: blocks[1], captured: [blocks[0], blocks[2]])
 
       expect(node.to_s).to eq(code_lines.join)
-      expect(node.inner.length).to eq(3)
+      expect(node.parents.length).to eq(3)
     end
 
     it "captures complicated" do
@@ -66,20 +66,20 @@ module DeadEnd
 
       blocks = document.to_a
       expect(blocks.length).to eq(1)
-      expect(document.root.inner.length).to eq(3)
-      expect(document.root.inner[0].to_s).to eq(<<~'EOM')
+      expect(document.root.parents.length).to eq(3)
+      expect(document.root.parents[0].to_s).to eq(<<~'EOM')
         if true              # 0
           print 'huge 1'     # 1
         end                  # 2
       EOM
 
-      expect(document.root.inner[1].to_s).to eq(<<~'EOM')
+      expect(document.root.parents[1].to_s).to eq(<<~'EOM')
         if true              # 4
           print 'huge 2'     # 5
         end                  # 6
       EOM
 
-      expect(document.root.inner[2].to_s).to eq(<<~'EOM')
+      expect(document.root.parents[2].to_s).to eq(<<~'EOM')
         if true              # 8
           print 'huge 3'     # 9
         end                  # 10
