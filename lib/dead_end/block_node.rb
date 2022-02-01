@@ -14,12 +14,16 @@ module DeadEnd
         block.delete
       end
 
-      BlockNode.new(
+      node = BlockNode.new(
         lines: lines,
         lex_diff: lex_diff,
         indent: indent,
         parents:parents
       )
+
+      node.above = parents.first.above
+      node.below = parents.last.below
+      node
     end
 
     attr_accessor :above, :below, :left, :right, :parents
