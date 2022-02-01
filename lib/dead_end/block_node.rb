@@ -93,13 +93,31 @@ module DeadEnd
       :multiple
     end
 
+    # Muliple could be:
+    #
+    # - valid rescue/else
+    # - leaves inside of an array/hash
+    # - An actual fork indicating multiple syntax errors
+    def handle_multiple
+      invalid = parents.select(&:invalid?)
+      # valid rescue/else
+      if above && above.leaning == :left && below && below.leaning == :right
+        before_length = invalid.length
+        invalid.reject! {|block|
+          b = BlockNode.from_blocks([above, block, below])
+          b.leaning == :equal && b.valid?
+        }
+        return BlockNode.from_blocks(invalid) if invalid.length != before_length
+      end
+    end
+
     def split_leaning
       block = left_right_parents
       invalid = parents.select(&:invalid?)
 
       invalid.reject! {|x| block.parents.include?(x) }
 
-      @inner_leang ||= BlockNode.from_blocks(invalid)
+      @inner_leaning ||= BlockNode.from_blocks(invalid)
     end
 
     def left_right_parents

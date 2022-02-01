@@ -84,14 +84,8 @@ module DeadEnd
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
-
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
@@ -99,6 +93,84 @@ module DeadEnd
       expect(node.diagnose).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         |
+      EOM
+    end
+
+    it "doesn't scapegoat rescue" do
+      source = <<~'EOM'
+        def compile
+          instrument 'ruby.compile' do
+            # check for new app at the beginning of the compile
+            new_app?
+            Dir.chdir(build_path)
+            remove_vendor_bundle
+            warn_bundler_upgrade
+            warn_bad_binstubs
+            install_ruby(slug_vendor_ruby, build_ruby_path)
+            setup_language_pack_environment(
+              ruby_layer_path: File.expand_path("."),
+              gem_layer_path: File.expand_path("."),
+              bundle_path: "vendor/bundle", }
+              bundle_default_without: "development:test"
+            )
+            allow_git do
+              install_bundler_in_app(slug_vendor_base)
+              load_bundler_cache
+              build_bundler
+              post_bundler
+              create_database_yml
+              install_binaries
+              run_assets_precompile_rake_task
+            end
+            config_detect
+            best_practice_warnings
+            warn_outdated_ruby
+            setup_profiled(ruby_layer_path: "$HOME", gem_layer_path: "$HOME") # $HOME is set to /app at run time
+            setup_export
+            cleanup
+            super
+          end
+        rescue => e
+          warn_outdated_ruby
+          raise e
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+
+      node = tree.root
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      expect(node.diagnose).to eq(:multiple)
+      node = node.handle_multiple
+
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      expect(node.diagnose).to eq(:next_invalid)
+      node = node.next_invalid
+
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      expect(node.diagnose).to eq(:multiple)
+      expect(node.parents.length).to eq(4)
+
+      node = node.handle_multiple
+
+      expect(node.parents.length).to eq(1)
+      expect(node.diagnose).to eq(:next_invalid)
+
+      node = node.next_invalid
+      expect(node.diagnose).to eq(:self)
+
+      expect(node.to_s).to eq(<<~'EOM'.indent(6))
+        bundle_path: "vendor/bundle", }
       EOM
     end
 
@@ -119,18 +191,31 @@ module DeadEnd
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      expect(node.diagnose).to eq(:multiple)
+      node = node.handle_multiple
+
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
 
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
 
       expect(node.diagnose).to eq(:multiple)
+      node = node.handle_multiple
 
-      expect(node.parents.map(&:valid?)).to eq([false, false])
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
 
-      pending("multiple")
-      raise "We don't know what to do with :multiple failures yet"
+      expect(node.diagnose).to eq(:next_invalid)
+      node = node.next_invalid
+
+      expect(node.diagnose).to eq(:self)
+      expect(node.to_s).to eq(<<~'EOM')
+        |
+      EOM
     end
 
     it "finds hanging def in this project" do
@@ -145,14 +230,9 @@ module DeadEnd
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
 
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
@@ -185,8 +265,7 @@ module DeadEnd
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
+      expect(node.diagnose).to eq(:self)
 
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         def bark
@@ -214,9 +293,6 @@ module DeadEnd
 
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
@@ -261,9 +337,6 @@ module DeadEnd
       node = tree.root
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
@@ -349,9 +422,6 @@ module DeadEnd
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
-
       expect(node.diagnose).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         def format_requires
@@ -384,14 +454,9 @@ module DeadEnd
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
@@ -426,9 +491,6 @@ module DeadEnd
 
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
 
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
