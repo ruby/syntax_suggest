@@ -5,6 +5,7 @@ module DeadEnd
 
     def self.from_blocks(parents)
       lines = []
+      parents = parents.first.parents if parents.length == 1 && parents.first.parents.any?
       indent = parents.first.indent
       lex_diff = LexPairDiff.new_empty
       parents.each do |block|
