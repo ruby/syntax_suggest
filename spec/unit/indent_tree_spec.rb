@@ -96,6 +96,44 @@ module DeadEnd
       EOM
     end
 
+    it "finds missing comma in array" do
+      source = <<~'EOM'
+        def animals
+          [
+            cat,
+            dog
+            horse
+          ]
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+
+      node = tree.root
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      node.parents.each do |block|
+        puts "=="
+        puts block
+        puts block.valid?
+      end
+
+      expect(node.diagnose).to eq(:next_invalid)
+      node = node.next_invalid
+
+      expect(node.diagnose).to eq(:self)
+      expect(node.to_s).to eq(<<~'EOM')
+      EOM
+    end
+
     it "doesn't scapegoat rescue" do
       source = <<~'EOM'
         def compile
@@ -482,26 +520,26 @@ module DeadEnd
         code_lines = CleanDocument.new(source: source).call.lines
         document = BlockDocument.new(code_lines: code_lines).call
         tree = IndentTree.new(document: document).call
+
+        node = tree.root
+
+        expect(node.diagnose).to eq(:next_invalid)
+        node = node.next_invalid
+
+        expect(node.diagnose).to eq(:split_leaning)
+        node = node.split_leaning
+
+        expect(node.diagnose).to eq(:next_invalid)
+        node = node.next_invalid
+
+        expect(node.diagnose).to eq(:next_invalid)
+        node = node.next_invalid
+
+        expect(node.diagnose).to eq(:self)
+        expect(node.to_s).to eq(<<~'EOM'.indent(2))
+          def on_args_add(arguments, argument)
+        EOM
       end
-
-      node = tree.root
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
-
-      expect(node.diagnose).to eq(:split_leaning)
-      node = node.split_leaning
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
-
-      expect(node.diagnose).to eq(:next_invalid)
-      node = node.next_invalid
-
-      expect(node.diagnose).to eq(:self)
-      expect(node.to_s).to eq(<<~'EOM'.indent(2))
-        def on_args_add(arguments, argument)
-      EOM
     end
 
     it "invalid if/else end with surrounding code" do
