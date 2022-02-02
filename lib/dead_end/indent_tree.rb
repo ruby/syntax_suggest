@@ -33,38 +33,91 @@ module DeadEnd
   end
 
   class IndentSearch
+    attr_reader :finished
+
     def initialize(tree: )
       @tree = tree
-      @invalid_blocks = []
+      @finished = []
+      @frontier = [Journey.new(@tree.root)]
     end
 
-
-    # Keep track of trail of how we got here, Introduce Trail class
-    # Each main block gets a trail with one or more paths
-    #
-    # Problem: We can follow valid/invalid for awhile but
-    # at the edges single lines of valid code look invalid
-    #
-    # Solution maybe: Hold a set of code that is invalid with
-    # a sub block, and valid without it. Goal: Make this block
-    # as small as possible to reduce parsing time
-    #
-    # Problem: when to stop looking? The old "when to stop looking"
-    # started from not capturing the syntax error and re-checking the
-    # whole document when a syntax error was found.
-    #
-    # We are reversing the idea on it's head by starting with a known
-    # invalid state, we know if we removed the given block the whole
-    # document would be valid, however we want to find the smallest
-    # block where this holds true
-    #
-    # Goal: Find the smallest block where it's removal will make a fork
-    # of the path valid again.
-
-    # Solution: Popstars never stop stopping
     def call
+      while journey = @frontier.pop
+        node = journey.node
+        case node.diagnose
+        when :self
+          @finished << journey
+          next
+        when :next_invalid
+          block = node.next_invalid
+        when :split_leaning
+          block = node.split_leaning
+        when :multiple
+          block = node.handle_multiple
+        else
+          raise "DeadEnd internal error: Unknown diagnosis #{node.diagnose}"
+        end
+
+        # When true, we made a good move
+        # otherwise, go back to last known reasonable guess
+        if journey.holds_all_errors?(block)
+          journey << Step.new(block)
+          @frontier << journey
+        else
+          @finished << journey
+          next
+        end
+      end
 
       self
+    end
+  end
+
+
+  # Each journey represents a walk of the graph to eliminate
+  # invalid code
+  #
+  # We can check the a step's validity by asserting that it's removal produces
+  # valid code from it's parent
+  class Journey
+    def initialize(root)
+      @root = root
+      @steps = [Step.new(root)]
+    end
+
+    # In isolation a block may appear valid when it isn't or invalid when it is
+    # by checking against several levels of the tree, we can have higher
+    # confidence that our values are correct
+    def holds_all_errors?(blocks)
+      @steps.first.valid_without?(blocks)
+    end
+
+    def <<(step)
+      @steps << step
+    end
+
+    def node
+      @steps.last.block
+    end
+  end
+
+  class Step
+    attr_reader :block
+
+    def initialize(block)
+      @block = block
+    end
+
+    def valid_without?(blocks)
+      without_lines = Array(blocks).flat_map do |block|
+        block.lines
+      end
+
+      out = DeadEnd.valid_without?(
+        without_lines:  without_lines,
+        code_lines: @block.lines
+      )
+      out
     end
   end
 
