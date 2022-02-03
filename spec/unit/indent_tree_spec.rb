@@ -4,6 +4,43 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "invalid if and else" do
+      source = <<~'EOM'
+        if true
+          puts (
+        else
+          puts }
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+      expect(node.to_s).to eq(<<~'EOM')
+        puts (
+      else
+        puts }
+      EOM
+
+      expect(node.diagnose).to eq(:multiple)
+      node = node.handle_multiple
+
+      expect(node.to_s).to eq(<<~'EOM'.indent(2))
+        puts (
+        puts }
+      EOM
+
+      expect(node.diagnose).to eq(:multiple)
+      node = node.handle_multiple
+
+      expect(node.to_s).to eq(<<~'EOM')
+      EOM
+    end
+
     it "(smaller) finds random pipe (|) wildly misindented" do
       source = <<~'EOM'
         class LanguagePack::Ruby < LanguagePack::Base
@@ -121,7 +158,11 @@ module DeadEnd
       node = node.next_invalid
 
       expect(node.diagnose).to eq(:self)
-      expect(node.to_s).to eq(<<~'EOM')
+      # Note that this is a bad pick, it's actual a
+      # valid line, the search algorithm has to account
+      # for this
+      expect(node.to_s).to eq(<<~'EOM'.indent(4))
+        cat,
       EOM
     end
 
@@ -578,70 +619,6 @@ module DeadEnd
       expect(node.diagnose).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         def on_args_add(arguments, argument)
-      EOM
-    end
-
-    it "valid if/else end" do
-      source = <<~'EOM'
-        def on_args_add(arguments, argument)
-          if arguments.parts.empty?
-
-            Args.new(parts: [argument], location: argument.location)
-          else
-
-            Args.new(
-              parts: arguments.parts << argument,
-              location: arguments.location.to(argument.location)
-            )
-          end
-        end
-      EOM
-
-      code_lines = CleanDocument.new(source: source).call.lines
-      document = BlockDocument.new(code_lines: code_lines).call
-
-      blocks = document.to_a
-      expect(blocks.length).to eq(1)
-      node = document.root
-      expect(node.leaning).to eq(:equal)
-      expect(node.parents.length).to eq(3)
-      expect(node.parents.map(&:valid?)).to eq([false, true, false])
-
-      expect(node.parents[0].to_s).to eq(<<~'EOM')
-        def on_args_add(arguments, argument)
-      EOM
-
-      expect(document.root.parents[1].to_s).to eq(<<~'EOM'.indent(2))
-        if arguments.parts.empty?
-          Args.new(parts: [argument], location: argument.location)
-        else
-          Args.new(
-            parts: arguments.parts << argument,
-            location: arguments.location.to(argument.location)
-          )
-        end
-      EOM
-
-      expect(document.root.parents[2].to_s).to eq(<<~'EOM')
-        end
-      EOM
-
-      inside = document.root.parents[1]
-      expect(inside.parents[0].to_s).to eq(<<~'EOM'.indent(2))
-        if arguments.parts.empty?
-      EOM
-
-      expect(inside.parents[1].to_s).to eq(<<~'EOM'.indent(2))
-          Args.new(parts: [argument], location: argument.location)
-        else
-          Args.new(
-            parts: arguments.parts << argument,
-            location: arguments.location.to(argument.location)
-          )
-      EOM
-
-      expect(inside.parents[2].to_s).to eq(<<~'EOM'.indent(2))
-        end
       EOM
     end
 

@@ -106,7 +106,7 @@ module DeadEnd
           b = BlockNode.from_blocks([above, block, below])
           b.leaning == :equal && b.valid?
         }
-        return BlockNode.from_blocks(invalid) if invalid.length != before_length
+        return BlockNode.from_blocks(invalid) if invalid.any? && invalid.length != before_length
       end
     end
 
