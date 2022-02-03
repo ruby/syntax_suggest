@@ -10,10 +10,6 @@ module DeadEnd
       code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
       tree = IndentTree.new(document: document).call
-
-      code_lines = CleanDocument.new(source: source).call.lines
-      document = BlockDocument.new(code_lines: code_lines).call
-      tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
       expect(search.finished.first.node.to_s).to eq(<<~'EOM')

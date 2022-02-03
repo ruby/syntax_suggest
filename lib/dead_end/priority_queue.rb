@@ -37,7 +37,6 @@ module DeadEnd
         end
       end || @array.length
 
-
       @array.insert(index, value)
     end
 

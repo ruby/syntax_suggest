@@ -501,6 +501,5 @@ module DeadEnd
         end
       EOM
     end
-
   end
 end

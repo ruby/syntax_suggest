@@ -4,8 +4,8 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
-      it "(smaller) finds random pipe (|) wildly misindented" do
-        source = <<~'EOM'
+    it "(smaller) finds random pipe (|) wildly misindented" do
+      source = <<~'EOM'
         class LanguagePack::Ruby < LanguagePack::Base
           def allow_git(&blk)
             git_dir = ENV.delete("GIT_DIR") # can mess with bundler
@@ -112,20 +112,11 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-
-      node = tree.root
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
 
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
-
-      node.parents.each do |block|
-        puts "=="
-        puts block
-        puts block.valid?
-      end
-
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
@@ -177,8 +168,6 @@ module DeadEnd
       code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
       tree = IndentTree.new(document: document).call
-
-      node = tree.root
 
       node = tree.root
       expect(node.diagnose).to eq(:split_leaning)
@@ -268,7 +257,6 @@ module DeadEnd
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
 
-
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
 
@@ -283,7 +271,6 @@ module DeadEnd
         def filename
       EOM
     end
-
 
     it "regression dog test" do
       source = <<~'EOM'
@@ -492,7 +479,6 @@ module DeadEnd
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
-
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
 
@@ -613,14 +599,13 @@ module DeadEnd
 
       code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
-      tree = IndentTree.new(document: document).call
 
       blocks = document.to_a
       expect(blocks.length).to eq(1)
       node = document.root
       expect(node.leaning).to eq(:equal)
       expect(node.parents.length).to eq(3)
-      expect(node.parents.map(&:valid?)).to eq([false, true , false])
+      expect(node.parents.map(&:valid?)).to eq([false, true, false])
 
       expect(node.parents[0].to_s).to eq(<<~'EOM')
         def on_args_add(arguments, argument)

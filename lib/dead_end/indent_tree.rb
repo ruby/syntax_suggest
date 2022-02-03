@@ -2,14 +2,14 @@
 
 module DeadEnd
   class Recorder
-    def initialize(dir: , code_lines: )
+    def initialize(dir:, code_lines:)
       @code_lines = code_lines
       @dir = Pathname(dir)
       @tick = 0
-      @name_tick = Hash.new {|h, k| h[k] = 0}
+      @name_tick = Hash.new { |h, k| h[k] = 0 }
     end
 
-    def capture(block, name: )
+    def capture(block, name:)
       @tick += 1
 
       filename = "#{@tick}-#{name}-#{@name_tick[name] += 1}-(#{block.starts_at}__#{block.ends_at}).txt"
@@ -22,27 +22,27 @@ module DeadEnd
 
         f.write("    Block lines: #{(block.starts_at + 1)..(block.ends_at + 1)} (#{name})\n")
         f.write("    indent: #{block.indent} next_indent: #{block.next_indent}\n\n")
-        f.write("#{document}")
+        f.write(document.to_s)
       end
     end
   end
 
   class NullRecorder
-    def capture(block, name: )
+    def capture(block, name:)
     end
   end
 
   class IndentSearch
     attr_reader :finished
 
-    def initialize(tree: )
+    def initialize(tree:)
       @tree = tree
       @finished = []
       @frontier = [Journey.new(@tree.root)]
     end
 
     def call
-      while journey = @frontier.pop
+      while (journey = @frontier.pop)
         node = journey.node
         case node.diagnose
         when :self
@@ -72,7 +72,6 @@ module DeadEnd
       self
     end
   end
-
 
   # Each journey represents a walk of the graph to eliminate
   # invalid code
@@ -113,18 +112,17 @@ module DeadEnd
         block.lines
       end
 
-      out = DeadEnd.valid_without?(
-        without_lines:  without_lines,
+      DeadEnd.valid_without?(
+        without_lines: without_lines,
         code_lines: @block.lines
       )
-      out
     end
   end
 
   class IndentTree
     attr_reader :document
 
-    def initialize(document: , recorder: DEFAULT_VALUE)
+    def initialize(document:, recorder: DEFAULT_VALUE)
       @document = document
       @last_length = Float::INFINITY
 
@@ -157,7 +155,7 @@ module DeadEnd
     end
 
     private def reduce
-      while block = document.pop
+      while (block = document.pop)
         original = block
         blocks = [block]
 

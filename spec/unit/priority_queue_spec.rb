@@ -22,7 +22,7 @@ module DeadEnd
   RSpec.describe CodeFrontier do
     it "benchmark/ips" do
       skip unless ENV["DEBUG_PERF"]
-      require 'benchmark/ips'
+      require "benchmark/ips"
 
       values = 5000.times.map { rand(0..100) }.freeze
 
@@ -32,7 +32,7 @@ module DeadEnd
           values.each do |v|
             q << v
           end
-          while q.pop() do
+          while q.pop
           end
         }
 
@@ -41,7 +41,7 @@ module DeadEnd
           values.each do |v|
             q << v
           end
-          while q.pop() do
+          while q.pop
           end
         }
         x.compare!

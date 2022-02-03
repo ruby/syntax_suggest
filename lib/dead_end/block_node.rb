@@ -2,7 +2,6 @@
 
 module DeadEnd
   class BlockNode
-
     def self.from_blocks(parents)
       lines = []
       parents = parents.first.parents if parents.length == 1 && parents.first.parents.any?
@@ -19,7 +18,7 @@ module DeadEnd
         lines: lines,
         lex_diff: lex_diff,
         indent: indent,
-        parents:parents
+        parents: parents
       )
 
       node.above = parents.first.above
@@ -30,7 +29,7 @@ module DeadEnd
     attr_accessor :above, :below, :left, :right, :parents
     attr_reader :lines, :start_index, :end_index, :lex_diff, :indent, :starts_at, :ends_at
 
-    def initialize(lines: , indent: , next_indent: nil, lex_diff: nil, parents: [])
+    def initialize(lines:, indent:, next_indent: nil, lex_diff: nil, parents: [])
       lines = Array(lines)
       @indent = indent
       @next_indent = next_indent
@@ -52,9 +51,9 @@ module DeadEnd
       @deleted = false
     end
 
-    def expand_above?(with_indent: self.indent)
+    def expand_above?(with_indent: indent)
       return false if above.nil?
-      return false if leaf? && self.leaning == :left
+      return false if leaf? && leaning == :left
 
       if above.leaning == :left
         above.indent >= with_indent
@@ -63,9 +62,9 @@ module DeadEnd
       end
     end
 
-    def expand_below?(with_indent: self.indent)
+    def expand_below?(with_indent: indent)
       return false if below.nil?
-      return false if leaf? && self.leaning == :right
+      return false if leaf? && leaning == :right
 
       if below.leaning == :right
         below.indent >= with_indent
@@ -103,7 +102,7 @@ module DeadEnd
       # valid rescue/else
       if above && above.leaning == :left && below && below.leaning == :right
         before_length = invalid.length
-        invalid.reject! {|block|
+        invalid.reject! { |block|
           b = BlockNode.from_blocks([above, block, below])
           b.leaning == :equal && b.valid?
         }
@@ -115,7 +114,7 @@ module DeadEnd
       block = left_right_parents
       invalid = parents.select(&:invalid?)
 
-      invalid.reject! {|x| block.parents.include?(x) }
+      invalid.reject! { |x| block.parents.include?(x) }
 
       @inner_leaning ||= BlockNode.from_blocks(invalid)
     end
@@ -124,11 +123,11 @@ module DeadEnd
       invalid = parents.select(&:invalid?)
       return false if invalid.length < 3
 
-      left = invalid.detect {|block| block.leaning == :left }
+      left = invalid.detect { |block| block.leaning == :left }
 
       return false if left.nil?
 
-      right = invalid.reverse_each.detect {|block| block.leaning == :right }
+      right = invalid.reverse_each.detect { |block| block.leaning == :right }
       return false if right.nil?
 
       @left_right_parents ||= BlockNode.from_blocks([left, right])
