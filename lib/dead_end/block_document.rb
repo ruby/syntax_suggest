@@ -6,9 +6,8 @@ module DeadEnd
 
     include Enumerable
 
-    def initialize(code_lines: )
+    def initialize(code_lines:)
       @code_lines = code_lines
-      blocks = nil
       @queue = InsertionSortQueue.new
       @root = nil
     end
@@ -26,7 +25,7 @@ module DeadEnd
     end
 
     def to_s
-      string = String.new
+      string = +""
       each do |block|
         string << block.to_s
       end
@@ -78,11 +77,11 @@ module DeadEnd
       now
     end
 
-    def capture(node: , captured: )
+    def capture(node:, captured:)
       inner = []
       inner.concat(Array(captured))
       inner << node
-      inner.sort_by! {|block| block.start_index }
+      inner.sort_by! { |block| block.start_index }
 
       capture_all(inner)
     end
