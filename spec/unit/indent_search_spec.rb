@@ -18,8 +18,12 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      expect(search.finished.first.node.to_s).to eq(<<~'EOM'.indent(2))
+      expect(search.finished.length).to eq(2)
+      expect(search.finished.first.to_s).to eq(<<~'EOM'.indent(2))
         puts (
+      EOM
+
+      expect(search.finished.last.to_s).to eq(<<~'EOM'.indent(2))
         puts }
       EOM
     end
@@ -62,7 +66,6 @@ module DeadEnd
 
       expect(search.finished.first.node.to_s).to eq(<<~'EOM'.indent(6))
         port: port
-        body: body
       EOM
     end
 

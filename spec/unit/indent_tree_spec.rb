@@ -4,6 +4,104 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    # If you put an indented "print" in there then
+    # the problem goes away, I think it's fine to not handle
+    # this (hopefully rare) case. If we showed you there was a problem
+    # on this line, deleting it would actually fix the problem
+    # even if the resultant code would be misindented
+    #
+    # We could also handle it in post though if we want to
+    it "ambiguous end, only a problem if nothing internal" do
+      source = <<~'EOM'
+        class Cow
+          end # one
+        end # two
+      EOM
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+
+      expect(node.diagnose).to eq(:next_invalid)
+      node =  node.next_invalid
+
+      expect(node.diagnose).to eq(:self)
+      expect(node.to_s).to eq(<<~'EOM')
+        end # two
+      EOM
+    end
+
+
+    it "ambiguous kw" do
+      source = <<~'EOM'
+        class Cow
+          def speak
+        end
+      EOM
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      expect(node.parents.length).to eq(2)
+      expect(node.diagnose).to eq(:next_invalid)
+      node =  node.next_invalid
+
+      expect(node.diagnose).to eq(:self)
+      expect(node.to_s).to eq(<<~'EOM')
+        class Cow
+      EOM
+    end
+
+    it "fork invalid" do
+      source = <<~'EOM'
+        class Cow
+          def speak
+            print "moo"
+        end
+
+        class Buffalo
+            print "buffalo"
+          end # buffalo one
+        end
+      EOM
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+
+      node = tree.root
+      # expect(node.parents.length).to eq(2)
+      expect(node.diagnose).to eq(:fork_invalid)
+      forks =  node.fork_invalid
+
+      node = forks.first
+
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      expect(node.diagnose).to eq(:next_invalid)
+      node = node.next_invalid
+
+      expect(node.diagnose).to eq(:self)
+      expect(node.to_s).to eq(<<~'EOM'.indent(2))
+        def speak
+      EOM
+
+      node = forks.last
+
+      expect(node.diagnose).to eq(:split_leaning)
+      node = node.split_leaning
+
+      expect(node.diagnose).to eq(:next_invalid)
+      node = node.next_invalid
+
+      expect(node.diagnose).to eq(:self)
+      expect(node.to_s).to eq(<<~'EOM'.indent(2))
+        end # buffalo one
+      EOM
+    end
+
     it "invalid if and else" do
       source = <<~'EOM'
         if true
@@ -34,10 +132,16 @@ module DeadEnd
         puts }
       EOM
 
-      expect(node.diagnose).to eq(:multiple)
-      node = node.handle_multiple
+      expect(node.diagnose).to eq(:fork_invalid)
+      forks = node.fork_invalid
 
-      expect(node.to_s).to eq(<<~'EOM')
+      expect(forks.length).to eq(2)
+      expect(forks.first.to_s).to eq(<<~'EOM'.indent(2))
+        puts (
+      EOM
+
+      expect(forks.last.to_s).to eq(<<~'EOM'.indent(2))
+        puts }
       EOM
     end
 

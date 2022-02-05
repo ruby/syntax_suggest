@@ -89,7 +89,15 @@ module DeadEnd
 
       return :split_leaning if split_leaning?
 
-      :multiple
+      return :multiple if reduce_multiple?
+
+      :fork_invalid
+    end
+
+    def fork_invalid
+      parents.select(&:invalid?).map do |block|
+        BlockNode.from_blocks([block])
+      end
     end
 
     # Muliple could be:
@@ -97,17 +105,39 @@ module DeadEnd
     # - valid rescue/else
     # - leaves inside of an array/hash
     # - An actual fork indicating multiple syntax errors
+    #
+    # This method handles the first two cases
     def handle_multiple
-      invalid = parents.select(&:invalid?)
-      # valid rescue/else
-      if above && above.leaning == :left && below && below.leaning == :right
-        before_length = invalid.length
-        invalid.reject! { |block|
-          b = BlockNode.from_blocks([above, block, below])
-          b.leaning == :equal && b.valid?
-        }
-        return BlockNode.from_blocks(invalid) if invalid.any? && invalid.length != before_length
+      if reduced_multiple_invalid_array.any?
+        @reduce_multiple ||= BlockNode.from_blocks(reduced_multiple_invalid_array)
       end
+    end
+    alias :reduce_multiple :handle_multiple
+
+    def reduced_multiple_invalid_array
+      @reduced_multiple_invalid_array ||= begin
+        invalid = parents.select(&:invalid?)
+        # valid rescue/else
+        if above && above.leaning == :left && below && below.leaning == :right
+          before_length = invalid.length
+          invalid.reject! { |block|
+            b = BlockNode.from_blocks([above, block, below])
+            b.leaning == :equal && b.valid?
+          }
+          if invalid.any? && invalid.length != before_length
+            invalid
+          else
+            []
+          end
+          # return BlockNode.from_blocks(invalid) if invalid.any? && invalid.length != before_length
+        else
+          []
+        end
+      end
+    end
+
+    def reduce_multiple?
+      reduced_multiple_invalid_array.any?
     end
 
     def split_leaning

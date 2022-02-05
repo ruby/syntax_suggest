@@ -37,6 +37,7 @@ module DeadEnd
 
     def initialize(tree:)
       @tree = tree
+      @root = tree.root
       @finished = []
       @frontier = [Journey.new(@tree.root)]
     end
@@ -47,6 +48,19 @@ module DeadEnd
         case node.diagnose
         when :self
           @finished << journey
+          next
+        when :fork_invalid
+          forks = node.fork_invalid
+          if holds_all_errors?(forks)
+            forks.each do |block|
+              route = journey.deep_dup
+              route << Step.new(block)
+              @frontier.unshift(route)
+            end
+          else
+            @finished << journey
+          end
+
           next
         when :next_invalid
           block = node.next_invalid
@@ -60,16 +74,32 @@ module DeadEnd
 
         # When true, we made a good move
         # otherwise, go back to last known reasonable guess
-        if journey.holds_all_errors?(block)
+        if holds_all_errors?(block)
           journey << Step.new(block)
-          @frontier << journey
+          @frontier.unshift(journey)
         else
           @finished << journey
+          @finished.sort_by! {|j| j.node.starts_at }
           next
         end
       end
 
       self
+    end
+
+    def holds_all_errors?(blocks)
+      blocks = Array(blocks).clone
+      blocks.concat(@finished.map(&:node))
+      blocks.concat(@frontier.map(&:node))
+
+      without_lines = blocks.flat_map do |block|
+        block.lines
+      end
+
+      DeadEnd.valid_without?(
+        without_lines: without_lines,
+        code_lines: @root.lines
+      )
     end
   end
 
@@ -79,9 +109,23 @@ module DeadEnd
   # We can check the a step's validity by asserting that it's removal produces
   # valid code from it's parent
   class Journey
+    attr_reader :steps
+
     def initialize(root)
       @root = root
       @steps = [Step.new(root)]
+    end
+
+    def deep_dup
+      j = Journey.new(@root)
+      steps.each do |step|
+        j << step
+      end
+      j
+    end
+
+    def to_s
+      node.to_s
     end
 
     # In isolation a block may appear valid when it isn't or invalid when it is
@@ -105,6 +149,10 @@ module DeadEnd
 
     def initialize(block)
       @block = block
+    end
+
+    def to_s
+      block.to_s
     end
 
     def valid_without?(blocks)
