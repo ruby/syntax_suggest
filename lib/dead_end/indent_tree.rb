@@ -1,7 +1,22 @@
 # frozen_string_literal: true
 
 module DeadEnd
-  class Recorder
+  class BlockRecorder
+    def self.from_dir(dir, subdir: , code_lines: )
+      if dir == DEFAULT_VALUE
+        dir = ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? DeadEnd.record_dir("tmp") : nil
+      end
+
+      if dir.nil?
+        NullRecorder.new
+      else
+        dir = Pathname(dir)
+        dir = dir.join(subdir)
+        dir.mkpath
+        BlockRecorder.new(dir: dir, code_lines: code_lines)
+      end
+    end
+
     def initialize(dir:, code_lines:)
       @code_lines = code_lines
       @dir = Pathname(dir)
@@ -35,29 +50,38 @@ module DeadEnd
   class IndentSearch
     attr_reader :finished
 
-    def initialize(tree:)
+    def initialize(tree: , record_dir: DEFAULT_VALUE)
       @tree = tree
       @root = tree.root
       @finished = []
       @frontier = [Journey.new(@tree.root)]
+      @recorder = BlockRecorder.from_dir(record_dir, subdir: "search", code_lines: tree.code_lines)
     end
 
     def call
       while (journey = @frontier.pop)
         node = journey.node
-        case node.diagnose
+        diagnose = node.diagnose
+        @recorder.capture(node, name: "pop_#{diagnose}")
+
+        case diagnose
         when :self
           @finished << journey
           next
         when :fork_invalid
           forks = node.fork_invalid
           if holds_all_errors?(forks)
+
             forks.each do |block|
+              @recorder.capture(block, name: "reduced_#{diagnose}")
               route = journey.deep_dup
               route << Step.new(block)
               @frontier.unshift(route)
             end
           else
+            forks.each do |block|
+              @recorder.capture(block, name: "finished_not_recorded_#{diagnose}")
+            end
             @finished << journey
           end
 
@@ -72,22 +96,39 @@ module DeadEnd
           raise "DeadEnd internal error: Unknown diagnosis #{node.diagnose}"
         end
 
+
         # When true, we made a good move
         # otherwise, go back to last known reasonable guess
         if holds_all_errors?(block)
+          @recorder.capture(block, name: "reduced_#{diagnose}")
+
           journey << Step.new(block)
           @frontier.unshift(journey)
         else
+          @recorder.capture(block, name: "finished_not_recorded_#{diagnose}") if block
           @finished << journey
-          @finished.sort_by! {|j| j.node.starts_at }
           next
         end
       end
 
+      @finished.sort_by! {|j| j.node.starts_at }
+
       self
     end
 
-    def holds_all_errors?(blocks)
+    # Check if a given set of blocks holds
+    # syntax errors in the context of the document
+    #
+    # The frontier + finished arrays should always
+    # hold all errors for the document.
+    #
+    # When reducing a node or nodes we need to make sure
+    # that while they seem to hold a syntax error in isolation
+    # that they also hold it in the full document context.
+    #
+    # This method accounts for the need to branch/fork a
+    # search for multiple syntax errors
+    private def holds_all_errors?(blocks)
       blocks = Array(blocks).clone
       blocks.concat(@finished.map(&:node))
       blocks.concat(@frontier.map(&:node))
@@ -128,13 +169,6 @@ module DeadEnd
       node.to_s
     end
 
-    # In isolation a block may appear valid when it isn't or invalid when it is
-    # by checking against several levels of the tree, we can have higher
-    # confidence that our values are correct
-    def holds_all_errors?(blocks)
-      @steps.first.valid_without?(blocks)
-    end
-
     def <<(step)
       @steps << step
     end
@@ -154,38 +188,18 @@ module DeadEnd
     def to_s
       block.to_s
     end
-
-    def valid_without?(blocks)
-      without_lines = Array(blocks).flat_map do |block|
-        block.lines
-      end
-
-      DeadEnd.valid_without?(
-        without_lines: without_lines,
-        code_lines: @block.lines
-      )
-    end
   end
 
   class IndentTree
-    attr_reader :document
+    attr_reader :document, :code_lines
 
-    def initialize(document:, recorder: DEFAULT_VALUE)
+    def initialize(document:, record_dir: DEFAULT_VALUE)
       @document = document
+      @code_lines = document.code_lines
       @last_length = Float::INFINITY
 
-      if recorder != DEFAULT_VALUE
-        @recorder = recorder
-      else
-        dir = ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? DeadEnd.record_dir("tmp") : nil
-        if dir.nil?
-          @recorder = NullRecorder.new
-        else
-          dir = dir.join("build_tree")
-          dir.mkpath
-          @recorder = Recorder.new(dir: dir, code_lines: document.code_lines)
-        end
-      end
+
+      @recorder = BlockRecorder.from_dir(record_dir, subdir: "build_tree", code_lines: @code_lines)
     end
 
     def to_a
