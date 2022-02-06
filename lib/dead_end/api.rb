@@ -85,13 +85,15 @@ module DeadEnd
   # Used to generate a unique directory to record
   # search steps for debugging
   def self.record_dir(dir)
-    time = Time.now.strftime("%Y-%m-%d-%H-%M-%s-%N")
-    dir = Pathname(dir)
-    symlink = dir.join("last").tap { |path| path.delete if path.exist? }
-    dir.join(time).tap { |path|
-      path.mkpath
-      FileUtils.symlink(path.basename, symlink)
-    }
+    @record_dir ||= begin
+      time = Time.now.strftime("%Y-%m-%d-%H-%M-%s-%N")
+      dir = Pathname(dir)
+      symlink = dir.join("last").tap { |path| path.delete if path.exist? }
+      dir.join(time).tap { |path|
+        path.mkpath
+        FileUtils.symlink(path.basename, symlink)
+      }
+    end
   end
 
   # DeadEnd.valid_without? [Private]
