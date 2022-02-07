@@ -1,52 +1,8 @@
 # frozen_string_literal: true
 
+require_relative "block_recorder"
+
 module DeadEnd
-  class BlockRecorder
-    def self.from_dir(dir, subdir: , code_lines: )
-      if dir == DEFAULT_VALUE
-        dir = ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? DeadEnd.record_dir("tmp") : nil
-      end
-
-      if dir.nil?
-        NullRecorder.new
-      else
-        dir = Pathname(dir)
-        dir = dir.join(subdir)
-        dir.mkpath
-        BlockRecorder.new(dir: dir, code_lines: code_lines)
-      end
-    end
-
-    def initialize(dir:, code_lines:)
-      @code_lines = code_lines
-      @dir = Pathname(dir)
-      @tick = 0
-      @name_tick = Hash.new { |h, k| h[k] = 0 }
-    end
-
-    def capture(block, name:)
-      @tick += 1
-
-      filename = "#{@tick}-#{name}-#{@name_tick[name] += 1}-(#{block.starts_at}__#{block.ends_at}).txt"
-      @dir.join(filename).open(mode: "a") do |f|
-        document = DisplayCodeWithLineNumbers.new(
-          lines: @code_lines,
-          terminal: false,
-          highlight_lines: block.lines
-        ).call
-
-        f.write("    Block lines: #{(block.starts_at + 1)..(block.ends_at + 1)} (#{name})\n")
-        f.write("    indent: #{block.indent} next_indent: #{block.next_indent}\n\n")
-        f.write(document.to_s)
-      end
-    end
-  end
-
-  class NullRecorder
-    def capture(block, name:)
-    end
-  end
-
 
   # Each journey represents a walk of the graph to eliminate
   # invalid code

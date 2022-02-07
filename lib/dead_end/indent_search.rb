@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "block_recorder"
+
 module DeadEnd
   class IndentSearch
     attr_reader :finished
