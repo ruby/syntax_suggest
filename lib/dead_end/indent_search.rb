@@ -3,6 +3,27 @@
 require_relative "block_recorder"
 
 module DeadEnd
+  # Search for the cause of a syntax error
+  #
+  # Starts with a BlockNode tree built from IndentTree
+  # this has the property of the entire document starting
+  # as a single root. From there we inspect the "parents" of
+  # the document node to follow the invalid blocks.
+  #
+  # This process is recorded via one or more `Journey` instances.
+  #
+  # The search enforces the property that all nodes on a journey
+  # would produce a valid document if removed. This holds true
+  # from the root node as removing all source code would produce
+  # a parsable document
+  #
+  # After each step in a search, the step is evaluated to see if
+  # it preserves the Journey property. If not, it means we've looked
+  # too far and have over-shot our syntax error. Or we've made a bad
+  # move. In either case we terminate the journey and report its last block.
+  #
+  # When done, the journey instances can be accessed in the `finished`
+  # array
   class IndentSearch
     attr_reader :finished
 
