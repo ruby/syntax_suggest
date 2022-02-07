@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "journey"
 require_relative "block_recorder"
 
 module DeadEnd
