@@ -1,6 +1,87 @@
 # frozen_string_literal: true
 
 module DeadEnd
+  class Diagnose
+    attr_reader :block, :problem, :next
+
+    def initialize(block)
+      @block = block
+      @problem = nil
+      @next = []
+    end
+
+    def invalid
+      @block.parents.select(&:invalid?)
+    end
+
+    def call
+      find_invalid
+      return self if invalid.empty?
+
+      if @problem == :fork_invalid
+        @next = invalid.map {|b| BlockNode.from_blocks([b]) }
+      else
+        @next = [ BlockNode.from_blocks(invalid) ]
+      end
+
+      self
+    end
+
+    def invalid
+      @invalid ||= get_invalid
+    end
+
+    private def find_invalid
+      invalid
+    end
+
+    private def get_invalid
+      if block.parents.empty?
+        @problem = :self
+        return []
+      end
+
+      invalid = block.parents.select(&:invalid?)
+
+      left = invalid.detect { |block| block.leaning == :left }
+      right = invalid.reverse_each.detect { |block| block.leaning == :right }
+
+      above = block.above if block.above&.leaning == :left
+      below = block.below if block.below&.leaning == :right
+
+      if left && right && invalid.length >= 3 && BlockNode.from_blocks([left, right]).valid?
+        @problem = :split_leaning
+
+        invalid.reject! {|x| x == left || x == right }
+
+        return invalid
+      end
+
+      if above && below
+        @problem = :multiple
+
+        before_length = invalid.length
+        invalid.reject! { |block|
+          b = BlockNode.from_blocks([above, block, below])
+          b.leaning == :equal && b.valid?
+        }
+
+        if invalid.any? && invalid.length != before_length
+          return invalid
+        end
+      end
+
+      invalid = block.parents.select(&:invalid?)
+      if invalid.length > 1
+        @problem = :fork_invalid
+      else
+        @problem = :next_invalid
+      end
+
+      invalid
+    end
+  end
+
   # A core data structure
   #
   # A block node keeps a reference to the block above it
@@ -48,7 +129,9 @@ module DeadEnd
     #   expect(block.leaning).to eq(:equal)
     def self.from_blocks(parents)
       lines = []
-      parents = parents.first.parents if parents.length == 1 && parents.first.parents.any?
+      while parents.length == 1 && parents.first.parents.any?
+        parents = parents.first.parents
+      end
       indent = parents.first.indent
       lex_diff = LexPairDiff.new_empty
       parents.each do |block|
@@ -58,6 +141,11 @@ module DeadEnd
         block.delete
       end
 
+      above = parents.first.above
+      below = parents.last.below
+
+      parents = [] if parents.length == 1
+
       node = BlockNode.new(
         lines: lines,
         lex_diff: lex_diff,
@@ -65,8 +153,8 @@ module DeadEnd
         parents: parents
       )
 
-      node.above = parents.first.above
-      node.below = parents.last.below
+      node.above = above
+      node.below = below
       node
     end
 
@@ -75,24 +163,23 @@ module DeadEnd
 
     def initialize(lines:, indent:, next_indent: nil, lex_diff: nil, parents: [])
       lines = Array(lines)
+      @lines = lines
+      @deleted = false
+
+      @end_index = lines.last.index
+      @start_index = lines.first.index
       @indent = indent
       @next_indent = next_indent
-      @lines = lines
-      @parents = parents
-
-      @start_index = lines.first.index
-      @end_index = lines.last.index
 
       @starts_at = @start_index + 1
-      @ends_at = @end_index + 1
+
+      @parents = parents
 
       if lex_diff.nil?
         set_lex_diff_from(@lines)
       else
         @lex_diff = lex_diff
       end
-
-      @deleted = false
     end
 
     # Used to determine when to expand up in building
@@ -133,129 +220,26 @@ module DeadEnd
       parents.empty?
     end
 
-    # When diagnose is `:next_invalid` it indicates that
-    # only one parent is not valid. Therefore we must
-    # follow that node if we wish to continue reducing
-    # the invalid blocks
     def next_invalid
-      parents.detect(&:invalid?)
+      @diagnose.next.first
     end
 
-    # Returns a symbol correlated to the current node's
-    # parents state
-    #
-    # - :self - Leaf node, problem must be with self
-    # - :next_invalid - Only one invalid parent node found
-    # - :split_leaning - Invalid block is sandwiched between
-    #   a left/right leaning block, grab the inside
-    # - :multiple - multiple parent blocks are detected as being
-    #   invalid but it's not a "split leaning". If we can reduce/remove
-    #   one or more of these blocks by pairing with the above/below
-    #   nodes then we can reduce multiple invalid blocks to possibly
-    #   be a single invalid block.
-    # - :fork_invalid - If we got here, it looks like there's actually
-    #   multiple syntax errors in multiple parents.
     def diagnose
-      return :self if leaf?
-
-      invalid = parents.select(&:invalid?)
-      return :next_invalid if invalid.count == 1
-
-      return :split_leaning if split_leaning?
-
-      return :multiple if reduce_multiple?
-
-      :fork_invalid
+      @diagnose ||= Diagnose.new(self).call
+      @diagnose.problem
     end
 
-    # - :fork_invalid - If we got here, it looks like there's actually
-    #   multiple syntax errors in multiple parents.
     def fork_invalid
-      parents.select(&:invalid?).map do |block|
-        BlockNode.from_blocks([block])
-      end
+      @diagnose.next
     end
 
-    # - :multiple - multiple parent blocks are detected as being
-    #   invalid but it's not a "split leaning". If we can reduce/remove
-    #   one or more of these blocks by pairing with the above/below
-    #   nodes then we can reduce multiple invalid blocks to possibly
-    #   be a single invalid block.
-    #
-    # - valid rescue/else
-    # - leaves inside of an array/hash
     def handle_multiple
-      if reduced_multiple_invalid_array.any?
-        @reduce_multiple ||= BlockNode.from_blocks(reduced_multiple_invalid_array)
-      end
+      @diagnose.next.first
     end
     alias :reduce_multiple :handle_multiple
 
-    private def reduced_multiple_invalid_array
-      @reduced_multiple_invalid_array ||= begin
-        invalid = parents.select(&:invalid?)
-        # valid rescue/else
-        if above && above.leaning == :left && below && below.leaning == :right
-          before_length = invalid.length
-          invalid.reject! { |block|
-            b = BlockNode.from_blocks([above, block, below])
-            b.leaning == :equal && b.valid?
-          }
-          if invalid.any? && invalid.length != before_length
-            invalid
-          else
-            []
-          end
-          # return BlockNode.from_blocks(invalid) if invalid.any? && invalid.length != before_length
-        else
-          []
-        end
-      end
-    end
-
-    def reduce_multiple?
-      reduced_multiple_invalid_array.any?
-    end
-
-    # In isolation left and right leaning blocks
-    # are invalid. For example `(` and `)`.
-    #
-    # If we see 3 or more invalid blocks and the outer
-    # are leaning left and right, then the problem might
-    # be between the leaning blocks rather than with them
     def split_leaning
-      block = left_right_parents
-      invalid = parents.select(&:invalid?)
-
-      invalid.reject! { |x| block.parents.include?(x) }
-
-      @inner_leaning ||= BlockNode.from_blocks(invalid)
-    end
-
-    private def left_right_parents
-      invalid = parents.select(&:invalid?)
-      return false if invalid.length < 3
-
-      left = invalid.detect { |block| block.leaning == :left }
-
-      return false if left.nil?
-
-      right = invalid.reverse_each.detect { |block| block.leaning == :right }
-      return false if right.nil?
-
-      @left_right_parents ||= BlockNode.from_blocks([left, right])
-    end
-
-    # When a kw/end has an invalid block inbetween it will show up as [false, false, false]
-    # we can check if the first and last can be joined together for a valid block which
-    # effectively gives us [true, false, true]
-    def split_leaning?
-      block = left_right_parents
-      if block
-        block.leaning == :equal && block.valid?
-      else
-        false
-      end
+      @diagnose.next.first
     end
 
     # Given a node, it's above and below links
@@ -387,6 +371,8 @@ module DeadEnd
 
     # Needed for meaningful rspec assertions
     def ==(other)
+      return false if other.nil?
+
       @lines == other.lines && @indent == other.indent && next_indent == other.next_indent && @parents == other.parents
     end
   end

@@ -38,54 +38,21 @@ module DeadEnd
 
     def call
       while (journey = @frontier.pop)
-        node = journey.node
-        diagnose = node.diagnose
-        @recorder.capture(node, name: "pop_#{diagnose}")
+        diagnose = Diagnose.new(journey.node).call
+        problem = diagnose.problem
+        nodes = diagnose.next
 
-        case diagnose
-        when :self
+        @recorder.capture(journey.node, name: "pop_#{problem}")
+
+        if nodes.empty? || !holds_all_errors?(nodes)
           @finished << journey
-          next
-        when :fork_invalid
-          forks = node.fork_invalid
-          if holds_all_errors?(forks)
-
-            forks.each do |block|
-              @recorder.capture(block, name: "reduced_#{diagnose}")
-              route = journey.deep_dup
-              route << Step.new(block)
-              @frontier.unshift(route)
-            end
-          else
-            forks.each do |block|
-              @recorder.capture(block, name: "finished_not_recorded_#{diagnose}")
-            end
-            @finished << journey
+        else
+          nodes.each do |block|
+            @recorder.capture(block, name: "explore_#{problem}")
+            route = journey.deep_dup
+            route << Step.new(block)
+            @frontier.unshift(route)
           end
-
-          next
-        when :next_invalid
-          block = node.next_invalid
-        when :split_leaning
-          block = node.split_leaning
-        when :multiple
-          block = node.handle_multiple
-        else
-          raise "DeadEnd internal error: Unknown diagnosis #{node.diagnose}"
-        end
-
-
-        # When true, we made a good move
-        # otherwise, go back to last known reasonable guess
-        if holds_all_errors?(block)
-          @recorder.capture(block, name: "reduced_#{diagnose}")
-
-          journey << Step.new(block)
-          @frontier.unshift(journey)
-        else
-          @recorder.capture(block, name: "finished_not_recorded_#{diagnose}") if block
-          @finished << journey
-          next
         end
       end
 

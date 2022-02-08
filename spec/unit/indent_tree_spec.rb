@@ -72,6 +72,7 @@ module DeadEnd
 
       node = tree.root
       # expect(node.parents.length).to eq(2)
+
       expect(node.diagnose).to eq(:fork_invalid)
       forks =  node.fork_invalid
 
@@ -258,6 +259,7 @@ module DeadEnd
 
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
+
       expect(node.diagnose).to eq(:next_invalid)
       node = node.next_invalid
 
@@ -335,10 +337,6 @@ module DeadEnd
 
       node = node.handle_multiple
 
-      expect(node.parents.length).to eq(1)
-      expect(node.diagnose).to eq(:next_invalid)
-
-      node = node.next_invalid
       expect(node.diagnose).to eq(:self)
 
       expect(node.to_s).to eq(<<~'EOM'.indent(6))
