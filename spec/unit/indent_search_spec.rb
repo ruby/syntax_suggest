@@ -4,28 +4,26 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentSearch do
-    # it "long inner" do
-    #   skip("it")
-    #   pending("Fixes to diagnose")
-    #   source = <<~'EOM'
-    #     {
-    #       foo: :bar,
-    #       bing: :baz,
-    #       blat: :flat # problem
-    #       florg: :blorg,
-    #       bling: :blong
-    #     }
-    #   EOM
+    it "long inner" do
+      source = <<~'EOM'
+        {
+          foo: :bar,
+          bing: :baz,
+          blat: :flat # problem
+          florg: :blorg,
+          bling: :blong
+        }
+      EOM
 
-    #   code_lines = CleanDocument.new(source: source).call.lines
-    #   document = BlockDocument.new(code_lines: code_lines).call
-    #   tree = IndentTree.new(document: document).call
-    #   search = IndentSearch.new(tree: tree).call
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
 
-    #   expect(search.finished.first.node.to_s).to eq(<<~'EOM'.indent(4))
-    #     blat: :flat #
-    #   EOM
-    # end
+      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
+        blat: :flat # problem
+      EOM
+    end
 
     it "invalid if and else" do
       source = <<~'EOM'

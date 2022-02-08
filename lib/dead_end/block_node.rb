@@ -66,8 +66,13 @@ module DeadEnd
           b.leaning == :equal && b.valid?
         }
 
-        if invalid.any? && invalid.length != before_length
-          return invalid
+        if invalid.length != before_length
+          if invalid.any?
+            return invalid
+          elsif (b = block.parents.select(&:invalid?).detect { |b| BlockNode.from_blocks([above, block.parents.select(&:invalid?)  - [b] , below].flatten).valid? })
+            @problem = :one_inside
+            return [b]
+          end
         end
       end
 

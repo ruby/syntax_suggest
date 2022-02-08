@@ -260,7 +260,7 @@ module DeadEnd
       expect(node.diagnose).to eq(:split_leaning)
       node = node.split_leaning
 
-      expect(node.diagnose).to eq(:next_invalid)
+      expect(node.diagnose).to eq(:one_inside)
       node = node.next_invalid
 
       expect(node.diagnose).to eq(:self)
