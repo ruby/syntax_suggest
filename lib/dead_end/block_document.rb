@@ -1,6 +1,31 @@
 # frozen_string_literal: true
 
 module DeadEnd
+  # Convert an array of code lines to a linked list of BlockNodes
+  #
+  # Each BlockNode is connected to the node above and below it.
+  # A BlockNode can "capture" other nodes. This process is recursively
+  # performed to build a hierarchical tree structure via IndentTree
+  #
+  #   document = BlockDocument.new(code_lines: code_lines)
+  #   document.call
+  #
+  # A BlockDocument also holds a priority queue for all BlockNodes
+  #
+  # Empty lines are ignored so blocks in the list may have gaps in
+  # line/index numbers.
+  #
+  # A core operation is the ability to to "capture"
+  # several blocks immutably. This process creates a new block
+  # that holds the captured state and substitutes it into the graph
+  # data structure for the original block
+  #
+  #   node.above.leaning # => :left
+  #   node.below.leaning # => :right
+
+  #   block = document.capture_all([node.above, node.below])
+  #   block.leaning # => :equal
+  #
   class BlockDocument
     attr_reader :blocks, :queue, :root, :code_lines
 

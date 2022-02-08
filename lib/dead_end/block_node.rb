@@ -1,7 +1,51 @@
 # frozen_string_literal: true
 
 module DeadEnd
+  # A core data structure
+  #
+  # A block node keeps a reference to the block above it
+  # and below it. In addition a block can "capture" another
+  # block. Block nodes are treated as immutable(ish) so when that happens
+  # a new node is created that contains a refernce to all the blocks it was
+  # derived from. These are known as a block's "parents".
+  #
+  # If you walk the parent chain until it ends you'll end up with nodes
+  # representing individual lines of code (generated from a CodeLine).
+  #
+  # An important concept in a block is that it knows how it is "leaning"
+  # based on it's internal LexPairDiff. If it's leaning `:left` that means
+  # it needs to capture something to it's right/down to be balanced again.
+  #
+  # Note: that that the capture method is on BlockDocument since it needs to
+  # retain a valid reference to it's root.
+  #
+  # Another important concept is that blocks know their current indentation
+  # as well as can accurately derive their "next" indentation for when/if
+  # they're expanded. To be calculated a nodes above and below blocks must
+  # be accurately assigned. So this property cannot be calculated at creation
+  # time.
+  #
+  # Beyond these core capabilities blocks also know how to `diagnose` what
+  # is wrong with them. And then they can take an action based on that
+  # diagnosis. For example `node.diagnose == :split_leaning` indicates that
+  # it contains parents invalid parents that likey represent an invalid node
+  # sandwitched between a left and right leaning node. This will happen with
+  # code. For example `[`, `bad &*$@&^ code`, `]`. Then the inside invalid node
+  # can be grabbed via calling `node.split_leaning`.
+  #
+  # In the long term it likely makes sense to move diagnosis and extraction
+  # to a separate class as this class already is a bit of a "false god object"
+  # however a lot of tests depend on it currently and it's not really getting
+  # in the way.
   class BlockNode
+    # Helper to create a block from other blocks
+    #
+    #   parents = node.parents
+    #   expect(parents[0].leaning).to eq(:left)
+    #   expect(parents[2].leaning).to eq(:right)
+    #
+    #   block = BlockNode.from_blocks([parents[0], parents[2]])
+    #   expect(block.leaning).to eq(:equal)
     def self.from_blocks(parents)
       lines = []
       parents = parents.first.parents if parents.length == 1 && parents.first.parents.any?
@@ -51,6 +95,12 @@ module DeadEnd
       @deleted = false
     end
 
+    # Used to determine when to expand up in building
+    # a tree. Also used to calculate the `next_indent`.
+    #
+    # There is a tight coupling between the two concepts
+    # as the `next_indent` is used to determine node expansion
+    # priority
     def expand_above?(with_indent: indent)
       return false if above.nil?
       return false if leaf? && leaning == :left
@@ -62,6 +112,12 @@ module DeadEnd
       end
     end
 
+    # Used to determine when to expand down in building
+    # a tree. Also used to calculate the `next_indent`.
+    #
+    # There is a tight coupling between the two concepts
+    # as the `next_indent` is used to determine node expansion
+    # priority
     def expand_below?(with_indent: indent)
       return false if below.nil?
       return false if leaf? && leaning == :right
@@ -77,10 +133,28 @@ module DeadEnd
       parents.empty?
     end
 
+    # When diagnose is `:next_invalid` it indicates that
+    # only one parent is not valid. Therefore we must
+    # follow that node if we wish to continue reducing
+    # the invalid blocks
     def next_invalid
       parents.detect(&:invalid?)
     end
 
+    # Returns a symbol correlated to the current node's
+    # parents state
+    #
+    # - :self - Leaf node, problem must be with self
+    # - :next_invalid - Only one invalid parent node found
+    # - :split_leaning - Invalid block is sandwiched between
+    #   a left/right leaning block, grab the inside
+    # - :multiple - multiple parent blocks are detected as being
+    #   invalid but it's not a "split leaning". If we can reduce/remove
+    #   one or more of these blocks by pairing with the above/below
+    #   nodes then we can reduce multiple invalid blocks to possibly
+    #   be a single invalid block.
+    # - :fork_invalid - If we got here, it looks like there's actually
+    #   multiple syntax errors in multiple parents.
     def diagnose
       return :self if leaf?
 
@@ -94,19 +168,22 @@ module DeadEnd
       :fork_invalid
     end
 
+    # - :fork_invalid - If we got here, it looks like there's actually
+    #   multiple syntax errors in multiple parents.
     def fork_invalid
       parents.select(&:invalid?).map do |block|
         BlockNode.from_blocks([block])
       end
     end
 
-    # Muliple could be:
+    # - :multiple - multiple parent blocks are detected as being
+    #   invalid but it's not a "split leaning". If we can reduce/remove
+    #   one or more of these blocks by pairing with the above/below
+    #   nodes then we can reduce multiple invalid blocks to possibly
+    #   be a single invalid block.
     #
     # - valid rescue/else
     # - leaves inside of an array/hash
-    # - An actual fork indicating multiple syntax errors
-    #
-    # This method handles the first two cases
     def handle_multiple
       if reduced_multiple_invalid_array.any?
         @reduce_multiple ||= BlockNode.from_blocks(reduced_multiple_invalid_array)
@@ -114,7 +191,7 @@ module DeadEnd
     end
     alias :reduce_multiple :handle_multiple
 
-    def reduced_multiple_invalid_array
+    private def reduced_multiple_invalid_array
       @reduced_multiple_invalid_array ||= begin
         invalid = parents.select(&:invalid?)
         # valid rescue/else
@@ -140,6 +217,12 @@ module DeadEnd
       reduced_multiple_invalid_array.any?
     end
 
+    # In isolation left and right leaning blocks
+    # are invalid. For example `(` and `)`.
+    #
+    # If we see 3 or more invalid blocks and the outer
+    # are leaning left and right, then the problem might
+    # be between the leaning blocks rather than with them
     def split_leaning
       block = left_right_parents
       invalid = parents.select(&:invalid?)
@@ -149,7 +232,7 @@ module DeadEnd
       @inner_leaning ||= BlockNode.from_blocks(invalid)
     end
 
-    def left_right_parents
+    private def left_right_parents
       invalid = parents.select(&:invalid?)
       return false if invalid.length < 3
 
@@ -175,6 +258,18 @@ module DeadEnd
       end
     end
 
+    # Given a node, it's above and below links
+    # returns the next indentation.
+    #
+    # The algorithm for the logic follows:
+    #
+    # Expand given the current rules and current indentation
+    # keep doing that until we can't anymore. When we can't
+    # then pick the lowest indentation that will capture above
+    # and below blocks.
+    #
+    # The results of this algorithm are tightly coupled to
+    # tree building and therefore search.
     def self.next_indent(above, node, below)
       return node.indent if node.expand_above? || node.expand_below?
 
@@ -195,10 +290,17 @@ module DeadEnd
       end
     end
 
+    # Calculating the next_indent must be done after above and below
+    # have been assigned (otherwise we would have a race condition).
     def next_indent
       @next_indent ||= self.class.next_indent(above, self, below)
     end
 
+    # It's useful to be able to mark a node as deleted without having
+    # to iterate over a data structure to remove it.
+    #
+    # By storing a deleted state of a node we can instead lazilly ignore it
+    # as needed. This is a performance optimization.
     def delete
       @deleted = true
     end
@@ -207,24 +309,35 @@ module DeadEnd
       @deleted
     end
 
+    # Code within a given node is not syntatically valid
     def invalid?
       !valid?
     end
 
+    # Code within a given node is syntatically valid
+    #
+    # Value is memoized for performance
     def valid?
       return @valid if defined?(@valid)
 
       @valid = DeadEnd.valid?(@lines.join)
     end
 
+    # Opposite of `balanced?`
     def unbalanced?
       !balanced?
     end
 
+    # A node that is `leaning == :equal` is determined to be "balanced".
+    #
+    # Alternative states include :left, :right, or :both
     def balanced?
       @lex_diff.balanced?
     end
 
+    # Returns the direction a block is leaning
+    #
+    # States include :equal, :left, :right, and :both
     def leaning
       @lex_diff.leaning
     end
@@ -233,6 +346,17 @@ module DeadEnd
       @lines.join
     end
 
+    # Determines priority of node within a priority data structure
+    # (such as a priority queue).
+    #
+    # This is tightly coupled to tree building and search.
+    #
+    # It's also a performance sensitive area. An optimization
+    # not yet taken would be to re-encode the same data as a string
+    # so a node with next indent of 8, current indent of 10 and line
+    # of 100 might possibly be encoded as `008001000100` which would
+    # sort the same as this logic. Preliminary benchmarks indicate a
+    # rough 2x speedup
     def <=>(other)
       case next_indent <=> other.next_indent
       when 1 then 1
@@ -242,20 +366,18 @@ module DeadEnd
         when 1 then 1
         when -1 then -1
         when 0
-          # if leaning != other.leaning
-          #   return -1 if self.leaning == :equal
-          #   return 1 if other.leaning == :equal
-          # end
 
           end_index <=> other.end_index
         end
       end
     end
 
+    # Provide meaningful diffs in rspec
     def inspect
       "#<DeadEnd::BlockNode 0x000000010cbfelol range=#{@start_index}..#{@end_index}, @indent=#{indent}, @next_indent=#{next_indent}, @parents=#{@parents.inspect}>"
     end
 
+    # Generate a new lex pair diff given an array of lines
     private def set_lex_diff_from(lines)
       @lex_diff = LexPairDiff.new_empty
       lines.each do |line|
@@ -263,6 +385,7 @@ module DeadEnd
       end
     end
 
+    # Needed for meaningful rspec assertions
     def ==(other)
       @lines == other.lines && @indent == other.indent && next_indent == other.next_indent && @parents == other.parents
     end
