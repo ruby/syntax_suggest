@@ -208,3 +208,4 @@ require_relative "indent_tree"
 require_relative "block_document"
 
 require_relative "indent_search"
+require_relative "diagnose_node"
