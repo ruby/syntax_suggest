@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module DeadEnd
-
   # A core data structure
   #
   # A block node keeps a reference to the block above it
@@ -157,7 +156,7 @@ module DeadEnd
     def handle_multiple
       @diagnose.next.first
     end
-    alias :remove_pseudo_pair :handle_multiple
+    alias_method :remove_pseudo_pair, :handle_multiple
 
     def split_leaning
       @diagnose.next.first

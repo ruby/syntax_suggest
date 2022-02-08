@@ -62,10 +62,10 @@ module DeadEnd
       invalid = get_invalid
       return self if invalid.empty?
 
-      if @problem == :multiple_invalid_parents
-        @next = invalid.map {|b| BlockNode.from_blocks([b]) }
+      @next = if @problem == :multiple_invalid_parents
+        invalid.map { |b| BlockNode.from_blocks([b]) }
       else
-        @next = [ BlockNode.from_blocks(invalid) ]
+        [BlockNode.from_blocks(invalid)]
       end
 
       self
@@ -111,7 +111,7 @@ module DeadEnd
       if left && right && invalid.length >= 3 && BlockNode.from_blocks([left, right]).valid?
         @problem = :invalid_inside_split_pair
 
-        invalid.reject! {|x| x == left || x == right }
+        invalid.reject! { |x| x == left || x == right }
 
         # If the left/right was not mapped properly or we've accidentally got a :multiple_invalid_parents
         # we can get a false positive, double check the invalid lines fully capture the problem
@@ -120,11 +120,10 @@ module DeadEnd
           without_lines: invalid.flat_map(&:lines)
         )
 
-          return invalid
+          invalid
         end
       end
     end
-
 
     # ## (:remove_pseudo_pair) Handle else/ensure case
     #
@@ -168,19 +167,19 @@ module DeadEnd
       return false if above.nil? || below.nil?
 
       if invalid.reject! { |block|
-          b = BlockNode.from_blocks([above, block, below])
-          b.leaning == :equal && b.valid?
-        }
+           b = BlockNode.from_blocks([above, block, below])
+           b.leaning == :equal && b.valid?
+         }
 
         if invalid.any?
           @problem = :remove_pseudo_pair
-          return invalid
+          invalid
         else
 
           invalid = block.parents.select(&:invalid?)
-          if (b = invalid.detect { |b| BlockNode.from_blocks([above, invalid - [b] , below].flatten).valid? })
+          if (b = invalid.detect { |b| BlockNode.from_blocks([above, invalid - [b], below].flatten).valid? })
             @problem = :extract_from_multiple
-            return [b]
+            [b]
           end
         end
       end
@@ -189,10 +188,10 @@ module DeadEnd
     # We couldn't detect any special cases, either return 1 or N invalid nodes
     private def diagnose_one_or_more_parents
       invalid = block.parents.select(&:invalid?)
-      if invalid.length > 1
-        @problem = :multiple_invalid_parents
+      @problem = if invalid.length > 1
+        :multiple_invalid_parents
       else
-        @problem = :one_invalid_parent
+        :one_invalid_parent
       end
 
       invalid
@@ -201,7 +200,7 @@ module DeadEnd
     private def diagnose_self
       if block.parents.empty?
         @problem = :self
-        return []
+        []
       end
     end
   end

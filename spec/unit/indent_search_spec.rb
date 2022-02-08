@@ -328,7 +328,7 @@ module DeadEnd
       search = IndentSearch.new(tree: tree).call
 
       expect(search.finished.first.node.to_s).to eq(<<~'EOM')
-          def on_args_add(arguments, argument)
+        def on_args_add(arguments, argument)
       EOM
     end
 

@@ -5,7 +5,6 @@ module DeadEnd
   #
   # This class allows for tracing the algorithm
   class BlockRecorder
-
     # Convienece constructor for building a BlockRecorder given
     # a directory object.
     #
@@ -14,7 +13,7 @@ module DeadEnd
     #
     # Multiple different processes may be logging to the same
     # directory, so writing to a subdir is recommended
-    def self.from_dir(dir, subdir: , code_lines: )
+    def self.from_dir(dir, subdir:, code_lines:)
       if dir == DEFAULT_VALUE
         dir = ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? DeadEnd.record_dir("tmp") : nil
       end

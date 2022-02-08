@@ -28,7 +28,7 @@ module DeadEnd
   class IndentSearch
     attr_reader :finished
 
-    def initialize(tree: , record_dir: DEFAULT_VALUE)
+    def initialize(tree:, record_dir: DEFAULT_VALUE)
       @tree = tree
       @root = tree.root
       @finished = []
@@ -57,7 +57,7 @@ module DeadEnd
         end
       end
 
-      @finished.sort_by! {|j| j.node.starts_at }
+      @finished.sort_by! { |j| j.node.starts_at }
 
       self
     end

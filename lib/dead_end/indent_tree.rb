@@ -25,7 +25,6 @@ module DeadEnd
       @code_lines = document.code_lines
       @last_length = Float::INFINITY
 
-
       @recorder = BlockRecorder.from_dir(record_dir, subdir: "build_tree", code_lines: @code_lines)
     end
 

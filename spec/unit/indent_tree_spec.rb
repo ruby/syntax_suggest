@@ -24,14 +24,13 @@ module DeadEnd
       node = tree.root
 
       expect(node.diagnose).to eq(:one_invalid_parent)
-      node =  node.next_invalid
+      node = node.next_invalid
 
       expect(node.diagnose).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         end # two
       EOM
     end
-
 
     it "ambiguous kw" do
       source = <<~'EOM'
@@ -46,7 +45,7 @@ module DeadEnd
       node = tree.root
       expect(node.parents.length).to eq(2)
       expect(node.diagnose).to eq(:one_invalid_parent)
-      node =  node.next_invalid
+      node = node.next_invalid
 
       expect(node.diagnose).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
@@ -74,7 +73,7 @@ module DeadEnd
       # expect(node.parents.length).to eq(2)
 
       expect(node.diagnose).to eq(:multiple_invalid_parents)
-      forks =  node.fork_invalid
+      forks = node.fork_invalid
 
       node = forks.first
 
@@ -120,9 +119,9 @@ module DeadEnd
       expect(node.diagnose).to eq(:invalid_inside_split_pair)
       node = node.split_leaning
       expect(node.to_s).to eq(<<~'EOM')
-        puts (
-      else
-        puts }
+          puts (
+        else
+          puts }
       EOM
 
       expect(node.diagnose).to eq(:remove_pseudo_pair)
