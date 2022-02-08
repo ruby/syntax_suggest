@@ -177,6 +177,7 @@ module DeadEnd
       @next_indent = next_indent
 
       @starts_at = @start_index + 1
+      @ends_at = @end_index + 1
 
       @parents = parents
 

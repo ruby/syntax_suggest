@@ -47,7 +47,7 @@ module DeadEnd
           highlight_lines: block.lines
         ).call
 
-        f.write("    Block lines: #{(block.starts_at + 1)..(block.ends_at + 1)} (#{name})\n")
+        f.write("    Block lines: #{(block.starts_at)..(block.ends_at)} (#{name})\n")
         f.write("    indent: #{block.indent} next_indent: #{block.next_indent}\n\n")
         f.write(document.to_s)
       end
