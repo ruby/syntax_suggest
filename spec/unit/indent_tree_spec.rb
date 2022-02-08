@@ -23,10 +23,12 @@ module DeadEnd
 
       node = tree.root
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         end # two
       EOM
@@ -43,11 +45,14 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(node.parents.length).to eq(2)
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(node.parents.length).to eq(2)
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
+
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         class Cow
       EOM
@@ -72,31 +77,38 @@ module DeadEnd
       node = tree.root
       # expect(node.parents.length).to eq(2)
 
-      expect(node.diagnose).to eq(:multiple_invalid_parents)
-      forks = node.fork_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:multiple_invalid_parents)
+      forks = diagnose.next
 
       node = forks.first
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         def speak
       EOM
 
       node = forks.last
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         end # buffalo one
       EOM
@@ -116,24 +128,27 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
+
       expect(node.to_s).to eq(<<~'EOM')
           puts (
         else
           puts }
       EOM
 
-      expect(node.diagnose).to eq(:remove_pseudo_pair)
-      node = node.handle_multiple
-
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+      node = diagnose.next[0]
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         puts (
         puts }
       EOM
 
-      expect(node.diagnose).to eq(:multiple_invalid_parents)
-      forks = node.fork_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:multiple_invalid_parents)
+      forks = diagnose.next
 
       expect(forks.length).to eq(2)
       expect(forks.first.to_s).to eq(<<~'EOM'.indent(2))
@@ -219,19 +234,24 @@ module DeadEnd
 
       node = tree.root
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         |
       EOM
@@ -257,13 +277,17 @@ module DeadEnd
       expect(diagnose.problem).to eq(:invalid_inside_split_pair)
       node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:extract_from_multiple)
-      node = node.next_invalid
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:extract_from_multiple)
+      node = diagnose.next[0]
+
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(4))
         cat,
       EOM
@@ -314,28 +338,35 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:remove_pseudo_pair)
-      node = node.handle_multiple
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:remove_pseudo_pair)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:remove_pseudo_pair)
       expect(node.parents.length).to eq(4)
 
-      node = node.handle_multiple
+      diagnose = DiagnoseNode.new(node).call
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
-
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(6))
         bundle_path: "vendor/bundle", }
       EOM
@@ -349,37 +380,48 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:remove_pseudo_pair)
-      node = node.handle_multiple
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:remove_pseudo_pair)
-      node = node.handle_multiple
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         |
       EOM
@@ -394,19 +436,24 @@ module DeadEnd
 
       node = tree.root
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(4))
         def filename
       EOM
@@ -424,14 +471,17 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         def bark
       EOM
@@ -456,13 +506,16 @@ module DeadEnd
 
       node = tree.root
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         end # one
       EOM
@@ -500,13 +553,16 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         end # one
       EOM
@@ -575,19 +631,24 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
         def format_requires
       EOM
@@ -603,32 +664,40 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:invalid_inside_split_pair)
-      node = node.split_leaning
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
-
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM'.indent(4))
         def format_requires
       EOM
@@ -649,19 +718,24 @@ module DeadEnd
 
         node = tree.root
 
-        expect(node.diagnose).to eq(:one_invalid_parent)
-        node = node.next_invalid
+        diagnose = DiagnoseNode.new(node).call
+        expect(diagnose.problem).to eq(:one_invalid_parent)
+        node = diagnose.next[0]
 
-        expect(node.diagnose).to eq(:invalid_inside_split_pair)
-        node = node.split_leaning
+        diagnose = DiagnoseNode.new(node).call
+        expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+        node = diagnose.next[0]
 
-        expect(node.diagnose).to eq(:one_invalid_parent)
-        node = node.next_invalid
+        diagnose = DiagnoseNode.new(node).call
+        expect(diagnose.problem).to eq(:one_invalid_parent)
+        node = diagnose.next[0]
 
-        expect(node.diagnose).to eq(:one_invalid_parent)
-        node = node.next_invalid
+        diagnose = DiagnoseNode.new(node).call
+        expect(diagnose.problem).to eq(:one_invalid_parent)
+        node = diagnose.next[0]
 
-        expect(node.diagnose).to eq(:self)
+        diagnose = DiagnoseNode.new(node).call
+        expect(diagnose.problem).to eq(:self)
         expect(node.to_s).to eq(<<~'EOM'.indent(2))
           def on_args_add(arguments, argument)
         EOM
@@ -709,13 +783,16 @@ module DeadEnd
 
       node = tree.root
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         def on_args_add(arguments, argument)
       EOM
@@ -736,10 +813,12 @@ module DeadEnd
 
       node = tree.root
 
-      expect(node.diagnose).to eq(:one_invalid_parent)
-      node = node.next_invalid
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:one_invalid_parent)
+      node = diagnose.next[0]
 
-      expect(node.diagnose).to eq(:self)
+      diagnose = DiagnoseNode.new(node).call
+      expect(diagnose.problem).to eq(:self)
       expect(node.to_s).to eq(<<~'EOM')
         end # two
       EOM

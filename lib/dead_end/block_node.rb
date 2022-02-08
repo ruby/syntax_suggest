@@ -24,19 +24,6 @@ module DeadEnd
   # they're expanded. To be calculated a nodes above and below blocks must
   # be accurately assigned. So this property cannot be calculated at creation
   # time.
-  #
-  # Beyond these core capabilities blocks also know how to `diagnose` what
-  # is wrong with them. And then they can take an action based on that
-  # diagnosis. For example `node.diagnose == :invalid_inside_split_pair` indicates that
-  # it contains parents invalid parents that likey represent an invalid node
-  # sandwitched between a left and right leaning node. This will happen with
-  # code. For example `[`, `bad &*$@&^ code`, `]`. Then the inside invalid node
-  # can be grabbed via calling `node.split_leaning`.
-  #
-  # In the long term it likely makes sense to move diagnosis and extraction
-  # to a separate class as this class already is a bit of a "false god object"
-  # however a lot of tests depend on it currently and it's not really getting
-  # in the way.
   class BlockNode
     # Helper to create a block from other blocks
     #
@@ -138,28 +125,6 @@ module DeadEnd
 
     def leaf?
       parents.empty?
-    end
-
-    def next_invalid
-      @diagnose.next.first
-    end
-
-    def diagnose
-      @diagnose ||= DiagnoseNode.new(self).call
-      @diagnose.problem
-    end
-
-    def fork_invalid
-      @diagnose.next
-    end
-
-    def handle_multiple
-      @diagnose.next.first
-    end
-    alias_method :remove_pseudo_pair, :handle_multiple
-
-    def split_leaning
-      @diagnose.next.first
     end
 
     # Given a node, it's above and below links
