@@ -6,7 +6,7 @@ module DeadEnd
   # Given an invalid node, the root cause of the syntax error
   # may exist in that node, or in one or more of it's parents.
   #
-  # The Diagnose class is responsible for determining the most reasonable next move to
+  # The DiagnoseNode class is responsible for determining the most reasonable next move to
   # make.
   #
   # Results can be best effort, i.e. they must be re-checked against a document
@@ -45,11 +45,11 @@ module DeadEnd
   #
   # Usage example:
   #
-  #   diagnose = Diagnose.new(block).call
+  #   diagnose = DiagnoseNode.new(block).call
   #   expect(diagnose.problem).to eq(:multiple_invalid_parents)
   #   expect(diagnose.next.length).to eq(2)
   #
-  class Diagnose
+  class DiagnoseNode
     attr_reader :block, :problem, :next
 
     def initialize(block)
@@ -58,12 +58,8 @@ module DeadEnd
       @next = []
     end
 
-    def invalid
-      @block.parents.select(&:invalid?)
-    end
-
     def call
-      find_invalid
+      invalid = get_invalid
       return self if invalid.empty?
 
       if @problem == :multiple_invalid_parents
@@ -75,46 +71,43 @@ module DeadEnd
       self
     end
 
-    private def invalid
-      @invalid ||= get_invalid
-    end
-
-    private def find_invalid
-      invalid
-    end
-
     # Checks for the common problem states a node might face.
-    # returns an array of 0, 1 or N blocks that gets memoized
-    #
-    # Sets @problem instance variable
+    # returns an array of 0, 1 or N blocks
     private def get_invalid
-      # If current block has no parents we can explore them, the problem must exist in itself
-      if block.parents.empty?
-        @problem = :self
-        return []
-      end
+      out = diagnose_self
+      return out if out
 
+      out = diagnose_left_right
+      return out if out
+
+      out = diagnose_above_below
+      return out if out
+
+      diagnose_one_or_more_parents
+    end
+
+    # ## (:invalid_inside_split_pair) Handle case where keyword/end (or any pair) is falsely reported as invalid in isolation but
+    # holds a syntax error inside of it.
+    #
+    # Example:
+    #
+    # ```
+    # def cow # left, invalid in isolation, valid when paired with end
+    # ```
+    #
+    # ```
+    #   inv&li) code # Actual problem to be isolated
+    # ```
+    #
+    # ```
+    # end # right, invalid in isolation, valid when paired with def
+    # ```
+    private def diagnose_left_right
       invalid = block.parents.select(&:invalid?)
 
       left = invalid.detect { |block| block.leaning == :left }
       right = invalid.reverse_each.detect { |block| block.leaning == :right }
 
-      # Handle case where keyword/end (or any pair) is falsely reported as invalid in isolation but
-      # holds a syntax error inside of it.
-      #
-      # Example:
-      #
-      # ```
-      # def cow # left, invalid in isolation, valid when paired with end
-      # ```
-      #
-      # ```
-      #   inv&li) code # Actual problem to be isolated
-      # ```
-      #
-      # ```
-      # end # right, invalid in isolation, valid when paired with def
-      # ```
       if left && right && invalid.length >= 3 && BlockNode.from_blocks([left, right]).valid?
         @problem = :invalid_inside_split_pair
 
@@ -130,64 +123,71 @@ module DeadEnd
           return invalid
         end
       end
+    end
+
+
+    # ## (:remove_pseudo_pair) Handle else/ensure case
+    #
+    # Example:
+    #
+    # ```
+    # def cow # above
+    # ```
+    #
+    # ```
+    #   print inv&li) # Actual problem
+    # rescue => e     # Invalid in isolation, valid when paired with above/below
+    # ```
+    #
+    # ```
+    # end # below
+    # ```
+    #
+    # ## (:extract_from_multiple) Handle syntax seems fine in isolation, but not when combined with above/below leaning blocks
+    #
+    # Example:
+    #
+    # ```
+    # [ # above
+    # ```
+    #
+    # ```
+    #    missing_comma_not_okay
+    #    missing_comma_okay
+    # ```
+    #
+    # ```
+    # ] # below
+    # ```
+    private def diagnose_above_below
+      invalid = block.parents.select(&:invalid?)
 
       above = block.above if block.above&.leaning == :left
       below = block.below if block.below&.leaning == :right
 
-      if above && below
-        @problem = :remove_pseudo_pair
+      return false if above.nil? || below.nil?
 
-        # Handle else/ensure case
-        #
-        # Example:
-        #
-        # ```
-        # def cow # above
-        # ```
-        #
-        # ```
-        #   print inv&li) # Actual problem
-        # rescue => e     # Invalid in isolation, valid when paired with above/below
-        # ```
-        #
-        # ```
-        # end # below
-        # ```
-        if invalid.reject! { |block|
-            b = BlockNode.from_blocks([above, block, below])
-            b.leaning == :equal && b.valid?
-          }
+      if invalid.reject! { |block|
+          b = BlockNode.from_blocks([above, block, below])
+          b.leaning == :equal && b.valid?
+        }
 
-          if invalid.any?
-            return invalid
-          else
-            # Handle syntax seems fine in isolation, but not when combined with above/below leaning blocks
-            #
-            # Example:
-            #
-            # ```
-            # [ # above
-            # ```
-            #
-            # ```
-            #    missing_comma_not_okay
-            #    missing_comma_okay
-            # ```
-            #
-            # ```
-            # ] # below
-            # ```
-            #
-            invalid = block.parents.select(&:invalid?)
-            if (b = invalid.detect { |b| BlockNode.from_blocks([above, invalid - [b] , below].flatten).valid? })
-              @problem = :extract_from_multiple
-              return [b]
-            end
+        if invalid.any?
+          @problem = :remove_pseudo_pair
+          return invalid
+        else
+
+          invalid = block.parents.select(&:invalid?)
+          if (b = invalid.detect { |b| BlockNode.from_blocks([above, invalid - [b] , below].flatten).valid? })
+            @problem = :extract_from_multiple
+            return [b]
           end
         end
       end
+    end
 
-      # We couldn't detect any special cases, either return 1 or N invalid nodes
+    # We couldn't detect any special cases, either return 1 or N invalid nodes
+    private def diagnose_one_or_more_parents
       invalid = block.parents.select(&:invalid?)
       if invalid.length > 1
         @problem = :multiple_invalid_parents
@@ -196,6 +196,13 @@ module DeadEnd
       end
 
       invalid
+    end
+
+    private def diagnose_self
+      if block.parents.empty?
+        @problem = :self
+        return []
+      end
     end
   end
 
@@ -343,7 +350,7 @@ module DeadEnd
     end
 
     def diagnose
-      @diagnose ||= Diagnose.new(self).call
+      @diagnose ||= DiagnoseNode.new(self).call
       @diagnose.problem
     end
 

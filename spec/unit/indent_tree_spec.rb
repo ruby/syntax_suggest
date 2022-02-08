@@ -254,7 +254,7 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      diagnose = Diagnose.new(node).call
+      diagnose = DiagnoseNode.new(node).call
       expect(diagnose.problem).to eq(:invalid_inside_split_pair)
       node = diagnose.next[0]
 

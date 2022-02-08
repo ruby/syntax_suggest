@@ -38,7 +38,7 @@ module DeadEnd
 
     def call
       while (journey = @frontier.pop)
-        diagnose = Diagnose.new(journey.node).call
+        diagnose = DiagnoseNode.new(journey.node).call
         problem = diagnose.problem
         nodes = diagnose.next
 
