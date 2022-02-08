@@ -1,6 +1,54 @@
 # frozen_string_literal: true
 
 module DeadEnd
+  # Explore and diagnose problems with a block
+  #
+  # Given an invalid node, the root cause of the syntax error
+  # may exist in that node, or in one or more of it's parents.
+  #
+  # The Diagnose class is responsible for determining the most reasonable next move to
+  # make.
+  #
+  # Results can be best effort, i.e. they must be re-checked against a document
+  # before being recommended to a user. We still want to take care in making the
+  # best possible suggestion as a bad suggestion may halt the search at a suboptimal
+  # location.
+  #
+  # The algorithm here is tightly coupled to the nodes produced by the current IndentTree
+  # implementation.
+  #
+  #
+  # Possible problem states:
+  #
+  # - :self - The block holds no parents, if it holds a problem its in the current node.
+  #
+  # - :invalid_inside_split_pair - An invalid block is splitting two valid leaning blocks, return the middle.
+  #
+  # - :remove_pseudo_pair - Multiple invalid blocks in isolation are present, but when paired with external leaning
+  #   blocks above and below they become valid. Remove these and group the leftovers together. i.e. `else/ensure/rescue`.
+  #
+  # - :extract_from_multiple - Multiple invalid blocks in isolation are present, but we were able to find one that could be removed
+  #   to make a valid set along with outer leaning i.e. `[`, `in)&lid` , `vaild`, `]`. Different from :invalid_inside_split_pair because
+  #   the leaning elements come from different blocks above & below. At the end of a journey split_leaning might break one invalid
+  #   node into multiple parents that then hit :extract_from_multiple
+  #
+  # - :one_invalid_parent - Only one parent is invalid, better investigate.
+  #
+  # - :multiple_invalid_parents - Multiple blocks are invalid, they cannot be reduced or extracted, we will have to fork the search and
+  #   explore all of them independently.
+  #
+  # Returns the next 0, 1 or N node(s) based on the given problem state.
+  #
+  # - 0 nodes returned by :self
+  # - 1 node returned by :invalid_inside_split_pair, :remove_pseudo_pair, :extract_from_multiple, :one_invalid_parent
+  # - N nodes returned by :multiple_invalid_parents
+  #
+  # Usage example:
+  #
+  #   diagnose = Diagnose.new(block).call
+  #   expect(diagnose.problem).to eq(:multiple_invalid_parents)
+  #   expect(diagnose.next.length).to eq(2)
+  #
   class Diagnose
     attr_reader :block, :problem, :next
 
@@ -18,7 +66,7 @@ module DeadEnd
       find_invalid
       return self if invalid.empty?
 
-      if @problem == :fork_invalid
+      if @problem == :multiple_invalid_parents
         @next = invalid.map {|b| BlockNode.from_blocks([b]) }
       else
         @next = [ BlockNode.from_blocks(invalid) ]
@@ -27,7 +75,7 @@ module DeadEnd
       self
     end
 
-    def invalid
+    private def invalid
       @invalid ||= get_invalid
     end
 
@@ -35,7 +83,12 @@ module DeadEnd
       invalid
     end
 
+    # Checks for the common problem states a node might face.
+    # returns an array of 0, 1 or N blocks that gets memoized
+    #
+    # Sets @problem instance variable
     private def get_invalid
+      # If current block has no parents we can explore them, the problem must exist in itself
       if block.parents.empty?
         @problem = :self
         return []
@@ -46,41 +99,100 @@ module DeadEnd
       left = invalid.detect { |block| block.leaning == :left }
       right = invalid.reverse_each.detect { |block| block.leaning == :right }
 
-      above = block.above if block.above&.leaning == :left
-      below = block.below if block.below&.leaning == :right
-
+      # Handle case where keyword/end (or any pair) is falsely reported as invalid in isolation but
+      # holds a syntax error inside of it.
+      #
+      # Example:
+      #
+      # ```
+      # def cow # left, invalid in isolation, valid when paired with end
+      # ```
+      #
+      # ```
+      #   inv&li) code # Actual problem to be isolated
+      # ```
+      #
+      # ```
+      # end # right, invalid in isolation, valid when paired with def
+      # ```
       if left && right && invalid.length >= 3 && BlockNode.from_blocks([left, right]).valid?
-        @problem = :split_leaning
+        @problem = :invalid_inside_split_pair
 
         invalid.reject! {|x| x == left || x == right }
 
-        return invalid
+        # If the left/right was not mapped properly or we've accidentally got a :multiple_invalid_parents
+        # we can get a false positive, double check the invalid lines fully capture the problem
+        if DeadEnd.valid_without?(
+          code_lines: block.lines,
+          without_lines: invalid.flat_map(&:lines)
+        )
+
+          return invalid
+        end
       end
 
+      above = block.above if block.above&.leaning == :left
+      below = block.below if block.below&.leaning == :right
+
       if above && below
-        @problem = :multiple
+        @problem = :remove_pseudo_pair
 
-        before_length = invalid.length
-        invalid.reject! { |block|
-          b = BlockNode.from_blocks([above, block, below])
-          b.leaning == :equal && b.valid?
-        }
+        # Handle else/ensure case
+        #
+        # Example:
+        #
+        # ```
+        # def cow # above
+        # ```
+        #
+        # ```
+        #   print inv&li) # Actual problem
+        # rescue => e     # Invalid in isolation, valid when paired with above/below
+        # ```
+        #
+        # ```
+        # end # below
+        # ```
+        if invalid.reject! { |block|
+            b = BlockNode.from_blocks([above, block, below])
+            b.leaning == :equal && b.valid?
+          }
 
-        if invalid.length != before_length
           if invalid.any?
             return invalid
-          elsif (b = block.parents.select(&:invalid?).detect { |b| BlockNode.from_blocks([above, block.parents.select(&:invalid?)  - [b] , below].flatten).valid? })
-            @problem = :one_inside
-            return [b]
+          else
+            # Handle syntax seems fine in isolation, but not when combined with above/below leaning blocks
+            #
+            # Example:
+            #
+            # ```
+            # [ # above
+            # ```
+            #
+            # ```
+            #    missing_comma_not_okay
+            #    missing_comma_okay
+            # ```
+            #
+            # ```
+            # ] # below
+            # ```
+            #
+            invalid = block.parents.select(&:invalid?)
+            if (b = invalid.detect { |b| BlockNode.from_blocks([above, invalid - [b] , below].flatten).valid? })
+              @problem = :extract_from_multiple
+              return [b]
+            end
           end
         end
       end
 
+      # We couldn't detect any special cases, either return 1 or N invalid nodes
       invalid = block.parents.select(&:invalid?)
       if invalid.length > 1
-        @problem = :fork_invalid
+        @problem = :multiple_invalid_parents
       else
-        @problem = :next_invalid
+        @problem = :one_invalid_parent
       end
 
       invalid
@@ -113,7 +225,7 @@ module DeadEnd
   #
   # Beyond these core capabilities blocks also know how to `diagnose` what
   # is wrong with them. And then they can take an action based on that
-  # diagnosis. For example `node.diagnose == :split_leaning` indicates that
+  # diagnosis. For example `node.diagnose == :invalid_inside_split_pair` indicates that
   # it contains parents invalid parents that likey represent an invalid node
   # sandwitched between a left and right leaning node. This will happen with
   # code. For example `[`, `bad &*$@&^ code`, `]`. Then the inside invalid node
@@ -242,7 +354,7 @@ module DeadEnd
     def handle_multiple
       @diagnose.next.first
     end
-    alias :reduce_multiple :handle_multiple
+    alias :remove_pseudo_pair :handle_multiple
 
     def split_leaning
       @diagnose.next.first

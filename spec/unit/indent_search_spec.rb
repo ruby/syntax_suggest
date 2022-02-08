@@ -4,7 +4,35 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentSearch do
-    it "long inner" do
+    it "won't show valid code when two invalid blocks are splitting it" do
+      source = <<~'EOM'
+        {
+          print (
+        }
+
+        print 'haha'
+
+        {
+          print )
+        }
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+        {
+          print (
+        }
+        {
+          print )
+        }
+      EOM
+    end
+
+    it "only returns the problem line and not all lines on a long inner section" do
       source = <<~'EOM'
         {
           foo: :bar,

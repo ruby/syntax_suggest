@@ -45,6 +45,7 @@ module DeadEnd
         @recorder.capture(journey.node, name: "pop_#{problem}")
 
         if nodes.empty? || !holds_all_errors?(nodes)
+          @recorder.capture(journey.node, name: "skip_capture_and_exit_#{problem}")
           @finished << journey
         else
           nodes.each do |block|
