@@ -62,6 +62,42 @@ module DeadEnd
   #
   # Main private interface
   def self.call(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: DEFAULT_VALUE, timeout: TIMEOUT_DEFAULT, io: $stderr)
+    call_now(source: source, filename: filename, terminal: terminal, record_dir: record_dir, timeout: timeout, io: io)
+    # call_old(source: source, filename: filename, terminal: terminal, record_dir: record_dir, timeout: timeout, io: io)
+  end
+
+  def self.call_now(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: DEFAULT_VALUE, timeout: TIMEOUT_DEFAULT, io: $stderr)
+    search = nil
+    code_lines = nil
+    filename = nil if filename == DEFAULT_VALUE
+    Timeout.timeout(timeout) do
+      code_lines = CleanDocument.new(source: source).call.lines
+
+      if DeadEnd.valid?(code_lines)
+        io.puts "Syntax OK"
+        obj = Object.new
+        def obj.document_ok?; true; end
+        return obj
+      end
+
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+    end
+
+    blocks = search.finished.map(&:node).map {|node| CodeBlock.new(lines: node.lines) }
+    # puts search.finished.first.steps.last(2).first.block
+
+    DisplayInvalidBlocks.new(
+      io: io,
+      blocks: blocks,
+      filename: filename,
+      terminal: terminal,
+      code_lines: code_lines,
+    ).call
+  end
+
+  def self.call_old(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: DEFAULT_VALUE, timeout: TIMEOUT_DEFAULT, io: $stderr)
     search = nil
     filename = nil if filename == DEFAULT_VALUE
     Timeout.timeout(timeout) do
@@ -75,7 +111,7 @@ module DeadEnd
       blocks: blocks,
       filename: filename,
       terminal: terminal,
-      code_lines: search.code_lines
+      code_lines: search.code_lines,
     ).call
   rescue Timeout::Error => e
     io.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"

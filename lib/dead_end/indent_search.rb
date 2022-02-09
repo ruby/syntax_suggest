@@ -89,4 +89,8 @@ module DeadEnd
       )
     end
   end
+
+  def inspect
+    "#<DeadEnd::IndentSearch 0x000000010cbfelol >"
+  end
 end

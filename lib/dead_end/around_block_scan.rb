@@ -121,7 +121,7 @@ module DeadEnd
           break
         end
 
-        lines << line
+        lines << line if line.is_kw? || line.is_end?
       end
 
       lines.reverse!
@@ -140,7 +140,7 @@ module DeadEnd
           break
         end
 
-        lines << line
+        lines << line if line.is_kw? || line.is_end?
       end
 
       lines

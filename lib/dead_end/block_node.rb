@@ -241,6 +241,10 @@ module DeadEnd
       end
     end
 
+    def hidden?
+      false
+    end
+
     # Provide meaningful diffs in rspec
     def inspect
       "#<DeadEnd::BlockNode 0x000000010cbfelol range=#{@start_index}..#{@end_index}, @indent=#{indent}, @next_indent=#{next_indent}, @parents=#{@parents.inspect}>"

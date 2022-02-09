@@ -6,13 +6,14 @@ require_relative "display_code_with_line_numbers"
 module DeadEnd
   # Used for formatting invalid blocks
   class DisplayInvalidBlocks
-    attr_reader :filename
+    attr_reader :filename, :code_lines
 
-    def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: DEFAULT_VALUE)
+    def initialize(code_lines:, blocks:, io: $stderr, filename: nil, terminal: DEFAULT_VALUE, capture_mode: :old)
       @io = io
       @blocks = Array(blocks)
       @filename = filename
       @code_lines = code_lines
+      @capture_mode = capture_mode
 
       @terminal = terminal == DEFAULT_VALUE ? io.isatty : terminal
     end
@@ -44,12 +45,16 @@ module DeadEnd
         code_lines: block.lines
       ).call
 
-      # Enhance code output
-      # Also handles several ambiguious cases
-      lines = CaptureCodeContext.new(
-        blocks: block,
-        code_lines: @code_lines
-      ).call
+      if @capture_mode == :old
+        # Enhance code output
+        # Also handles several ambiguious cases
+        lines = CaptureCodeContext.new(
+          blocks: block,
+          code_lines: @code_lines
+        ).call
+      else
+        lines = block.lines
+      end
 
       # Build code output
       document = DisplayCodeWithLineNumbers.new(

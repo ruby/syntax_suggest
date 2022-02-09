@@ -4,6 +4,38 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentSearch do
+    it "finds missing do in an rspec context same indent when the problem is in the middle and blocks do not have inner contents" do
+      source = <<~'EOM'
+        describe "things" do
+          it "blerg" do
+            print foo
+          end # one
+
+          it "flerg"
+            print foo
+          end # two
+
+          it "zlerg" do
+            print foo
+          end # three
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+        {
+          print (
+        }
+        {
+          print )
+        }
+      EOM
+    end
+
     it "won't show valid code when two invalid blocks are splitting it" do
       source = <<~'EOM'
         {
