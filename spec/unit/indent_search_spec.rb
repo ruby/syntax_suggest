@@ -4,7 +4,38 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentSearch do
+    def tmp_capture_context(finished)
+      code_lines = finished.first.steps[0].block.lines
+      blocks = finished.map(&:node).map {|node| CodeBlock.new(lines: node.lines )}
+      lines = CaptureCodeContext.new(blocks: blocks , code_lines: code_lines).call
+      lines
+    end
+
     it "finds missing do in an rspec context same indent when the problem is in the middle and blocks do not have inner contents" do
+      source = <<~'EOM'
+        describe "things" do
+          it "blerg" do
+          end # one
+
+          it "flerg"
+          end # two
+
+          it "zlerg" do
+          end # three
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
+        end # two
+      EOM
+    end
+
+    it "finds missing do in an rspec context same indent when the problem is in the middle and blocks HAVE inner contents" do
       source = <<~'EOM'
         describe "things" do
           it "blerg" do
@@ -26,13 +57,153 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
+      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
+        end # two
+      EOM
+    end
+
+    it "finds a mis-matched def" do
+      source = <<~'EOM'
+        def foo
+          def blerg
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
+        def blerg
+      EOM
+    end
+
+    it "finds a typo def" do
+      source = <<~'EOM'
+        defzfoo
+          puts "lol"
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
       expect(search.finished.join).to eq(<<~'EOM'.indent(0))
-        {
-          print (
-        }
-        {
-          print )
-        }
+        end
+      EOM
+
+      lines = tmp_capture_context(search.finished)
+      expect(lines.join).to eq(<<~'EOM')
+        defzfoo
+        end
+      EOM
+    end
+
+    it "finds a naked end" do
+      source = <<~'EOM'
+        def foo
+          end # one
+        end # two
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+        end # two
+      EOM
+
+      lines = tmp_capture_context(search.finished)
+      expect(lines.join).to eq(<<~'EOM')
+        IDK what I want here
+      EOM
+    end
+
+    it "finds multiple syntax errors" do
+      source = <<~'EOM'
+        describe "hi" do
+          Foo.call
+          end # one
+        end # two
+
+        it "blerg" do
+          Bar.call
+          end # three
+        end # four
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
+        end # one
+        end # three
+      EOM
+
+      lines = tmp_capture_context(search.finished)
+      expect(lines.join).to include(<<~'EOM'.indent(2))
+        Foo.call
+        end # one
+      EOM
+
+      expect(lines.join).to include(<<~'EOM'.indent(2))
+        Bar.call
+        end # three
+      EOM
+    end
+
+    it "doesn't just return an empty `end`" do
+      source = <<~'EOM'
+        Foo.call
+        end # one
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+        end # one
+      EOM
+
+      lines = tmp_capture_context(search.finished)
+      expect(lines.join).to include(<<~'EOM'.indent(0))
+        Foo.call
+        end # one
+      EOM
+    end
+
+    it "returns syntax error in outer block without inner block" do
+      source = <<~'EOM'
+        Foo.call
+          def foo
+            puts "lol"
+            puts "lol"
+          end # one
+        end # two
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+        end # two
+      EOM
+
+      lines = tmp_capture_context(search.finished)
+      expect(lines.join).to include(<<~'EOM'.indent(0))
+        Foo.call
+        end # two
       EOM
     end
 
