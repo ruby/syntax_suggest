@@ -120,36 +120,7 @@ module DeadEnd
 
       record(block: block, name: "before-expand")
 
-      if block.invalid?
-        # When a block is invalid the BalanceHeuristicExpand class tends to make it valid
-        # again. This property reduces the number of Ripper calls to
-        # `frontier.holds_all_syntax_errors?`.
-        #
-        # This class tends to produce larger expansions meaning fewer
-        # total expansion steps.
-        blocks = []
-        expand = BalanceHeuristicExpand.new(code_lines: code_lines, block: block)
-
-        # Expand magic number 3 times
-        #
-        # There's likely a hidden property that explains why. I
-        # guessed it accidentally and it works really well. Reducing or increasing
-        # call count produces awful results. I'm not entirely sure why.
-        blocks << expand.call.to_block
-        blocks << expand.to_block if expand.call.balanced?
-        blocks << expand.to_block if expand.call.balanced?
-
-        # Take the largest generated, valid block
-        block = blocks.reverse_each.detect(&:valid?) || blocks.first
-      else
-        # The original block expansion process works well when it starts
-        # with good i.e. "valid" input. Unlike BalanceHeuristicExpand, it does not self-correct
-        # towards a valid state. This naive property is desireable since
-        # we want to generate invalid code blocks (that make logical sense)
-        # or the algorithm will tend towards matching incorrect pairs
-        # at the expense of an incorrect result.
-        block = @indent_block_expand.call(block)
-      end
+      block = @indent_block_expand.call(block)
 
       push(block, name: "expand")
     end

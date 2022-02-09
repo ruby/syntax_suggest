@@ -138,8 +138,6 @@ module DeadEnd
 
       expect(out).to include(<<~EOM)
            16  class Rexe
-           18    VERSION = '1.5.1'
-           20    PROJECT_URL = 'https://github.com/keithrbennett/rexe'
         ❯  77    class Lookups
         ❯  78      def input_modes
         ❯ 148    end
