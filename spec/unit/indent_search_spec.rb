@@ -33,21 +33,31 @@ module DeadEnd
       expect(search.finished.join).to eq(<<~'EOM'.indent(2))
         end # two
       EOM
+
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
+        it "flerg"
+        end # two
+      EOM
+
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
+        end # two
+      EOM
     end
 
     it "finds missing do in an rspec context same indent when the problem is in the middle and blocks HAVE inner contents" do
       source = <<~'EOM'
         describe "things" do
           it "blerg" do
-            print foo
+            print foo1
           end # one
 
           it "flerg"
-            print foo
+            print foo2
           end # two
 
           it "zlerg" do
-            print foo
+            print foo3
           end # three
         end
       EOM
@@ -57,7 +67,14 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
+        it "flerg"
+          print foo
+        end # two
+      EOM
+
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
         end # two
       EOM
     end
@@ -74,8 +91,15 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
-        def blerg
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
+        def foo
+          def blerg
+        end
+      EOM
+
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(0))
+        def foo
       EOM
     end
 
@@ -95,9 +119,14 @@ module DeadEnd
         end
       EOM
 
-      lines = tmp_capture_context(search.finished)
-      expect(lines.join).to eq(<<~'EOM')
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
         defzfoo
+          puts "lol"
+        end
+      EOM
+
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(0))
         end
       EOM
     end
@@ -118,9 +147,15 @@ module DeadEnd
         end # two
       EOM
 
-      lines = tmp_capture_context(search.finished)
-      expect(lines.join).to eq(<<~'EOM')
-        IDK what I want here
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
+        def foo
+          end # one
+        end # two
+      EOM
+
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(0))
+        end # two
       EOM
     end
 
@@ -147,14 +182,23 @@ module DeadEnd
         end # three
       EOM
 
-      lines = tmp_capture_context(search.finished)
-      expect(lines.join).to include(<<~'EOM'.indent(2))
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
         Foo.call
         end # one
       EOM
 
-      expect(lines.join).to include(<<~'EOM'.indent(2))
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
+        end # one
+      EOM
+
+      context = BlockNodeContext.new(search.finished[1]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
         Bar.call
+        end # three
+      EOM
+
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
         end # three
       EOM
     end
@@ -174,11 +218,52 @@ module DeadEnd
         end # one
       EOM
 
-      lines = tmp_capture_context(search.finished)
-      expect(lines.join).to include(<<~'EOM'.indent(0))
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
         Foo.call
         end # one
       EOM
+
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(0))
+        end # one
+      EOM
+    end
+
+    class BlockNodeContext
+      attr_reader :blocks
+
+      def initialize(journey)
+        @journey = journey
+        @blocks = []
+      end
+
+      def call
+        node = @journey.node
+        @blocks << node
+
+        if node.leaning == :right && node.leaf?
+          while @blocks.last.above && @blocks.last.above.leaning == :equal
+            @blocks << @blocks.last.above
+          end
+        end
+
+        if node.leaning == :left && node.leaf?
+          while @blocks.last.below && @blocks.last.below.leaning == :equal
+            @blocks << @blocks.last.below
+          end
+        end
+
+        @blocks.sort_by! {|block| block.start_index }
+        self
+      end
+
+      def highlight
+        @journey.node.lines
+      end
+
+      def lines
+        blocks.flat_map(&:lines).sort_by {|line| line.number }
+      end
     end
 
     it "returns syntax error in outer block without inner block" do
@@ -196,13 +281,17 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
+        Foo.call
+          def foo
+            puts "lol"
+            puts "lol"
+          end # one
         end # two
       EOM
 
-      lines = tmp_capture_context(search.finished)
-      expect(lines.join).to include(<<~'EOM'.indent(0))
-        Foo.call
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(0))
         end # two
       EOM
     end
@@ -292,6 +381,21 @@ module DeadEnd
 
       expect(search.finished.first.node.to_s).to eq(<<~'EOM'.indent(4))
         def input_modes
+      EOM
+
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(4))
+        def input_modes
+      EOM
+
+      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
+       def input_modes
+         @input_modes ||= {
+             'l' => :line,
+             'e' => :enumerator,
+             'b' => :one_big_string,
+             'n' => :none
+         }
       EOM
     end
 
