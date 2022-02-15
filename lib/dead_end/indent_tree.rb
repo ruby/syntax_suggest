@@ -28,38 +28,51 @@ module DeadEnd
       @recorder = BlockRecorder.from_dir(record_dir, subdir: "build_tree", code_lines: @code_lines)
     end
 
+    def peek
+      document.peek
+    end
+
     def root
       @document.root
     end
 
+    def step
+      block = document.pop
+      return nil if block.nil?
+
+      @recorder.capture(block, name: "pop")
+
+      blocks = [block]
+      indent = block.next_indent
+
+      # Look up
+      while blocks.last.expand_above?(with_indent: indent)
+        above = blocks.last.above
+        blocks << above
+        break if above.leaning == :left
+      end
+
+      blocks.reverse!
+
+      # Look down
+      while blocks.last.expand_below?(with_indent: indent)
+        below = blocks.last.below
+        blocks << below
+        break if below.leaning == :right
+      end
+
+      if blocks.length > 1
+        now = document.capture_all(blocks)
+        @recorder.capture(now, name: "expand")
+        document.queue << now
+        now
+      else
+        block
+      end
+    end
+
     def call
-      while (block = document.pop)
-        @recorder.capture(block, name: "pop")
-
-        blocks = [block]
-        indent = block.next_indent
-
-        # Look up
-        while blocks.last.expand_above?(with_indent: indent)
-          above = blocks.last.above
-          blocks << above
-          break if above.leaning == :left
-        end
-
-        blocks.reverse!
-
-        # Look down
-        while blocks.last.expand_below?(with_indent: indent)
-          below = blocks.last.below
-          blocks << below
-          break if below.leaning == :right
-        end
-
-        if blocks.length > 1
-          node = document.capture_all(blocks)
-          @recorder.capture(node, name: "expand")
-          document.queue << node
-        end
+      while step
       end
       self
     end

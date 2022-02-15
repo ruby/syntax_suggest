@@ -98,8 +98,9 @@ module DeadEnd
     def expand_above?(with_indent: indent)
       return false if above.nil?
       return false if leaf? && leaning == :left
+      return false if above.leaf? && above.leaning == :right
 
-      if above.leaning == :left
+      if above.leaning == :left || (above.leaning == :right && leaf?)
         above.indent >= with_indent
       else
         true
@@ -115,8 +116,9 @@ module DeadEnd
     def expand_below?(with_indent: indent)
       return false if below.nil?
       return false if leaf? && leaning == :right
+      return false if below.leaf? && below.leaning == :left
 
-      if below.leaning == :right
+      if below.leaning == :right || (below.leaning == :left && leaf?)
         below.indent >= with_indent
       else
         true
@@ -142,7 +144,7 @@ module DeadEnd
     def self.next_indent(above, node, below)
       return node.indent if node.expand_above? || node.expand_below?
 
-      if above
+      value = if above
         if below
           case above.indent <=> below.indent
           when 1 then below.indent
@@ -157,6 +159,8 @@ module DeadEnd
       else
         node.indent
       end
+
+      value > node.indent ? node.indent : value
     end
 
     # Calculating the next_indent must be done after above and below
