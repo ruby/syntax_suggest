@@ -49,7 +49,9 @@ module DeadEnd
       while blocks.last.expand_above?(with_indent: indent)
         above = blocks.last.above
         blocks << above
-        break if above.leaning == :left || above.leaning == :both
+
+        break if above.leaning == :left
+        break if above.leaning == :both && above.leaf?
       end
 
       blocks.reverse!
@@ -58,7 +60,9 @@ module DeadEnd
       while blocks.last.expand_below?(with_indent: indent)
         below = blocks.last.below
         blocks << below
-        break if below.leaning == :right || below.leaning == :both
+
+        break if below.leaning == :right
+        break if below.leaning == :both && below.leaf?
       end
 
       if blocks.length > 1

@@ -418,150 +418,126 @@ module DeadEnd
           print }
       EOM
 
-      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(0))
         end
       EOM
 
       last = tree.step
       expect(last.to_s).to eq(<<~'EOM'.indent(0))
+        if true
           print (
         else
           print }
         end
       EOM
-      # expect(tree.peek.to_s).to eq(last.to_s)
     end
 
     it "(smaller) finds random pipe (|) wildly misindented" do
       source = <<~'EOM'
         class LanguagePack::Ruby < LanguagePack::Base
-          def allow_git(&blk)
-            git_dir = ENV.delete("GIT_DIR") # can mess with bundler
-            blk.call
-            ENV["GIT_DIR"] = git_dir
-          end
-
-          def add_dev_database_addon
-            pg_adapters.any? {|a| bundler.has_gem?(a) } ? ['heroku-postgresql'] : []
-          end
-
-          def pg_adapters
-            [
-              "pg",
-              "activerecord-jdbcpostgresql-adapter",
-              "jdbc-postgres",
-              "jdbc-postgresql",
-              "jruby-pg",
-              "rjack-jdbc-postgres",
-              "tgbyte-activerecord-jdbcpostgresql-adapter"
-            ]
-          end
-
           def add_node_js_binary
-            return [] if node_js_preinstalled?
-
-            if Pathname(build_path).join("package.json").exist? ||
-                bundler.has_gem?('execjs') ||
-                bundler.has_gem?('webpacker')
-              [@node_installer.binary_path]
-            else
-              []
-            end
-          end
+            print add_node_js_binary
+          end # one
 
           def add_yarn_binary
             return [] if yarn_preinstalled?
-        |
+        | # problem is here
             if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
               [@yarn_installer.name]
             else
               []
-            end
-        end
-
-          def has_yarn_binary?
-            add_yarn_binary.any?
-          end
+            end # two
+        end # three misindented but fine
 
           def node_preinstall_bin_path
-            return @node_preinstall_bin_path if defined?(@node_preinstall_bin_path)
-
-            legacy_path = "#{Dir.pwd}/#{NODE_BP_PATH}"
-            path        = run("which node").strip
-            if path && $?.success?
-              @node_preinstall_bin_path = path
-            elsif run("#{legacy_path}/node -v") && $?.success?
-              @node_preinstall_bin_path = legacy_path
-            else
-              @node_preinstall_bin_path = false
-            end
-          end
+            print node_preinstall_bin_path
+          end # four
           alias :node_js_preinstalled? :node_preinstall_bin_path
-        end
+        end # five
       EOM
 
       code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
-      tree = IndentTree.new(document: document).call
+      tree = IndentTree.new(document: document)
 
-      node = tree.root
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
-      node = diagnose.next[0]
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:one_invalid_parent)
-      node = diagnose.next[0]
-
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
-      node = diagnose.next[0]
-
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:one_invalid_parent)
-      node = diagnose.next[0]
-
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:self)
-      expect(node.to_s).to eq(<<~'EOM')
-        |
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(6))
+        []
       EOM
-    end
-
-    it "finds missing comma in array" do
-      source = <<~'EOM'
-        def animals
-          [
-            cat,
-            dog
-            horse
-          ]
-        end
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(4))
+          [@yarn_installer.name]
+        else
+          []
       EOM
 
-      code_lines = CleanDocument.new(source: source).call.lines
-      document = BlockDocument.new(code_lines: code_lines).call
-      tree = IndentTree.new(document: document).call
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(4))
+        end # two
+      EOM
 
-      node = tree.root
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
-      node = diagnose.next[0]
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(4))
+        if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
+          [@yarn_installer.name]
+        else
+          []
+        end # two
+      EOM
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
-      node = diagnose.next[0]
+      expect(tree.peek.to_s).to eq(last.to_s)
 
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(0))
+            return [] if yarn_preinstalled?
+        | # problem is here
+            if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
+              [@yarn_installer.name]
+            else
+              []
+            end # two
+      EOM
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:extract_from_multiple)
-      node = diagnose.next[0]
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(4))
+        print node_preinstall_bin_path
+      EOM
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:self)
-      expect(node.to_s).to eq(<<~'EOM'.indent(4))
-        cat,
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(2))
+          def node_preinstall_bin_path
+            print node_preinstall_bin_path
+          end # four
+      EOM
+
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(4))
+          print add_node_js_binary
+      EOM
+
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(2))
+          def add_node_js_binary
+            print add_node_js_binary
+          end # one
+      EOM
+
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+          def node_preinstall_bin_path
+            print node_preinstall_bin_path
+          end # four
+      EOM
+
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(2))
+        def node_preinstall_bin_path
+          print node_preinstall_bin_path
+        end # four
+        alias :node_js_preinstalled? :node_preinstall_bin_path
+      EOM
+
+      search = IndentSearch.new(tree: tree.call).call
+
+      expect(search.finished.join).to eq(<<~'EOM')
+        lol
       EOM
     end
 

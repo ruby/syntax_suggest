@@ -13,12 +13,18 @@ module DeadEnd
 
     it "large both" do
       source = <<~'EOM'
+        def dog
+        end
+
         [
           one,
           two,
           three
         ].each do |i|
           print i {
+        end
+
+        def cat
         end
       EOM
 
@@ -27,14 +33,14 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      context = BlockNodeContext.new(search.finished[0]).call
-      expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
-        end # two
-      EOM
-
-      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
-        it "flerg"
-        end # two
+      # context = BlockNodeContext.new(search.finished[0]).call
+      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+        [
+          one,
+          two,
+        ].each do |i|
+          print i {
+        end
       EOM
     end
 
@@ -63,10 +69,10 @@ module DeadEnd
         end # two
       EOM
 
-      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
-        it "flerg"
-        end # two
-      EOM
+      # expect(context.lines.join).to eq(<<~'EOM'.indent(2))
+      #   it "flerg"
+      #   end # two
+      # EOM
     end
 
     it "finds missing do in an rspec context same indent when the problem is in the middle and blocks HAVE inner contents" do
@@ -96,11 +102,11 @@ module DeadEnd
         end # two
       EOM
 
-      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
-        it "flerg"
-          print foo2
-        end # two
-      EOM
+      # expect(context.lines.join).to eq(<<~'EOM'.indent(2))
+      #   it "flerg"
+      #     print foo2
+      #   end # two
+      # EOM
     end
 
     it "finds a mis-matched def" do
@@ -391,22 +397,10 @@ module DeadEnd
 
 
       context = BlockNodeContext.new(search.finished[0]).call
-      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
-        if true
+      expect(search.finished.join).to eq(<<~'EOM'.indent(2))
           puts (
-        else
           puts }
-        end
       EOM
-
-      # expect(search.finished.length).to eq(2)
-      # expect(search.finished.first.to_s).to eq(<<~'EOM'.indent(2))
-      #   puts (
-      # EOM
-
-      # expect(search.finished.last.to_s).to eq(<<~'EOM'.indent(2))
-      #   puts }
-      # EOM
     end
 
     it "smaller rexe input_modes" do
@@ -896,11 +890,6 @@ module DeadEnd
       expect(search.finished.first.node.to_s).to eq(<<~'EOM'.indent(2))
         def input_modes
       EOM
-
-      search.finished[0].node.below.parents.each do |p|
-        puts '--'
-        puts p
-      end
     end
 
     it "handles heredocs indentation building microcase outside missing end" do
@@ -958,18 +947,19 @@ module DeadEnd
       search = IndentSearch.new(tree: tree).call
 
       context = BlockNodeContext.new(search.finished[0]).call
-      expect(context.highlight.join).to eq(<<~'EOM'.indent(4))
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
+        end # three
       EOM
 
-      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
-       def input_modes
-         @input_modes ||= {
-             'l' => :line,
-             'e' => :enumerator,
-             'b' => :one_big_string,
-             'n' => :none
-         }
-      EOM
+      # expect(context.lines.join).to eq(<<~'EOM'.indent(0))
+      #  def input_modes
+      #    @input_modes ||= {
+      #        'l' => :line,
+      #        'e' => :enumerator,
+      #        'b' => :one_big_string,
+      #        'n' => :none
+      #    }
+      # EOM
     end
 
     it "handles heredocs" do
@@ -991,15 +981,15 @@ module DeadEnd
         def input_modes
       EOM
 
-      expect(context.lines.join).to eq(<<~'EOM'.indent(0))
-       def input_modes
-         @input_modes ||= {
-             'l' => :line,
-             'e' => :enumerator,
-             'b' => :one_big_string,
-             'n' => :none
-         }
-      EOM
+      # expect(context.lines.join).to eq(<<~'EOM'.indent(0))
+      #  def input_modes
+      #    @input_modes ||= {
+      #        'l' => :line,
+      #        'e' => :enumerator,
+      #        'b' => :one_big_string,
+      #        'n' => :none
+      #    }
+      # EOM
     end
 
     it "handles derailed output issues/50" do
@@ -1086,7 +1076,13 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      expect(search.finished.first.node.to_s).to eq(<<~'EOM'.indent(6))
+      expect(search.finished.join).to include(<<~'EOM'.indent(6))
+        bundle_path: "vendor/bundle", }
+      EOM
+
+      expect(search.finished.join).to eq(<<~'EOM'.indent(6))
+        ruby_layer_path: File.expand_path("."),
+        gem_layer_path: File.expand_path("."),
         bundle_path: "vendor/bundle", }
       EOM
     end
@@ -1270,7 +1266,7 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      expect(search.finished.first.node.to_s).to eq(<<~'EOM')
+      expect(search.finished.join).to eq(<<~'EOM')
         |
       EOM
     end

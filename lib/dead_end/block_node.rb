@@ -97,12 +97,21 @@ module DeadEnd
     # priority
     def expand_above?(with_indent: indent)
       return false if above.nil?
-      return false if leaf? && leaning == :left
-      return true if leaf? && leaning == :both && above.leaning == :left
+
+      # Above node needs to expand up too, make sure that happens first
       return false if above.leaf? && above.leaning == :right
 
+      # Special case first move
+      if leaf?
+        # We need to expand down on first move, not up
+        return false if leaning == :left
 
-      if above.leaning == :left || above.leaning == :both || leaf? && above.leaning == :right
+        # If we're unbalanced both ways, prefer to be unbalanced in only one way
+        return true if leaning == :both && above.leaning == :left
+      end
+
+      # Capturing a :left or :both could change our leaning, do so with caution
+      if above.leaning == :left || above.leaning == :both
         above.indent >= with_indent
       else
         true
@@ -117,11 +126,21 @@ module DeadEnd
     # priority
     def expand_below?(with_indent: indent)
       return false if below.nil?
-      return false if leaf? && leaning == :right
-      return true if leaf? && leaning == :both && above.leaning == :right
+
+      # Below node needs to expand down, make sure that happens first
       return false if below.leaf? && below.leaning == :left
 
-      if below.leaning == :right || below.leaning == :both || leaf? && below.leaning == :left
+      # Special case first move
+      if leaf?
+        # We need to expand up on first move, not down
+        return false if leaning == :right
+
+        # If we're unbalanced both ways, prefer to be unbalanced in only one way
+        return true if leaning == :both && below.leaning == :right
+      end
+
+      # Capturing a :right or both could change our leaning, do so with caution
+      if below.leaning == :right || below.leaning == :both
         below.indent >= with_indent
       else
         true
