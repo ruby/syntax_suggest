@@ -98,9 +98,11 @@ module DeadEnd
     def expand_above?(with_indent: indent)
       return false if above.nil?
       return false if leaf? && leaning == :left
+      return true if leaf? && leaning == :both && above.leaning == :left
       return false if above.leaf? && above.leaning == :right
 
-      if above.leaning == :left || (above.leaning == :right && leaf?)
+
+      if above.leaning == :left || above.leaning == :both || leaf? && above.leaning == :right
         above.indent >= with_indent
       else
         true
@@ -116,9 +118,10 @@ module DeadEnd
     def expand_below?(with_indent: indent)
       return false if below.nil?
       return false if leaf? && leaning == :right
+      return true if leaf? && leaning == :both && above.leaning == :right
       return false if below.leaf? && below.leaning == :left
 
-      if below.leaning == :right || (below.leaning == :left && leaf?)
+      if below.leaning == :right || below.leaning == :both || leaf? && below.leaning == :left
         below.indent >= with_indent
       else
         true

@@ -11,6 +11,34 @@ module DeadEnd
       lines
     end
 
+    it "large both" do
+      source = <<~'EOM'
+        [
+          one,
+          two,
+          three
+        ].each do |i|
+          print i {
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document).call
+      search = IndentSearch.new(tree: tree).call
+
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
+        end # two
+      EOM
+
+      expect(context.lines.join).to eq(<<~'EOM'.indent(2))
+        it "flerg"
+        end # two
+      EOM
+    end
+
+
     it "finds missing do in an rspec context same indent when the problem is in the middle and blocks do not have inner contents" do
       source = <<~'EOM'
         describe "things" do
@@ -30,11 +58,11 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
+      context = BlockNodeContext.new(search.finished[0]).call
       expect(context.highlight.join).to eq(<<~'EOM'.indent(2))
         end # two
       EOM
 
-      context = BlockNodeContext.new(search.finished[0]).call
       expect(context.lines.join).to eq(<<~'EOM'.indent(2))
         it "flerg"
         end # two
@@ -343,10 +371,16 @@ module DeadEnd
 
     it "invalid if and else" do
       source = <<~'EOM'
+        def dog
+        end
+
         if true
           puts (
         else
           puts }
+        end
+
+        def cat
         end
       EOM
 
@@ -355,14 +389,24 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
       search = IndentSearch.new(tree: tree).call
 
-      expect(search.finished.length).to eq(2)
-      expect(search.finished.first.to_s).to eq(<<~'EOM'.indent(2))
-        puts (
+
+      context = BlockNodeContext.new(search.finished[0]).call
+      expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+        if true
+          puts (
+        else
+          puts }
+        end
       EOM
 
-      expect(search.finished.last.to_s).to eq(<<~'EOM'.indent(2))
-        puts }
-      EOM
+      # expect(search.finished.length).to eq(2)
+      # expect(search.finished.first.to_s).to eq(<<~'EOM'.indent(2))
+      #   puts (
+      # EOM
+
+      # expect(search.finished.last.to_s).to eq(<<~'EOM'.indent(2))
+      #   puts }
+      # EOM
     end
 
     it "smaller rexe input_modes" do
@@ -914,9 +958,8 @@ module DeadEnd
       search = IndentSearch.new(tree: tree).call
 
       context = BlockNodeContext.new(search.finished[0]).call
-      # expect(context.highlight.join).to eq(<<~'EOM'.indent(4))
-      #   def input_modes
-      # EOM
+      expect(context.highlight.join).to eq(<<~'EOM'.indent(4))
+      EOM
 
       expect(context.lines.join).to eq(<<~'EOM'.indent(0))
        def input_modes

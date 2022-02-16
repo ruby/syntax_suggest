@@ -4,6 +4,65 @@ require_relative "../spec_helper"
 
 module DeadEnd
   RSpec.describe IndentTree do
+    it "large both" do
+      source = <<~'EOM'
+        [
+          one,
+          two,
+          three
+        ].each do |i|
+          print i {
+        end
+      EOM
+
+      code_lines = CleanDocument.new(source: source).call.lines
+      document = BlockDocument.new(code_lines: code_lines).call
+      tree = IndentTree.new(document: document)
+
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+        three
+      EOM
+
+      expect(tree.step.to_s).to eq(<<~'EOM'.indent(2))
+          one,
+          two,
+          three
+      EOM
+
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+        print i {
+      EOM
+
+      expect(tree.step.to_s).to eq(<<~'EOM'.indent(0))
+          print i {
+        end
+      EOM
+
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+          one,
+          two,
+          three
+      EOM
+
+      expect(tree.step.to_s).to eq(<<~'EOM'.indent(0))
+        [
+          one,
+          two,
+          three
+        ].each do |i|
+      EOM
+
+      expect(tree.step.to_s).to eq(<<~'EOM'.indent(0))
+        [
+          one,
+          two,
+          three
+        ].each do |i|
+          print i {
+        end
+      EOM
+    end
+
     it "finds missing do in an rspec context same indent when the problem is in the middle and blocks HAVE inner contents" do
       source = <<~'EOM'
         describe "things" do
@@ -25,8 +84,7 @@ module DeadEnd
       document = BlockDocument.new(code_lines: code_lines).call
       tree = IndentTree.new(document: document)
 
-      node = tree.peek
-      expect(node.to_s).to eq(<<~'EOM'.indent(4))
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(4))
         print foo2
       EOM
       node = tree.step
@@ -114,7 +172,7 @@ module DeadEnd
       EOM
 
       node = tree.step
-      expect(node.join).to eq(<<~'EOM')
+      expect(node.to_s).to eq(<<~'EOM')
         describe "things" do
           it "blerg" do
             print foo1
@@ -154,83 +212,55 @@ module DeadEnd
       document = BlockDocument.new(code_lines: code_lines).call
       tree = IndentTree.new(document: document)
 
-      node = tree.peek
-      expect(node.to_s).to eq(<<~'EOM'.indent(4))
-        options.input_mode = :one_big_string
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(4))
+          options.input_mode = :one_big_string
       EOM
-      node = tree.step
 
-      expect(node.to_s).to eq(<<~'EOM'.indent(2))
+      expect(tree.step.to_s).to eq(<<~'EOM'.indent(2))
         options.input_filespec = v
         options.input_format = autodetect_file_format(v)
           options.input_mode = :one_big_string
       EOM
 
-      node = tree.peek
-      expect(node.to_s).to eq(<<~'EOM'.indent(4))
-        raise "File #{v} does not exist."
-      EOM
-      node = tree.step
-
-      expect(node.to_s).to eq(<<~'EOM'.indent(2))
-        unless File.exist?(v)
-          raise "File #{v} does not exist."
-        end # two
-      EOM
-
-      node = tree.peek
-      expect(node.to_s).to eq(<<~'EOM'.indent(2))
-        end # three
-      EOM
-
-      node = tree.step
-
-      expect(node.to_s).to eq(<<~'EOM'.indent(2))
-        unless File.exist?(v)
-          raise "File #{v} does not exist."
-        end # two
-        options.input_filespec = v
-        options.input_format = autodetect_file_format(v)
-          options.input_mode = :one_big_string
-        end # three
-      EOM
-
-      node = tree.peek
-      expect(node.to_s).to eq(<<~'EOM'.indent(4))
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(4))
         'Use this file instead of stdin; autodetects YAML and JSON file extensions') do |v|
       EOM
 
-      node = tree.step
-      expect(node.to_s).to eq(<<~'EOM'.indent(0))
+      expect(tree.step.to_s).to eq(<<~'EOM'.indent(0))
         parser.on('-f', '--input_file FILESPEC',
             'Use this file instead of stdin; autodetects YAML and JSON file extensions') do |v|
-          unless File.exist?(v)
-            raise "File #{v} does not exist."
-          end # two
-          options.input_filespec = v
-          options.input_format = autodetect_file_format(v)
-            options.input_mode = :one_big_string
-          end # three
+      EOM
+
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(4))
+        raise "File #{v} does not exist."
+      EOM
+
+      expect(tree.step.to_s).to eq(<<~'EOM'.indent(2))
+        unless File.exist?(v)
+          raise "File #{v} does not exist."
+        end # two
       EOM
 
       node = tree.peek
       expect(node.to_s).to eq(<<~'EOM'.indent(2))
-        options.clear
+        end # three
+      EOM
+      node = tree.step
+
+      expect(node.to_s).to eq(<<~'EOM'.indent(2))
+        unless File.exist?(v)
+          raise "File #{v} does not exist."
+        end # two
+        options.input_filespec = v
+        options.input_format = autodetect_file_format(v)
+          options.input_mode = :one_big_string
+        end # three
       EOM
 
+      expect(tree.peek).to eq(node)
       node = tree.step
-      expect(node.to_s).to eq(<<~'EOM'.indent(0))
-        parser.on('-c', '--clear_options', "Clear all previous command line options") do |v|
-          options.clear
-        end # one
-      EOM
 
-      # Problem here is that "four" is not captured by the lower block, but by this upper block
-      node = tree.step
       expect(node.to_s).to eq(<<~'EOM'.indent(0))
-        parser.on('-c', '--clear_options', "Clear all previous command line options") do |v|
-          options.clear
-        end # one
         parser.on('-f', '--input_file FILESPEC',
             'Use this file instead of stdin; autodetects YAML and JSON file extensions') do |v|
           unless File.exist?(v)
@@ -241,6 +271,17 @@ module DeadEnd
             options.input_mode = :one_big_string
           end # three
         end # four
+      EOM
+
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+          options.clear
+      EOM
+      node = tree.step
+
+      expect(node.to_s).to eq(<<~'EOM'.indent(0))
+        parser.on('-c', '--clear_options', "Clear all previous command line options") do |v|
+          options.clear
+        end # one
       EOM
     end
 
@@ -315,7 +356,6 @@ module DeadEnd
       tree = IndentTree.new(document: document).call
 
       node = tree.root
-      # expect(node.parents.length).to eq(2)
 
       diagnose = DiagnoseNode.new(node).call
       expect(diagnose.problem).to eq(:multiple_invalid_parents)
@@ -365,39 +405,31 @@ module DeadEnd
 
       code_lines = CleanDocument.new(source: source).call.lines
       document = BlockDocument.new(code_lines: code_lines).call
-      tree = IndentTree.new(document: document).call
+      tree = IndentTree.new(document: document)
 
-      node = tree.root
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
-      node = diagnose.next[0]
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+        print }
+      EOM
 
-      expect(node.to_s).to eq(<<~'EOM')
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(0))
           print (
         else
           print }
       EOM
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:remove_pseudo_pair)
-      node = diagnose.next[0]
-      expect(node.to_s).to eq(<<~'EOM'.indent(2))
-        print (
-        print }
+      expect(tree.peek.to_s).to eq(<<~'EOM'.indent(2))
+        end
       EOM
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:multiple_invalid_parents)
-      forks = diagnose.next
-
-      expect(forks.length).to eq(2)
-      expect(forks.first.to_s).to eq(<<~'EOM'.indent(2))
-        print (
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(0))
+          print (
+        else
+          print }
+        end
       EOM
-
-      expect(forks.last.to_s).to eq(<<~'EOM'.indent(2))
-        puts }
-      EOM
+      # expect(tree.peek.to_s).to eq(last.to_s)
     end
 
     it "(smaller) finds random pipe (|) wildly misindented" do
