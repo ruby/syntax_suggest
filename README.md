@@ -168,7 +168,7 @@ Here's an example:
 
 ## Use internals
 
-To use the `dead_end` gem without monkeypatching you can  `require 'dead_en/api'`. This will allow you to load `dead_end` and use its internals without mutating `require`.
+To use the `dead_end` gem without monkeypatching you can  `require 'dead_end/api'`. This will allow you to load `dead_end` and use its internals without mutating `require`.
 
 Stable internal interface(s):
 
