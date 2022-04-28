@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "lib/dead_end/version"
+begin
+  require_relative "lib/dead_end/version"
+rescue LoadError # Fallback to load version file in ruby core repository
+  require_relative "version"
+end
 
 Gem::Specification.new do |spec|
   spec.name = "dead_end"
