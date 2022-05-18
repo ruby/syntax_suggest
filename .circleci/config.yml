@@ -47,23 +47,17 @@ jobs:
 
   "ruby-3-1":
     docker:
-      - image: 'cimg/base:stable'
+      - image: 'cimg/ruby:3.1'
     steps:
       - checkout
-      - ruby/install:
-          version: '3.1.2'
-      - run: ruby -v
       - ruby/install-deps
       - <<: *unit
 
   "ruby-3-2":
     docker:
-      - image: 'cimg/base:stable'
+      - image: 'ruby:3.2.0-preview1'
     steps:
       - checkout
-      - ruby/install:
-          version: '3.2.0-preview1'
-      - run: ruby -v
       - ruby/install-deps
       - <<: *unit
 
