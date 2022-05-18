@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 3.1.2
+
 - Fixed internal class AroundBlockScan, minor changes in outputs (https://github.com/zombocom/dead_end/pull/131)
 
 ## 3.1.1
