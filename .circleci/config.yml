@@ -51,7 +51,18 @@ jobs:
     steps:
       - checkout
       - ruby/install:
-          version: '3.1.0-preview1'
+          version: '3.1.2'
+      - run: ruby -v
+      - ruby/install-deps
+      - <<: *unit
+
+  "ruby-3-2":
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - checkout
+      - ruby/install:
+          version: '3.2.0-preview1'
       - run: ruby -v
       - ruby/install-deps
       - <<: *unit
@@ -73,4 +84,5 @@ workflows:
       - "ruby-2-7"
       - "ruby-3-0"
       - "ruby-3-1"
+      - "ruby-3-2"
       - "lint"
