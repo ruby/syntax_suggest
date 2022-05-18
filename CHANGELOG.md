@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Monkeypatch `SyntaxError#detailed_message` in Ruby 3.2+ instead of `require`, `load`, and `require_relative` (https://github.com/zombocom/dead_end/pull/139)
+
 ## 3.1.2
 
 - Fixed internal class AroundBlockScan, minor changes in outputs (https://github.com/zombocom/dead_end/pull/131)
