@@ -16,7 +16,7 @@ module DeadEnd
 
   # DeadEnd.handle_error [Public]
   #
-  # Takes a `SyntaxError`` exception, uses the
+  # Takes a `SyntaxError` exception, uses the
   # error message to locate the file. Then the file
   # will be analyzed to find the location of the syntax
   # error and emit that location to stderr.
