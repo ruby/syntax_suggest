@@ -460,8 +460,6 @@ module DeadEnd
       document = BlockDocument.new(code_lines: code_lines).call
       tree = IndentTree.new(document: document)
 
-
-
       expect(tree.peek.to_s).to eq(<<~'EOM'.indent(6))
         []
       EOM
@@ -534,11 +532,83 @@ module DeadEnd
         alias :node_js_preinstalled? :node_preinstall_bin_path
       EOM
 
-      search = IndentSearch.new(tree: tree.call).call
-
-      expect(search.finished.join).to eq(<<~'EOM')
-        lol
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(0))
+          def add_yarn_binary
+            return [] if yarn_preinstalled?
+        | # problem is here
+            if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
+              [@yarn_installer.name]
+            else
+              []
+            end # two
       EOM
+
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(0))
+          def node_preinstall_bin_path
+            print node_preinstall_bin_path
+          end # four
+          alias :node_js_preinstalled? :node_preinstall_bin_path
+        end # five
+      EOM
+
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(0))
+        class LanguagePack::Ruby < LanguagePack::Base
+          def add_node_js_binary
+            print add_node_js_binary
+          end # one
+          def add_yarn_binary
+            return [] if yarn_preinstalled?
+        | # problem is here
+            if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
+              [@yarn_installer.name]
+            else
+              []
+            end # two
+        end # three misindented but fine
+      EOM
+
+      last = tree.step
+      expect(last.to_s).to eq(<<~'EOM'.indent(0))
+        class LanguagePack::Ruby < LanguagePack::Base
+          def add_node_js_binary
+            print add_node_js_binary
+          end # one
+          def add_yarn_binary
+            return [] if yarn_preinstalled?
+        | # problem is here
+            if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
+              [@yarn_installer.name]
+            else
+              []
+            end # two
+        end # three misindented but fine
+          def node_preinstall_bin_path
+            print node_preinstall_bin_path
+          end # four
+          alias :node_js_preinstalled? :node_preinstall_bin_path
+        end # five
+      EOM
+
+      ## That's the whole document
+
+      # HEY: Weird that this is picking the wrong end
+      tree = tree.call # Resolve all steps
+      search = IndentSearch.new(tree: tree).call
+
+      # expect(search.finished.join).to eq(<<~'EOM'.indent(0))
+      #     def add_yarn_binary
+      #       return [] if yarn_preinstalled?
+      #   | # problem is here
+      #       if Pathname(build_path).join("yarn.lock").exist? || bundler.has_gem?('webpacker')
+      #         [@yarn_installer.name]
+      #       else
+      #         []
+      #       end # two
+      #   end # five
+      # EOM
     end
 
     it "doesn't scapegoat rescue" do
