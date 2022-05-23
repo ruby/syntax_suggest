@@ -36,7 +36,9 @@ module DeadEnd
         end
 
         methods = (dead_end_methods_array - kernel_methods_array).sort
-        expect(methods).to eq(["dead_end_original_load", "dead_end_original_require", "dead_end_original_require_relative"])
+        if methods.any?
+          expect(methods).to eq(["dead_end_original_load", "dead_end_original_require", "dead_end_original_require_relative"])
+        end
 
         methods = (api_only_methods_array - kernel_methods_array).sort
         expect(methods).to eq([])
@@ -66,6 +68,34 @@ module DeadEnd
         EOM
 
         out = `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
+
+        expect($?.success?).to be_falsey
+        expect(out).to include('❯  5    it "flerg"').once
+      end
+    end
+
+    it "annotates a syntax error in Ruby 3.2+ when require is not used" do
+      pending("Support for SyntaxError#detailed_message monkeypatch needed https://gist.github.com/schneems/09f45cc23b9a8c46e9af6acbb6e6840d?permalink_comment_id=4172585#gistcomment-4172585")
+
+      skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2")
+
+      Dir.mktmpdir do |dir|
+        tmpdir = Pathname(dir)
+        script = tmpdir.join("script.rb")
+        script.write <<~EOM
+          describe "things" do
+            it "blerg" do
+            end
+
+            it "flerg"
+            end
+
+            it "zlerg" do
+            end
+          end
+        EOM
+
+        out = `ruby -I#{lib_dir} -rdead_end #{script} 2>&1`
 
         expect($?.success?).to be_falsey
         expect(out).to include('❯  5    it "flerg"').once
