@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "dead_end"
+require "dead_end/api"
 
 require "benchmark"
 require "tempfile"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "version"
 
 require "tmpdir"
@@ -7,6 +9,8 @@ require "ripper"
 require "timeout"
 
 module DeadEnd
+  VERSION = UnloadedDeadEnd::VERSION
+
   # Used to indicate a default value that cannot
   # be confused with another input.
   DEFAULT_VALUE = Object.new.freeze

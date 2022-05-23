@@ -101,5 +101,50 @@ module DeadEnd
         expect(out).to include('❯  5    it "flerg"').once
       end
     end
+
+    it "does not load internals into memory if no syntax error" do
+      Dir.mktmpdir do |dir|
+        tmpdir = Pathname(dir)
+        script = tmpdir.join("script.rb")
+        script.write <<~EOM
+          class Dog
+          end
+
+          # When a constant is defined through an autoload
+          # then Object.autoload? will return the name of the
+          # require only until it has been loaded.
+          #
+          # We can use this to detect if DeadEnd internals
+          # have been fully loaded yet or not.
+          #
+          # Example:
+          #
+          #   Object.autoload?("Cat") # => nil
+          #   autoload :Cat, "animals/cat
+          #   Object.autoload?("Cat") # => "animals/cat
+          #   Object.autoload?("Cat") # => "animals/cat
+          #
+          #   # Once required, `autoload?` returns falsey
+          #   puts Cat.meow # invoke autoload
+          #   Object.autoload?("Cat") # => nil
+          #
+          if Object.autoload?("DeadEnd")
+            puts "DeadEnd is NOT loaded"
+          else
+            puts "DeadEnd is loaded"
+          end
+        EOM
+
+        require_rb = tmpdir.join("require.rb")
+        require_rb.write <<~EOM
+          load "#{script.expand_path}"
+        EOM
+
+        out = `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
+
+        expect($?.success?).to be_truthy
+        expect(out).to include("DeadEnd is NOT loaded").once
+      end
+    end
   end
 end
