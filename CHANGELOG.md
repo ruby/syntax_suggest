@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- [Breaking] Lazy load DeadEnd internals only if there is a Syntax error. Use `require "dead_end"; require "dead_end/api"` to load eagerly all internals. Otherwise `require "dead_end"` will set up an autoload for the first time the DeadEnd module is used in code. This should only happen on a syntax error. (https://github.com/zombocom/dead_end/pull/142)
 - Monkeypatch `SyntaxError#detailed_message` in Ruby 3.2+ instead of `require`, `load`, and `require_relative` (https://github.com/zombocom/dead_end/pull/139)
 
 ## 3.1.2

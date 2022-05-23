@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
+# Allow lazy loading, only load code if/when there's a syntax error
+autoload :DeadEnd, "dead_end/api"
+
 # Ruby 3.2+ has a cleaner way to hook into Ruby that doesn't use `require`
 if SyntaxError.new.respond_to?(:detailed_message)
-  module DeadEnd
+  module DeadEndUnloaded
     class MiniStringIO
       def initialize(isatty: $stderr.isatty)
         @string = +""
@@ -10,7 +13,6 @@ if SyntaxError.new.respond_to?(:detailed_message)
       end
 
       attr_reader :isatty
-
       def puts(value = $/, **)
         @string << value
       end
@@ -23,7 +25,7 @@ if SyntaxError.new.respond_to?(:detailed_message)
     def detailed_message(highlight: nil, **)
       message = super
       file = DeadEnd::PathnameFromMessage.new(message).call.name
-      io = DeadEnd::MiniStringIO.new
+      io = DeadEndUnloaded::MiniStringIO.new
 
       if file
         DeadEnd.call(
@@ -47,6 +49,8 @@ if SyntaxError.new.respond_to?(:detailed_message)
     end
   }
 else
+  autoload :Pathname, "pathname"
+
   # Monkey patch kernel to ensure that all `require` calls call the same
   # method
   module Kernel
