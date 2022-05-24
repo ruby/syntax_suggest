@@ -13,6 +13,8 @@ module DeadEnd
   #    # => "/tmp/scratch.rb"
   #
   class PathnameFromMessage
+    EVAL_RE = /^\(eval\):\d+/
+    STREAMING_RE = /^-:\d+/
     attr_reader :name
 
     def initialize(message, io: $stderr)
@@ -24,14 +26,20 @@ module DeadEnd
     end
 
     def call
-      until stop?
-        @guess << @parts.shift
-        @name = Pathname(@guess.join(":"))
-      end
+      if skip_missing_file_name?
+        if ENV["DEBUG"]
+          @io.puts "DeadEnd: Could not find filename from #{@line.inspect}"
+        end
+      else
+        until stop?
+          @guess << @parts.shift
+          @name = Pathname(@guess.join(":"))
+        end
 
-      if @parts.empty?
-        @io.puts "DeadEnd: Could not find filename from #{@line.inspect}"
-        @name = nil
+        if @parts.empty?
+          @io.puts "DeadEnd: Could not find filename from #{@line.inspect}"
+          @name = nil
+        end
       end
 
       self
@@ -42,6 +50,10 @@ module DeadEnd
       return false if @guess.empty?
 
       @name&.exist?
+    end
+
+    def skip_missing_file_name?
+      @line.match?(EVAL_RE) || @line.match?(STREAMING_RE)
     end
   end
 end

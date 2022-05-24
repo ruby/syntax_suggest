@@ -146,5 +146,24 @@ module DeadEnd
         expect(out).to include("DeadEnd is NOT loaded").once
       end
     end
+
+    it "ignores eval" do
+      Dir.mktmpdir do |dir|
+        tmpdir = Pathname(dir)
+        script = tmpdir.join("script.rb")
+        script.write <<~'EOM'
+          $stderr = STDOUT
+          eval("def lol")
+        EOM
+
+        out = `ruby -I#{lib_dir} -rdead_end #{script} 2>&1`
+
+        expect($?.success?).to be_falsey
+        expect(out).to include("(eval):1")
+
+        expect(out).to_not include("DeadEnd")
+        expect(out).to_not include("Could not find filename")
+      end
+    end
   end
 end
