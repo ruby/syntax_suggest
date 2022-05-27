@@ -60,6 +60,14 @@ jobs:
       - checkout
       - ruby/install-deps
       - <<: *unit
+  "ruby-3-2-yjit":
+    docker:
+      - image: 'ruby:3.2.0-preview1'
+    steps:
+      - run: echo "export RUBY_YJIT_ENABLE=1" >> $BASH_ENV
+      - checkout
+      - ruby/install-deps
+      - <<: *unit
 
   "lint":
     docker:
@@ -79,4 +87,5 @@ workflows:
       - "ruby-3-0"
       - "ruby-3-1"
       - "ruby-3-2"
+      - "ruby-3-2-yjit"
       - "lint"

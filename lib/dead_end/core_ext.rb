@@ -45,7 +45,8 @@ if SyntaxError.new.respond_to?(:detailed_message)
         $stderr.warn(e.backtrace)
       end
 
-      raise e
+      # Ignore internal errors
+      message
     end
   }
 else
