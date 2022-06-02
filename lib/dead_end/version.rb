@@ -5,5 +5,5 @@
 #
 # This is used for gemspec access in tests
 module UnloadedDeadEnd
-  VERSION = "3.1.2"
+  VERSION = "4.0.0"
 end

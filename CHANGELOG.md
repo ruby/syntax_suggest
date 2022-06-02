@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 4.0.0
+
 - Code that does not have an associated file (eval and streamed) no longer produce a warning saying that the file could not be found. To produce a warning with these code types run with DEBUG=1 environment variable. (https://github.com/zombocom/dead_end/pull/143)
 - [Breaking] Lazy load DeadEnd internals only if there is a Syntax error. Use `require "dead_end"; require "dead_end/api"` to load eagerly all internals. Otherwise `require "dead_end"` will set up an autoload for the first time the DeadEnd module is used in code. This should only happen on a syntax error. (https://github.com/zombocom/dead_end/pull/142)
 - Monkeypatch `SyntaxError#detailed_message` in Ruby 3.2+ instead of `require`, `load`, and `require_relative` (https://github.com/zombocom/dead_end/pull/139)
