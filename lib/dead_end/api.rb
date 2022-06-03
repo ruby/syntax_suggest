@@ -91,10 +91,9 @@ module DeadEnd
   def self.record_dir(dir)
     time = Time.now.strftime("%Y-%m-%d-%H-%M-%s-%N")
     dir = Pathname(dir)
-    symlink = dir.join("last").tap { |path| path.delete if path.exist? }
     dir.join(time).tap { |path|
       path.mkpath
-      FileUtils.symlink(path.basename, symlink)
+      FileUtils.ln_sf(time, dir.join("last"))
     }
   end
 
