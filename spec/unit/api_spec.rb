@@ -58,5 +58,26 @@ module DeadEnd
         expect(e).to eq(fake_error)
       }
     end
+
+    it "respects highlight API" do
+      skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2")
+
+      error = SyntaxError.new("#{fixtures_dir.join("this_project_extra_def.rb.txt")}:1 ")
+
+      require "dead_end/core_ext"
+
+      expect(error.detailed_message(highlight: true)).to include(DeadEnd::DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT)
+      expect(error.detailed_message(highlight: false)).to_not include(DeadEnd::DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT)
+    end
+
+    it "can be disabled via falsey kwarg" do
+      skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2")
+
+      error = SyntaxError.new("#{fixtures_dir.join("this_project_extra_def.rb.txt")}:1 ")
+
+      require "dead_end/core_ext"
+
+      expect(error.detailed_message(dead_end: true)).to_not eq(error.detailed_message(dead_end: false))
+    end
   end
 end

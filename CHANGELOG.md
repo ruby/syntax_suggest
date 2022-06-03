@@ -1,5 +1,8 @@
 ## HEAD (unreleased)
 
+- Enable/Disable dead_end by using the `dead_end` kwarg in `detailed_message` (https://github.com/zombocom/dead_end/pull/147)
+- Respect `highlight` kwarg in Ruby 3.2's `detailed_message` to enable/disable control characters (https://github.com/zombocom/dead_end/pull/147)
+
 ## 4.0.0
 
 - Code that does not have an associated file (eval and streamed) no longer produce a warning saying that the file could not be found. To produce a warning with these code types run with DEBUG=1 environment variable. (https://github.com/zombocom/dead_end/pull/143)
