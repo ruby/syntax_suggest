@@ -110,28 +110,10 @@ module DeadEnd
           class Dog
           end
 
-          # When a constant is defined through an autoload
-          # then Object.autoload? will return the name of the
-          # require only until it has been loaded.
-          #
-          # We can use this to detect if DeadEnd internals
-          # have been fully loaded yet or not.
-          #
-          # Example:
-          #
-          #   Object.autoload?("Cat") # => nil
-          #   autoload :Cat, "animals/cat
-          #   Object.autoload?("Cat") # => "animals/cat
-          #   Object.autoload?("Cat") # => "animals/cat
-          #
-          #   # Once required, `autoload?` returns falsey
-          #   puts Cat.meow # invoke autoload
-          #   Object.autoload?("Cat") # => nil
-          #
-          if Object.autoload?("DeadEnd")
-            puts "DeadEnd is NOT loaded"
-          else
+          if defined?(DeadEnd::DEFAULT_VALUE)
             puts "DeadEnd is loaded"
+          else
+            puts "DeadEnd is NOT loaded"
           end
         EOM
 
