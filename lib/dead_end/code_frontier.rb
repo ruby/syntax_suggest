@@ -115,7 +115,7 @@ module DeadEnd
       frontier_indent = @queue.peek.current_indent
       unvisited_indent = next_indent_line.indent
 
-      if ENV["DEBUG"]
+      if ENV["DEAD_END_DEBUG"]
         puts "```"
         puts @queue.peek.to_s
         puts "```"

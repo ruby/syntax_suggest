@@ -210,6 +210,11 @@ Open:
 $ qcachegrind tmp/last/profile.callgrind.out.<numbers>
 ```
 
+## Environment variables
+
+- `DEAD_END_DEBUG` - Enables debug output to STDOUT/STDERR and/or disk at `./tmp`. The contents of debugging output are not stable and may change. If you would like stability, please open an issue to explain your use case.
+- `DEAD_END_TIMEOUT` - Changes the default timeout value to the number set (in seconds).
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/zombocom/dead_end. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/zombocom/dead_end/blob/main/CODE_OF_CONDUCT.md).

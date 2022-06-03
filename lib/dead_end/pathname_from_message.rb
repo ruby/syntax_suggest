@@ -27,7 +27,7 @@ module DeadEnd
 
     def call
       if skip_missing_file_name?
-        if ENV["DEBUG"]
+        if ENV["DEAD_END_DEBUG"]
           @io.puts "DeadEnd: Could not find filename from #{@line.inspect}"
         end
       else

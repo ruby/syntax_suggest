@@ -48,7 +48,7 @@ if SyntaxError.method_defined?(:detailed_message)
         message
       end
     rescue => e
-      if ENV["DEBUG"]
+      if ENV["DEAD_END_DEBUG"]
         $stderr.warn(e.message)
         $stderr.warn(e.backtrace)
       end
