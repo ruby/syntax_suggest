@@ -10,7 +10,7 @@ module DeadEnd
 
     def exe(cmd)
       out = run!("#{exe_path} #{cmd}", raise_on_nonzero_exit: false)
-      puts out if ENV["DEBUG"]
+      puts out if ENV["DEAD_END_DEBUG"]
       out
     end
 

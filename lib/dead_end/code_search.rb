@@ -43,7 +43,7 @@ module DeadEnd
 
     def initialize(source, record_dir: DEFAULT_VALUE)
       record_dir = if record_dir == DEFAULT_VALUE
-        ENV["DEAD_END_RECORD_DIR"] || ENV["DEBUG"] ? "tmp" : nil
+        ENV["DEAD_END_RECORD_DIR"] || ENV["DEAD_END_DEBUG"] ? "tmp" : nil
       else
         record_dir
       end
@@ -70,7 +70,7 @@ module DeadEnd
       return unless @record_dir
       @name_tick[name] += 1
       filename = "#{@write_count += 1}-#{name}-#{@name_tick[name]}-(#{block.starts_at}__#{block.ends_at}).txt"
-      if ENV["DEBUG"]
+      if ENV["DEAD_END_DEBUG"]
         puts "\n\n==== #{filename} ===="
         puts "\n```#{block.starts_at}..#{block.ends_at}"
         puts block.to_s
