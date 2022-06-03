@@ -22,16 +22,24 @@ if SyntaxError.method_defined?(:detailed_message)
   end
 
   SyntaxError.prepend Module.new {
-    def detailed_message(highlight: nil, **)
+    def detailed_message(highlight: nil, dead_end: true, **kwargs)
+      return super unless dead_end
+
       message = super
-      file = DeadEnd::PathnameFromMessage.new(message).call.name
+      file = if highlight
+        DeadEnd::PathnameFromMessage.new(super(highlight: false, **kwargs)).call.name
+      else
+        DeadEnd::PathnameFromMessage.new(message).call.name
+      end
+
       io = DeadEndUnloaded::MiniStringIO.new
 
       if file
         DeadEnd.call(
           io: io,
           source: file.read,
-          filename: file
+          filename: file,
+          terminal: highlight
         )
         annotation = io.string
 
