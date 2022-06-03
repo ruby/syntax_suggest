@@ -4,7 +4,7 @@
 autoload :DeadEnd, "dead_end/api"
 
 # Ruby 3.2+ has a cleaner way to hook into Ruby that doesn't use `require`
-if SyntaxError.new.respond_to?(:detailed_message)
+if SyntaxError.method_defined?(:detailed_message)
   module DeadEndUnloaded
     class MiniStringIO
       def initialize(isatty: $stderr.isatty)
