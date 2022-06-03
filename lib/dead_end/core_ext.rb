@@ -22,7 +22,7 @@ if SyntaxError.method_defined?(:detailed_message)
   end
 
   SyntaxError.prepend Module.new {
-    def detailed_message(highlight: nil, dead_end: true, **kwargs)
+    def detailed_message(highlight: true, dead_end: true, **kwargs)
       return super unless dead_end
 
       message = super
