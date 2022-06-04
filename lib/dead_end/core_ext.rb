@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-# Allow lazy loading, only load code if/when there's a syntax error
-autoload :DeadEnd, "dead_end/api"
-
 # Ruby 3.2+ has a cleaner way to hook into Ruby that doesn't use `require`
 if SyntaxError.method_defined?(:detailed_message)
-  module DeadEndUnloaded
+  module DeadEnd
     class MiniStringIO
       def initialize(isatty: $stderr.isatty)
         @string = +""
@@ -25,6 +22,8 @@ if SyntaxError.method_defined?(:detailed_message)
     def detailed_message(highlight: true, dead_end: true, **kwargs)
       return super unless dead_end
 
+      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+
       message = super
       file = if highlight
         DeadEnd::PathnameFromMessage.new(super(highlight: false, **kwargs)).call.name
@@ -32,7 +31,7 @@ if SyntaxError.method_defined?(:detailed_message)
         DeadEnd::PathnameFromMessage.new(message).call.name
       end
 
-      io = DeadEndUnloaded::MiniStringIO.new
+      io = DeadEnd::MiniStringIO.new
 
       if file
         DeadEnd.call(
@@ -72,12 +71,16 @@ else
     def load(file, wrap = false)
       dead_end_original_load(file)
     rescue SyntaxError => e
+      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+
       DeadEnd.handle_error(e)
     end
 
     def require(file)
       dead_end_original_require(file)
     rescue SyntaxError => e
+      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+
       DeadEnd.handle_error(e)
     end
 
@@ -90,6 +93,8 @@ else
         dead_end_original_require File.expand_path("../#{file}", relative_from_path)
       end
     rescue SyntaxError => e
+      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+
       DeadEnd.handle_error(e)
     end
   end

@@ -8,7 +8,7 @@ end
 
 Gem::Specification.new do |spec|
   spec.name = "dead_end"
-  spec.version = UnloadedDeadEnd::VERSION
+  spec.version = DeadEnd::VERSION
   spec.authors = ["schneems"]
   spec.email = ["richard.schneeman+foo@gmail.com"]
 
