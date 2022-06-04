@@ -8,7 +8,7 @@ module DeadEnd
   # valid code from it's parent
   #
   #  node = tree.root
-  #  journey = Journe.new(node)
+  #  journey = Journey.new(node)
   #  journey << Step.new(node.parents[0])
   #  expect(journey.node).to eq(node.parents[0])
   #

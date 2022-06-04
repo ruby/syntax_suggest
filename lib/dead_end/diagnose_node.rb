@@ -17,7 +17,6 @@ module DeadEnd
   # The algorithm here is tightly coupled to the nodes produced by the current IndentTree
   # implementation.
   #
-  #
   # Possible problem states:
   #
   # - :self - The block holds no parents, if it holds a problem its in the current node.
@@ -25,7 +24,8 @@ module DeadEnd
   # - :invalid_inside_split_pair - An invalid block is splitting two valid leaning blocks, return the middle.
   #
   # - :remove_pseudo_pair - Multiple invalid blocks in isolation are present, but when paired with external leaning
-  #   blocks above and below they become valid. Remove these and group the leftovers together. i.e. `else/ensure/rescue`.
+  #   blocks above and below they become valid. Remove these and group the leftovers together. i.e. don't
+  #   scapegoat `else/ensure/rescue`, remove them from the block and retry with whats leftover.
   #
   # - :extract_from_multiple - Multiple invalid blocks in isolation are present, but we were able to find one that could be removed
   #   to make a valid set along with outer leaning i.e. `[`, `in)&lid` , `vaild`, `]`. Different from :invalid_inside_split_pair because
@@ -65,7 +65,7 @@ module DeadEnd
       @next = if @problem == :multiple_invalid_parents
         invalid.map { |b| BlockNode.from_blocks([b]) }
       else
-        [BlockNode.from_blocks(invalid)]
+        invalid
       end
 
       self
@@ -86,32 +86,35 @@ module DeadEnd
       diagnose_one_or_more_parents
     end
 
+    # Diagnose left/right
+    #
+    # Handles cases where the block is made up of a several nodes and is book ended by
+    # nodes leaning in the correct direction that pair with one another. For example [`{`, `b@&[d`, `}`]
+    #
+    # This is different from above/below which also has matching blocks, but those are outside of the current
+    # block array (they are above and below it respectively)
+    #
     # ## (:invalid_inside_split_pair) Handle case where keyword/end (or any pair) is falsely reported as invalid in isolation but
     # holds a syntax error inside of it.
     #
     # Example:
     #
     # ```
-    # def cow # left, invalid in isolation, valid when paired with end
-    # ```
-    #
-    # ```
+    # def cow        # left, invalid in isolation, valid when paired with end
     #   inv&li) code # Actual problem to be isolated
-    # ```
-    #
-    # ```
-    # end # right, invalid in isolation, valid when paired with def
+    # end            # right, invalid in isolation, valid when paired with def
     # ```
     private def diagnose_left_right
       invalid = block.parents.select(&:invalid?)
+      return false if invalid.length < 3
 
       left = invalid.detect { |block| block.leaning == :left }
       right = invalid.reverse_each.detect { |block| block.leaning == :right }
 
-      if left && right && invalid.length >= 3 && BlockNode.from_blocks([left, right]).valid?
+      if left && right && BlockNode.from_blocks([left, right]).valid?
         @problem = :invalid_inside_split_pair
 
-        invalid.reject! { |x| x == left || x == right }
+        invalid.reject! { |b| b == left || b == right }
 
         # If the left/right was not mapped properly or we've accidentally got a :multiple_invalid_parents
         # we can get a false positive, double check the invalid lines fully capture the problem
@@ -130,16 +133,10 @@ module DeadEnd
     # Example:
     #
     # ```
-    # def cow # above
-    # ```
-    #
-    # ```
+    # def cow         # above
     #   print inv&li) # Actual problem
     # rescue => e     # Invalid in isolation, valid when paired with above/below
-    # ```
-    #
-    # ```
-    # end # below
+    # end             # below
     # ```
     #
     # ## (:extract_from_multiple) Handle syntax seems fine in isolation, but not when combined with above/below leaning blocks
@@ -148,22 +145,16 @@ module DeadEnd
     #
     # ```
     # [ # above
-    # ```
-    #
-    # ```
     #    missing_comma_not_okay
     #    missing_comma_okay
-    # ```
-    #
-    # ```
     # ] # below
     # ```
+    #
     private def diagnose_above_below
       invalid = block.parents.select(&:invalid?)
 
       above = block.above if block.above&.leaning == :left
       below = block.below if block.below&.leaning == :right
-
       return false if above.nil? || below.nil?
 
       if invalid.reject! { |block|
@@ -172,11 +163,17 @@ module DeadEnd
          }
 
         if invalid.any?
+          # At this point invalid array was reduced and represents only
+          # nodes that are invalid when paired with it's above/below
+          # however, we may need to split the node apart again
           @problem = :remove_pseudo_pair
-          invalid
-        else
 
+          [BlockNode.from_blocks(invalid, above: above, below: below)]
+        else
           invalid = block.parents.select(&:invalid?)
+
+          # If we can remove one node from many blocks to make the other blocks valid then, that
+          # block must be the problem
           if (b = invalid.detect { |b| BlockNode.from_blocks([above, invalid - [b], below].flatten).valid? })
             @problem = :extract_from_multiple
             [b]
@@ -189,6 +186,7 @@ module DeadEnd
     private def diagnose_one_or_more_parents
       invalid = block.parents.select(&:invalid?)
       @problem = if invalid.length > 1
+
         :multiple_invalid_parents
       else
         :one_invalid_parent

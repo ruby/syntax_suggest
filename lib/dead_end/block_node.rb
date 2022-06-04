@@ -6,7 +6,7 @@ module DeadEnd
   # A block node keeps a reference to the block above it
   # and below it. In addition a block can "capture" another
   # block. Block nodes are treated as immutable(ish) so when that happens
-  # a new node is created that contains a refernce to all the blocks it was
+  # a new node is created that contains a reference to all the blocks it was
   # derived from. These are known as a block's "parents".
   #
   # If you walk the parent chain until it ends you'll end up with nodes
@@ -33,7 +33,7 @@ module DeadEnd
     #
     #   block = BlockNode.from_blocks([parents[0], parents[2]])
     #   expect(block.leaning).to eq(:equal)
-    def self.from_blocks(parents)
+    def self.from_blocks(parents, above: nil, below: nil)
       lines = []
       while parents.length == 1 && parents.first.parents.any?
         parents = parents.first.parents
@@ -47,8 +47,9 @@ module DeadEnd
         block.delete
       end
 
-      above = parents.first.above
-      below = parents.last.below
+      above ||= parents.first.above
+      below ||= parents.last.below
+
 
       parents = [] if parents.length == 1
 

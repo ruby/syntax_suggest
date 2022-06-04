@@ -625,7 +625,7 @@ module DeadEnd
             setup_language_pack_environment(
               ruby_layer_path: File.expand_path("."),
               gem_layer_path: File.expand_path("."),
-              bundle_path: "vendor/bundle", }
+              bundle_path: "vendor/bundle", } # problem
               bundle_default_without: "development:test"
             )
             allow_git do
@@ -672,21 +672,49 @@ module DeadEnd
       expect(diagnose.problem).to eq(:one_invalid_parent)
       node = diagnose.next[0]
 
+      expect(node.to_s).to eq(<<~'EOM'.indent(4))
+        setup_language_pack_environment(
+          ruby_layer_path: File.expand_path("."),
+          gem_layer_path: File.expand_path("."),
+          bundle_path: "vendor/bundle", } # problem
+          bundle_default_without: "development:test"
+        )
+      EOM
+
       diagnose = DiagnoseNode.new(node).call
       expect(diagnose.problem).to eq(:invalid_inside_split_pair)
       node = diagnose.next[0]
 
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:remove_pseudo_pair)
-      expect(node.parents.length).to eq(4)
+      expect(node.to_s).to eq(<<~'EOM'.indent(6))
+        ruby_layer_path: File.expand_path("."),
+        gem_layer_path: File.expand_path("."),
+        bundle_path: "vendor/bundle", } # problem
+        bundle_default_without: "development:test"
+      EOM
 
       diagnose = DiagnoseNode.new(node).call
       node = diagnose.next[0]
+      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+
+      expect(node.to_s).to eq(<<~'EOM'.indent(6))
+        ruby_layer_path: File.expand_path("."),
+        gem_layer_path: File.expand_path("."),
+        bundle_path: "vendor/bundle", } # problem
+      EOM
+
+      diagnose = DiagnoseNode.new(node).call
+      node = diagnose.next[0]
+      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+
+      expect(node.to_s).to eq(<<~'EOM'.indent(6))
+          bundle_path: "vendor/bundle", } # problem
+      EOM
 
       diagnose = DiagnoseNode.new(node).call
       expect(diagnose.problem).to eq(:self)
+
       expect(node.to_s).to eq(<<~'EOM'.indent(6))
-        bundle_path: "vendor/bundle", }
+          bundle_path: "vendor/bundle", } # problem
       EOM
     end
 
