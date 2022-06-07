@@ -185,14 +185,18 @@ module DeadEnd
     # We couldn't detect any special cases, either return 1 or N invalid nodes
     private def diagnose_one_or_more_parents
       invalid = block.parents.select(&:invalid?)
-      @problem = if invalid.length > 1
-
-        :multiple_invalid_parents
+      if invalid.length > 1
+        if (b = invalid.detect { |b| BlockNode.from_blocks([invalid - [b]].flatten).valid? })
+          @problem = :extract_from_multiple
+          [b]
+        else
+          @problem = :multiple_invalid_parents
+          invalid
+        end
       else
-        :one_invalid_parent
+        @problem = :one_invalid_parent
+        invalid
       end
-
-      invalid
     end
 
     private def diagnose_self

@@ -86,7 +86,6 @@ module DeadEnd
     end
 
     blocks = search.finished.map(&:node).map {|node| CodeBlock.new(lines: node.lines) }
-    # puts search.finished.first.steps.last(2).first.block
 
     DisplayInvalidBlocks.new(
       io: io,

@@ -1077,6 +1077,11 @@ module DeadEnd
         node = diagnose.next[0]
 
         diagnose = DiagnoseNode.new(node).call
+        expect(diagnose.problem).to eq(:extract_from_multiple)
+        node = diagnose.next[0]
+
+
+        diagnose = DiagnoseNode.new(node).call
         expect(diagnose.problem).to eq(:self)
         expect(node.to_s).to eq(<<~'EOM'.indent(2))
           def on_args_add(arguments, argument)
