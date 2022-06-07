@@ -739,23 +739,19 @@ module DeadEnd
       node = diagnose.next[0]
 
       diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      expect(diagnose.problem).to eq(:one_invalid_parent)
       node = diagnose.next[0]
 
       diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+      expect(diagnose.problem).to eq(:one_invalid_parent)
       node = diagnose.next[0]
 
       diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
+      expect(diagnose.problem).to eq(:one_invalid_parent)
       node = diagnose.next[0]
 
       diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:invalid_inside_split_pair)
-      node = diagnose.next[0]
-
-      diagnose = DiagnoseNode.new(node).call
-      expect(diagnose.problem).to eq(:remove_pseudo_pair)
+      expect(diagnose.problem).to eq(:one_invalid_parent)
       node = diagnose.next[0]
 
       diagnose = DiagnoseNode.new(node).call

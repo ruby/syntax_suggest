@@ -1081,8 +1081,6 @@ module DeadEnd
       EOM
 
       expect(search.finished.join).to eq(<<~'EOM'.indent(6))
-        ruby_layer_path: File.expand_path("."),
-        gem_layer_path: File.expand_path("."),
         bundle_path: "vendor/bundle", }
       EOM
     end
