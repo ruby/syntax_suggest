@@ -52,8 +52,7 @@ module DeadEnd
             it "blerg" do
             end
 
-            it "flerg"
-            end
+            def foo
 
             it "zlerg" do
             end
@@ -68,7 +67,7 @@ module DeadEnd
         out = `ruby -I#{lib_dir} -rdead_end #{require_rb} 2>&1`
 
         expect($?.success?).to be_falsey
-        expect(out).to include('❯  5    it "flerg"').once
+        expect(out).to include('❯ 5    def foo').once
       end
     end
   end

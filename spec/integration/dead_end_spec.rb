@@ -203,5 +203,77 @@ module DeadEnd
           4  end
       EOM
     end
+
+    it "missing `do` highlights more than `end` simple" do
+      source = <<~'EOM'
+        describe "things" do
+          it "blerg" do
+          end
+
+          it "flerg"
+          end
+
+          it "zlerg" do
+          end
+        end
+      EOM
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source
+      )
+      out = io.string
+      expect(out).to include(<<~EOM)
+           1  describe "things" do
+           2    it "blerg" do
+           3    end
+        ❯  5    it "flerg"
+        ❯  6    end
+           8    it "zlerg" do
+           9    end
+           10  end
+      EOM
+    end
+
+    it "missing `do` highlights more than `end`, with internal contents" do
+      source = <<~'EOM'
+        describe "things" do
+          it "blerg" do
+          end
+
+          it "flerg"
+            doesnt
+            show
+            extra
+            stuff()
+            that_s
+            not
+            critical
+            inside
+          end
+
+          it "zlerg" do
+            foo
+          end
+        end
+      EOM
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source
+      )
+      out = io.string
+
+      expect(out).to include(<<~EOM)
+           1  describe "things" do
+           2    it "blerg" do
+           3    end
+        ❯  5    it "flerg"
+        ❯  14   end
+           16   it "zlerg" do
+           18   end
+           19  end
+      EOM
+    end
   end
 end
