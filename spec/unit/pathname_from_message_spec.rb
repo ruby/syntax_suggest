@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe "PathnameFromMessage" do
     it "handles filenames with colons in them" do
       Dir.mktmpdir do |dir|

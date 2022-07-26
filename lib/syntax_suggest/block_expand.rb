@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # This class is responsible for taking a code block that exists
   # at a far indentaion and then iteratively increasing the block
   # so that it captures everything within the same indentation block.
@@ -68,7 +68,7 @@ module DeadEnd
 
     # Managable rspec errors
     def inspect
-      "#<DeadEnd::CodeBlock:0x0000123843lol >"
+      "#<SyntaxSuggest::CodeBlock:0x0000123843lol >"
     end
   end
 end

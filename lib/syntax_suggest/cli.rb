@@ -3,8 +3,8 @@
 require "pathname"
 require "optparse"
 
-module DeadEnd
-  # All the logic of the exe/dead_end CLI in one handy spot
+module SyntaxSuggest
+  # All the logic of the exe/syntax_suggest CLI in one handy spot
   #
   #   Cli.new(argv: ["--help"]).call
   #   Cli.new(argv: ["<path/to/file>.rb"]).call
@@ -20,9 +20,9 @@ module DeadEnd
     def initialize(argv:, exit_obj: Kernel, io: $stdout, env: ENV)
       @options = {}
       @parser = nil
-      options[:record_dir] = env["DEAD_END_RECORD_DIR"]
+      options[:record_dir] = env["SYNTAX_SUGGEST_RECORD_DIR"]
       options[:record_dir] = "tmp" if env["DEBUG"]
-      options[:terminal] = DeadEnd::DEFAULT_VALUE
+      options[:terminal] = SyntaxSuggest::DEFAULT_VALUE
 
       @io = io
       @argv = argv
@@ -56,11 +56,11 @@ module DeadEnd
 
       @io.puts "Record dir: #{options[:record_dir]}" if options[:record_dir]
 
-      display = DeadEnd.call(
+      display = SyntaxSuggest.call(
         io: @io,
         source: file.read,
         filename: file.expand_path,
-        terminal: options.fetch(:terminal, DeadEnd::DEFAULT_VALUE),
+        terminal: options.fetch(:terminal, SyntaxSuggest::DEFAULT_VALUE),
         record_dir: options[:record_dir]
       )
 
@@ -80,14 +80,14 @@ module DeadEnd
     def parser
       @parser ||= OptionParser.new do |opts|
         opts.banner = <<~EOM
-          Usage: dead_end <file> [options]
+          Usage: syntax_suggest <file> [options]
 
           Parses a ruby source file and searches for syntax error(s) such as
           unexpected `end', expecting end-of-input.
 
           Example:
 
-            $ dead_end dog.rb
+            $ syntax_suggest dog.rb
 
             # ...
 
@@ -96,7 +96,7 @@ module DeadEnd
 
           ENV options:
 
-            DEAD_END_RECORD_DIR=<dir>
+            SYNTAX_SUGGEST_RECORD_DIR=<dir>
 
             Records the steps used to search for a syntax error
             to the given directory
@@ -104,7 +104,7 @@ module DeadEnd
           Options:
         EOM
 
-        opts.version = DeadEnd::VERSION
+        opts.version = SyntaxSuggest::VERSION
 
         opts.on("--help", "Help - displays this message") do |v|
           @io.puts opts

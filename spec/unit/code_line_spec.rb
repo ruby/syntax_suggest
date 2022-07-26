@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe CodeLine do
     it "bug in keyword detection" do
       lines = CodeLine.from_source(<<~'EOM')
@@ -104,7 +104,7 @@ module DeadEnd
         end
       EOM
 
-      expect(DeadEnd.valid?(code_lines)).to be_falsey
+      expect(SyntaxSuggest.valid?(code_lines)).to be_falsey
       expect(code_lines.join).to eq(<<~EOM)
         def foo
           Array(value) |x|
@@ -125,7 +125,7 @@ module DeadEnd
         Array(value) |x|
         end
       EOM
-      expect(DeadEnd.valid?(code_lines)).to be_falsey
+      expect(SyntaxSuggest.valid?(code_lines)).to be_falsey
     end
 
     it "knows empty lines" do
@@ -137,7 +137,7 @@ module DeadEnd
 
       expect(code_lines.map(&:empty?)).to eq([false, true, false])
       expect(code_lines.map(&:not_empty?)).to eq([true, false, true])
-      expect(code_lines.map { |l| DeadEnd.valid?(l) }).to eq([true, true, true])
+      expect(code_lines.map { |l| SyntaxSuggest.valid?(l) }).to eq([true, true, true])
     end
 
     it "counts indentations" do

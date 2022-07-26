@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe AroundBlockScan do
     it "continues scan from last location even if scan is false" do
       source = <<~'EOM'

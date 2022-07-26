@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # The main function of the frontier is to hold the edges of our search and to
   # evaluate when we can stop searching.
 
@@ -93,7 +93,7 @@ module DeadEnd
         block.lines
       end
 
-      DeadEnd.valid_without?(
+      SyntaxSuggest.valid_without?(
         without_lines: without_lines,
         code_lines: @code_lines
       )
@@ -115,7 +115,7 @@ module DeadEnd
       frontier_indent = @queue.peek.current_indent
       unvisited_indent = next_indent_line.indent
 
-      if ENV["DEAD_END_DEBUG"]
+      if ENV["SYNTAX_SUGGEST_DEBUG"]
         puts "```"
         puts @queue.peek.to_s
         puts "```"

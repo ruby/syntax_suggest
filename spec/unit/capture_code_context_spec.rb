@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe CaptureCodeContext do
     it "capture_before_after_kws" do
       source = <<~'EOM'

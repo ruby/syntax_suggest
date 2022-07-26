@@ -8,15 +8,15 @@ require "pathname"
 require "ripper"
 require "timeout"
 
-module DeadEnd
+module SyntaxSuggest
   # Used to indicate a default value that cannot
   # be confused with another input.
   DEFAULT_VALUE = Object.new.freeze
 
   class Error < StandardError; end
-  TIMEOUT_DEFAULT = ENV.fetch("DEAD_END_TIMEOUT", 1).to_i
+  TIMEOUT_DEFAULT = ENV.fetch("SYNTAX_SUGGEST_TIMEOUT", 1).to_i
 
-  # DeadEnd.handle_error [Public]
+  # SyntaxSuggest.handle_error [Public]
   #
   # Takes a `SyntaxError` exception, uses the
   # error message to locate the file. Then the file
@@ -28,7 +28,7 @@ module DeadEnd
   #   begin
   #     require 'bad_file'
   #   rescue => e
-  #     DeadEnd.handle_error(e)
+  #     SyntaxSuggest.handle_error(e)
   #   end
   #
   # By default it will re-raise the exception unless
@@ -40,7 +40,7 @@ module DeadEnd
   # `re_raise: false`).
   def self.handle_error(e, re_raise: true, io: $stderr)
     unless e.is_a?(SyntaxError)
-      io.puts("DeadEnd: Must pass a SyntaxError, got: #{e.class}")
+      io.puts("SyntaxSuggest: Must pass a SyntaxError, got: #{e.class}")
       raise e
     end
 
@@ -58,7 +58,7 @@ module DeadEnd
     raise e if re_raise
   end
 
-  # DeadEnd.call [Private]
+  # SyntaxSuggest.call [Private]
   #
   # Main private interface
   def self.call(source:, filename: DEFAULT_VALUE, terminal: DEFAULT_VALUE, record_dir: DEFAULT_VALUE, timeout: TIMEOUT_DEFAULT, io: $stderr)
@@ -78,11 +78,11 @@ module DeadEnd
       code_lines: search.code_lines
     ).call
   rescue Timeout::Error => e
-    io.puts "Search timed out DEAD_END_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
+    io.puts "Search timed out SYNTAX_SUGGEST_TIMEOUT=#{timeout}, run with DEBUG=1 for more info"
     io.puts e.backtrace.first(3).join($/)
   end
 
-  # DeadEnd.record_dir [Private]
+  # SyntaxSuggest.record_dir [Private]
   #
   # Used to generate a unique directory to record
   # search steps for debugging
@@ -95,7 +95,7 @@ module DeadEnd
     }
   end
 
-  # DeadEnd.valid_without? [Private]
+  # SyntaxSuggest.valid_without? [Private]
   #
   # This will tell you if the `code_lines` would be valid
   # if you removed the `without_lines`. In short it's a
@@ -108,12 +108,12 @@ module DeadEnd
   #     CodeLine.new(line: "end\n",       index: 2)
   #   ]
   #
-  #   DeadEnd.valid_without?(
+  #   SyntaxSuggest.valid_without?(
   #     without_lines: code_lines[1],
   #     code_lines: code_lines
   #   )                                    # => true
   #
-  #   DeadEnd.valid?(code_lines) # => false
+  #   SyntaxSuggest.valid?(code_lines) # => false
   def self.valid_without?(without_lines:, code_lines:)
     lines = code_lines - Array(without_lines).flatten
 
@@ -124,9 +124,9 @@ module DeadEnd
     end
   end
 
-  # DeadEnd.invalid? [Private]
+  # SyntaxSuggest.invalid? [Private]
   #
-  # Opposite of `DeadEnd.valid?`
+  # Opposite of `SyntaxSuggest.valid?`
   def self.invalid?(source)
     source = source.join if source.is_a?(Array)
     source = source.to_s
@@ -134,16 +134,16 @@ module DeadEnd
     Ripper.new(source).tap(&:parse).error?
   end
 
-  # DeadEnd.valid? [Private]
+  # SyntaxSuggest.valid? [Private]
   #
   # Returns truthy if a given input source is valid syntax
   #
-  #   DeadEnd.valid?(<<~EOM) # => true
+  #   SyntaxSuggest.valid?(<<~EOM) # => true
   #     def foo
   #     end
   #   EOM
   #
-  #   DeadEnd.valid?(<<~EOM) # => false
+  #   SyntaxSuggest.valid?(<<~EOM) # => false
   #     def foo
   #       def bar # Syntax error here
   #     end
@@ -152,14 +152,14 @@ module DeadEnd
   # You can also pass in an array of lines and they'll be
   # joined before evaluating
   #
-  #   DeadEnd.valid?(
+  #   SyntaxSuggest.valid?(
   #     [
   #       "def foo\n",
   #       "end\n"
   #     ]
   #   ) # => true
   #
-  #   DeadEnd.valid?(
+  #   SyntaxSuggest.valid?(
   #     [
   #       "def foo\n",
   #       "  def bar\n", # Syntax error here

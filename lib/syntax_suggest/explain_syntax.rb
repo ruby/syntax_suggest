@@ -2,7 +2,7 @@
 
 require_relative "left_right_lex_count"
 
-module DeadEnd
+module SyntaxSuggest
   # Explains syntax errors based on their source
   #
   # example:

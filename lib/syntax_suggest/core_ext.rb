@@ -2,7 +2,7 @@
 
 # Ruby 3.2+ has a cleaner way to hook into Ruby that doesn't use `require`
 if SyntaxError.method_defined?(:detailed_message)
-  module DeadEnd
+  module SyntaxSuggest
     class MiniStringIO
       def initialize(isatty: $stderr.isatty)
         @string = +""
@@ -19,22 +19,22 @@ if SyntaxError.method_defined?(:detailed_message)
   end
 
   SyntaxError.prepend Module.new {
-    def detailed_message(highlight: true, dead_end: true, **kwargs)
-      return super unless dead_end
+    def detailed_message(highlight: true, syntax_suggest: true, **kwargs)
+      return super unless syntax_suggest
 
-      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+      require "syntax_suggest/api" unless defined?(SyntaxSuggest::DEFAULT_VALUE)
 
       message = super
       file = if highlight
-        DeadEnd::PathnameFromMessage.new(super(highlight: false, **kwargs)).call.name
+        SyntaxSuggest::PathnameFromMessage.new(super(highlight: false, **kwargs)).call.name
       else
-        DeadEnd::PathnameFromMessage.new(message).call.name
+        SyntaxSuggest::PathnameFromMessage.new(message).call.name
       end
 
-      io = DeadEnd::MiniStringIO.new
+      io = SyntaxSuggest::MiniStringIO.new
 
       if file
-        DeadEnd.call(
+        SyntaxSuggest.call(
           io: io,
           source: file.read,
           filename: file,
@@ -47,7 +47,7 @@ if SyntaxError.method_defined?(:detailed_message)
         message
       end
     rescue => e
-      if ENV["DEAD_END_DEBUG"]
+      if ENV["SYNTAX_SUGGEST_DEBUG"]
         $stderr.warn(e.message)
         $stderr.warn(e.backtrace)
       end
@@ -64,38 +64,38 @@ else
   module Kernel
     module_function
 
-    alias_method :dead_end_original_require, :require
-    alias_method :dead_end_original_require_relative, :require_relative
-    alias_method :dead_end_original_load, :load
+    alias_method :syntax_suggest_original_require, :require
+    alias_method :syntax_suggest_original_require_relative, :require_relative
+    alias_method :syntax_suggest_original_load, :load
 
     def load(file, wrap = false)
-      dead_end_original_load(file)
+      syntax_suggest_original_load(file)
     rescue SyntaxError => e
-      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+      require "syntax_suggest/api" unless defined?(SyntaxSuggest::DEFAULT_VALUE)
 
-      DeadEnd.handle_error(e)
+      SyntaxSuggest.handle_error(e)
     end
 
     def require(file)
-      dead_end_original_require(file)
+      syntax_suggest_original_require(file)
     rescue SyntaxError => e
-      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+      require "syntax_suggest/api" unless defined?(SyntaxSuggest::DEFAULT_VALUE)
 
-      DeadEnd.handle_error(e)
+      SyntaxSuggest.handle_error(e)
     end
 
     def require_relative(file)
       if Pathname.new(file).absolute?
-        dead_end_original_require file
+        syntax_suggest_original_require file
       else
         relative_from = caller_locations(1..1).first
         relative_from_path = relative_from.absolute_path || relative_from.path
-        dead_end_original_require File.expand_path("../#{file}", relative_from_path)
+        syntax_suggest_original_require File.expand_path("../#{file}", relative_from_path)
       end
     rescue SyntaxError => e
-      require "dead_end/api" unless defined?(DeadEnd::DEFAULT_VALUE)
+      require "syntax_suggest/api" unless defined?(SyntaxSuggest::DEFAULT_VALUE)
 
-      DeadEnd.handle_error(e)
+      SyntaxSuggest.handle_error(e)
     end
   end
 end

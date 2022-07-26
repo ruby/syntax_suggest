@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Tracks which lines various code blocks have expanded to
   # and which are still unexplored
   class UnvisitedLines

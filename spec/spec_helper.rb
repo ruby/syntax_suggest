@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "bundler/setup"
-require "dead_end/api"
+require "syntax_suggest/api"
 
 require "benchmark"
 require "tempfile"
@@ -44,7 +44,7 @@ def fixtures_dir
 end
 
 def code_line_array(source)
-  DeadEnd::CleanDocument.new(source: source).call.lines
+  SyntaxSuggest::CleanDocument.new(source: source).call.lines
 end
 
 autoload :RubyProf, "ruby-prof"
@@ -58,7 +58,7 @@ def debug_perf
       out = yield
     end
 
-    dir = DeadEnd.record_dir("tmp")
+    dir = SyntaxSuggest.record_dir("tmp")
     printer = RubyProf::MultiPrinter.new(result, [:flat, :graph, :graph_html, :tree, :call_tree, :stack, :dot])
     printer.print(path: dir, profile: "profile")
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Multiple lines form a singular CodeBlock
   #
   # Source code is made of multiple CodeBlocks.
@@ -86,7 +86,7 @@ module DeadEnd
         @valid = if lines.all? { |l| l.hidden? || l.empty? }
           true
         else
-          DeadEnd.valid?(lines.map(&:original).join)
+          SyntaxSuggest.valid?(lines.map(&:original).join)
         end
       else
         @valid

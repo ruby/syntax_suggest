@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe CodeSearch do
     it "rexe regression" do
       lines = fixtures_dir.join("rexe.rb.txt").read.lines

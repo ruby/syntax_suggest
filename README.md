@@ -1,6 +1,6 @@
-# DeadEnd
+# SyntaxSuggest
 
-An error in your code forces you to stop. DeadEnd helps you find those errors to get you back on your way faster.
+An error in your code forces you to stop. SyntaxSuggest helps you find those errors to get you back on your way faster.
 
 ```
 Unmatched `end', missing keyword (`do', `def`, `if`, etc.) ?
@@ -16,7 +16,7 @@ Unmatched `end', missing keyword (`do', `def`, `if`, etc.) ?
 To automatically annotate errors when they happen, add this to your Gemfile:
 
 ```ruby
-gem 'dead_end'
+gem 'syntax_suggest'
 ```
 
 And then execute:
@@ -26,13 +26,13 @@ And then execute:
 If your application is not calling `Bundler.require` then you must manually add a require:
 
 ```ruby
-require "dead_end"
+require "syntax_suggest"
 ```
 
 If you're using rspec add this to your `.rspec` file:
 
 ```
---require dead_end
+--require syntax_suggest
 ```
 
 > This is needed because people can execute a single test file via `bundle exec rspec path/to/file_spec.rb` and if that file has a syntax error, it won't load `spec_helper.rb` to trigger any requires.
@@ -41,9 +41,9 @@ If you're using rspec add this to your `.rspec` file:
 
 To get the CLI and manually search for syntax errors (but not automatically annotate them), you can manually install the gem:
 
-    $ gem install dead_end
+    $ gem install syntax_suggest
 
-This gives you the CLI command `$ dead_end` for more info run `$ dead_end --help`.
+This gives you the CLI command `$ syntax_suggest` for more info run `$ syntax_suggest --help`.
 
 ## Editor integration
 
@@ -54,7 +54,7 @@ An extension is available for VSCode:
 
 ## What syntax errors does it handle?
 
-Dead end will fire against all syntax errors and can isolate any syntax error. In addition, dead_end attempts to produce human readable descriptions of what needs to be done to resolve the issue. For example:
+Syntax suggest will fire against all syntax errors and can isolate any syntax error. In addition, syntax_suggest attempts to produce human readable descriptions of what needs to be done to resolve the issue. For example:
 
 - Missing `end`:
 
@@ -144,7 +144,7 @@ syntax error, unexpected end-of-input
 
 Ruby allows you to syntax check a file with warnings using `ruby -wc`. This emits a parser error instead of a human focused error. Ruby's parse errors attempt to narrow down the location and can tell you if there is a glaring indentation error involving `end`.
 
-The `dead_end` algorithm doesn't just guess at the location of syntax errors, it re-parses the document to prove that it captured them.
+The `syntax_suggest` algorithm doesn't just guess at the location of syntax errors, it re-parses the document to prove that it captured them.
 
 This library focuses on the human side of syntax errors. It cares less about why the document could not be parsed (computer problem) and more on what the programmer needs (human problem) to fix the problem.
 
@@ -168,13 +168,13 @@ Here's an example:
 
 ## Use internals
 
-To use the `dead_end` gem without monkeypatching you can  `require 'dead_end/api'`. This will allow you to load `dead_end` and use its internals without mutating `require`.
+To use the `syntax_suggest` gem without monkeypatching you can  `require 'syntax_suggest/api'`. This will allow you to load `syntax_suggest` and use its internals without mutating `require`.
 
 Stable internal interface(s):
 
-- `DeadEnd.handle_error(e)`
+- `SyntaxSuggest.handle_error(e)`
 
-Any other entrypoints are subject to change without warning. If you want to use an internal interface from `dead_end` not on this list, open an issue to explain your use case.
+Any other entrypoints are subject to change without warning. If you want to use an internal interface from `syntax_suggest` not on this list, open an issue to explain your use case.
 
 ## Development
 
@@ -195,7 +195,7 @@ $ DEBUG_DISPLAY=1 bundle exec rspec spec/ --format=failures
 You can output profiler data to the `tmp` directory by running:
 
 ```
-$ DEBUG_PERF=1 bundle exec rspec spec/integration/dead_end_spec.rb
+$ DEBUG_PERF=1 bundle exec rspec spec/integration/syntax_suggest_spec.rb
 ```
 
 Some outputs are in text format, some are html, the raw marshaled data is available in `raw.rb.marshal`. See https://ruby-prof.github.io/#reports for more info. One interesting one, is the "kcachegrind" interface. To view this on mac:
@@ -212,12 +212,12 @@ $ qcachegrind tmp/last/profile.callgrind.out.<numbers>
 
 ## Environment variables
 
-- `DEAD_END_DEBUG` - Enables debug output to STDOUT/STDERR and/or disk at `./tmp`. The contents of debugging output are not stable and may change. If you would like stability, please open an issue to explain your use case.
-- `DEAD_END_TIMEOUT` - Changes the default timeout value to the number set (in seconds).
+- `SYNTAX_SUGGEST_DEBUG` - Enables debug output to STDOUT/STDERR and/or disk at `./tmp`. The contents of debugging output are not stable and may change. If you would like stability, please open an issue to explain your use case.
+- `SYNTAX_SUGGEST_TIMEOUT` - Changes the default timeout value to the number set (in seconds).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/zombocom/dead_end. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/zombocom/dead_end/blob/main/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/zombocom/syntax_suggest. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/zombocom/syntax_suggest/blob/main/CODE_OF_CONDUCT.md).
 
 
 ## License
@@ -226,4 +226,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the DeadEnd project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/zombocom/dead_end/blob/main/CODE_OF_CONDUCT.md).
+Everyone interacting in the SyntaxSuggest project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/zombocom/syntax_suggest/blob/main/CODE_OF_CONDUCT.md).

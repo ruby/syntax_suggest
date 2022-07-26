@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Keeps track of what elements are in the queue in
   # priority and also ensures that when one element
   # engulfs/covers/eats another that the larger element

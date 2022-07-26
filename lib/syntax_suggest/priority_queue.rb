@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Holds elements in a priority heap on insert
   #
   # Instead of constantly calling `sort!`, put

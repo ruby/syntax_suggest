@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Find mis-matched syntax based on lexical count
   #
   # Used for detecting missing pairs of elements

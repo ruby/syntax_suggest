@@ -17,7 +17,7 @@ module SyntaxErrorSearch
     def call
       @io.puts <<~EOM
 
-        DeadEnd: A syntax error was detected
+        SyntaxSuggest: A syntax error was detected
 
         This code has an unmatched `end` this is caused by either
         missing a syntax keyword (`def`,  `do`, etc.) or inclusion

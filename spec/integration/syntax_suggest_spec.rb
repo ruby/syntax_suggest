@@ -2,10 +2,10 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe "Integration tests that don't spawn a process (like using the cli)" do
     it "does not timeout on massive files" do
-      next unless ENV["DEAD_END_TIMEOUT"]
+      next unless ENV["SYNTAX_SUGGEST_TIMEOUT"]
 
       file = fixtures_dir.join("syntax_tree.rb.txt")
       lines = file.read.lines
@@ -15,7 +15,7 @@ module DeadEnd
 
       benchmark = Benchmark.measure do
         debug_perf do
-          DeadEnd.call(
+          SyntaxSuggest.call(
             io: io,
             source: lines.join,
             filename: file
@@ -42,7 +42,7 @@ module DeadEnd
 
       debug_perf do
         benchmark = Benchmark.measure do
-          DeadEnd.call(
+          SyntaxSuggest.call(
             io: io,
             source: file.read,
             filename: file
@@ -65,7 +65,7 @@ module DeadEnd
       source = fixtures_dir.join("routes.rb.txt").read
 
       io = StringIO.new
-      DeadEnd.call(
+      SyntaxSuggest.call(
         io: io,
         source: source
       )
@@ -84,7 +84,7 @@ module DeadEnd
       source = fixtures_dir.join("webmock.rb.txt").read
 
       io = StringIO.new
-      DeadEnd.call(
+      SyntaxSuggest.call(
         io: io,
         source: source
       )
@@ -106,7 +106,7 @@ module DeadEnd
       source = fixtures_dir.join("derailed_require_tree.rb.txt").read
 
       io = StringIO.new
-      DeadEnd.call(
+      SyntaxSuggest.call(
         io: io,
         source: source
       )
@@ -130,7 +130,7 @@ module DeadEnd
       lines = fixtures_dir.join("rexe.rb.txt").read.lines
       lines.delete_at(85 - 1)
       io = StringIO.new
-      DeadEnd.call(
+      SyntaxSuggest.call(
         io: io,
         source: lines.join
       )
@@ -153,7 +153,7 @@ module DeadEnd
       source = lines.join
 
       io = StringIO.new
-      DeadEnd.call(
+      SyntaxSuggest.call(
         io: io,
         source: source
       )
@@ -176,7 +176,7 @@ module DeadEnd
         end # two         # 3
       EOM
       io = StringIO.new
-      DeadEnd.call(
+      SyntaxSuggest.call(
         io: io,
         source: source
       )
@@ -196,7 +196,7 @@ module DeadEnd
         end
       EOM
       io = StringIO.new
-      DeadEnd.call(
+      SyntaxSuggest.call(
         io: io,
         source: source
       )

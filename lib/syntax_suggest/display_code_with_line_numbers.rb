@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Outputs code with highlighted lines
   #
   # Whatever is passed to this class will be rendered

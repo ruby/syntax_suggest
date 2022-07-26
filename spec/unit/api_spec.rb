@@ -3,8 +3,8 @@
 require_relative "../spec_helper"
 require "ruby-prof"
 
-module DeadEnd
-  RSpec.describe "Top level DeadEnd api" do
+module SyntaxSuggest
+  RSpec.describe "Top level SyntaxSuggest api" do
     it "has a `handle_error` interface" do
       fake_error = Object.new
       def fake_error.message
@@ -16,7 +16,7 @@ module DeadEnd
       end
 
       io = StringIO.new
-      DeadEnd.handle_error(
+      SyntaxSuggest.handle_error(
         fake_error,
         re_raise: false,
         io: io
@@ -29,7 +29,7 @@ module DeadEnd
       error = NameError.new("blerg")
       io = StringIO.new
       expect {
-        DeadEnd.handle_error(
+        SyntaxSuggest.handle_error(
           error,
           re_raise: false,
           io: io
@@ -48,7 +48,7 @@ module DeadEnd
 
       io = StringIO.new
       expect {
-        DeadEnd.handle_error(
+        SyntaxSuggest.handle_error(
           fake_error,
           re_raise: false,
           io: io
@@ -64,10 +64,10 @@ module DeadEnd
 
       error = SyntaxError.new("#{fixtures_dir.join("this_project_extra_def.rb.txt")}:1 ")
 
-      require "dead_end/core_ext"
+      require "syntax_suggest/core_ext"
 
-      expect(error.detailed_message(highlight: true)).to include(DeadEnd::DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT)
-      expect(error.detailed_message(highlight: false)).to_not include(DeadEnd::DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT)
+      expect(error.detailed_message(highlight: true)).to include(SyntaxSuggest::DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT)
+      expect(error.detailed_message(highlight: false)).to_not include(SyntaxSuggest::DisplayCodeWithLineNumbers::TERMINAL_HIGHLIGHT)
     end
 
     it "can be disabled via falsey kwarg" do
@@ -75,9 +75,9 @@ module DeadEnd
 
       error = SyntaxError.new("#{fixtures_dir.join("this_project_extra_def.rb.txt")}:1 ")
 
-      require "dead_end/core_ext"
+      require "syntax_suggest/core_ext"
 
-      expect(error.detailed_message(dead_end: true)).to_not eq(error.detailed_message(dead_end: false))
+      expect(error.detailed_message(syntax_suggest: true)).to_not eq(error.detailed_message(syntax_suggest: false))
     end
   end
 end

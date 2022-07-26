@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe BlockExpand do
     it "captures multiple empty and hidden lines" do
       source_string = <<~EOM
