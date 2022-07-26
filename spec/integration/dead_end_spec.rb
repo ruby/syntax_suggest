@@ -562,12 +562,36 @@ module DeadEnd
       EOM
     end
 
+    it "is harder" do
+      source = <<~EOM
+        class Blerg
+          Foo.call }
+            print haha
+            print lol
+          end # one
+          print lol
+          class Foo
+          end # two
+        end # three
+      EOM
+
+      io = StringIO.new
+      DeadEnd.call(
+        io: io,
+        source: source
+      )
+
+      puts io.string
+      raise "not implemented"
+    end
+
     it "handles mismatched |" do
       source = <<~EOM
         class Blerg
           Foo.call do |a
+            print lol
           end # one
-          puts lol
+          print lol
           class Foo
           end # two
         end # three
@@ -599,6 +623,5 @@ module DeadEnd
 
       raise("this should be one failure, not two")
     end
-
   end
 end
