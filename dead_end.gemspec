@@ -1,25 +1,25 @@
 # frozen_string_literal: true
 
 begin
-  require_relative "lib/dead_end/version"
+  require_relative "lib/syntax_suggest/version"
 rescue LoadError # Fallback to load version file in ruby core repository
   require_relative "version"
 end
 
 Gem::Specification.new do |spec|
-  spec.name = "dead_end"
-  spec.version = DeadEnd::VERSION
+  spec.name = "syntax_suggest"
+  spec.version = SyntaxSuggest::VERSION
   spec.authors = ["schneems"]
   spec.email = ["richard.schneeman+foo@gmail.com"]
 
   spec.summary = "Find syntax errors in your source in a snap"
   spec.description = 'When you get an "unexpected end" in your syntax this gem helps you find it'
-  spec.homepage = "https://github.com/zombocom/dead_end.git"
+  spec.homepage = "https://github.com/zombocom/syntax_suggest.git"
   spec.license = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/zombocom/dead_end.git"
+  spec.metadata["source_code_uri"] = "https://github.com/zombocom/syntax_suggest.git"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.

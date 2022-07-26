@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe CleanDocument do
     it "heredocs" do
       source = fixtures_dir.join("this_project_extra_def.rb.txt").read
@@ -11,7 +11,7 @@ module DeadEnd
       expect(code_lines[18 - 1].to_s).to eq(<<-'EOL')
       @io.puts <<~EOM
 
-        DeadEnd: A syntax error was detected
+        SyntaxSuggest: A syntax error was detected
 
         This code has an unmatched `end` this is caused by either
         missing a syntax keyword (`def`,  `do`, etc.) or inclusion

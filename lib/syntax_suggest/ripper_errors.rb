@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Capture parse errors from ripper
   #
   # Example:

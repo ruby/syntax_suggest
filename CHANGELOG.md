@@ -1,15 +1,16 @@
 ## HEAD (unreleased)
 
-- [Breaking] Lazy loading moved from `autoload` to manually checking for constants and requiring `dead_end/api`. To manually use any DeadEnd internals you MUST require `dead_end/api`, otherwise it will be lazy loaded on syntax error (https://github.com/zombocom/dead_end/pull/148)
+- [Breaking] Rename `dead_end` to `syntax_suggest` (https://github.com/zombocom/dead_end/pull/154)
+- [Breaking] Lazy loading moved from `autoload` to manually checking for constants and requiring `dead_end/api`. To manually use any SyntaxSuggest internals you MUST require `dead_end/api`, otherwise it will be lazy loaded on syntax error (https://github.com/zombocom/dead_end/pull/148)
 - Default to highlighted output on Ruby 3.2 (https://github.com/zombocom/dead_end/pull/150)
-- Debug functionality enabled by `DEBUG=1` env var is now under `DEAD_END_DEBUG=1`. Note this is not a stable interface or feature. Output content is subject to change without major version change (https://github.com/zombocom/dead_end/pull/149)
+- Debug functionality enabled by `DEBUG=1` env var is now under `SYNTAX_SUGGEST_DEBUG=1`. Note this is not a stable interface or feature. Output content is subject to change without major version change (https://github.com/zombocom/dead_end/pull/149)
 - Enable/Disable dead_end by using the `dead_end` kwarg in `detailed_message` (https://github.com/zombocom/dead_end/pull/147)
 - Respect `highlight` kwarg in Ruby 3.2's `detailed_message` to enable/disable control characters (https://github.com/zombocom/dead_end/pull/147)
 
 ## 4.0.0
 
 - Code that does not have an associated file (eval and streamed) no longer produce a warning saying that the file could not be found. To produce a warning with these code types run with DEBUG=1 environment variable. (https://github.com/zombocom/dead_end/pull/143)
-- [Breaking] Lazy load DeadEnd internals only if there is a Syntax error. Use `require "dead_end"; require "dead_end/api"` to load eagerly all internals. Otherwise `require "dead_end"` will set up an autoload for the first time the DeadEnd module is used in code. This should only happen on a syntax error. (https://github.com/zombocom/dead_end/pull/142)
+- [Breaking] Lazy load SyntaxSuggest internals only if there is a Syntax error. Use `require "dead_end"; require "dead_end/api"` to load eagerly all internals. Otherwise `require "dead_end"` will set up an autoload for the first time the SyntaxSuggest module is used in code. This should only happen on a syntax error. (https://github.com/zombocom/dead_end/pull/142)
 - Monkeypatch `SyntaxError#detailed_message` in Ruby 3.2+ instead of `require`, `load`, and `require_relative` (https://github.com/zombocom/dead_end/pull/139)
 
 ## 3.1.2
@@ -25,7 +26,7 @@
 - Add support for Ruby 3.1 by updating `require_relative` logic (https://github.com/zombocom/dead_end/pull/120)
 - Requiring `dead_end/auto` is now deprecated please require `dead_end` instead (https://github.com/zombocom/dead_end/pull/119)
 - Requiring `dead_end/api` now loads code without monkeypatching core extensions (https://github.com/zombocom/dead_end/pull/119)
-- The interface `DeadEnd.handle_error` is declared public and stable (https://github.com/zombocom/dead_end/pull/119)
+- The interface `SyntaxSuggest.handle_error` is declared public and stable (https://github.com/zombocom/dead_end/pull/119)
 
 ## 3.0.3
 
@@ -47,7 +48,7 @@
 - [Breaking] Remove previously deprecated `require "dead_end/fyi"` interface (https://github.com/zombocom/dead_end/pull/94)
 - Fix double output bug (https://github.com/zombocom/dead_end/pull/99)
 - Fix bug causing poor results (fix #95, fix #88) (https://github.com/zombocom/dead_end/pull/96)
-- DeadEnd is now fired on EVERY syntax error (https://github.com/zombocom/dead_end/pull/94)
+- SyntaxSuggest is now fired on EVERY syntax error (https://github.com/zombocom/dead_end/pull/94)
 - Output format changes:
   - Parse errors emitted per-block rather than for the whole document (https://github.com/zombocom/dead_end/pull/94)
   - The "banner" is now based on lexical analysis rather than parser regex (fix #68, fix #87) (https://github.com/zombocom/dead_end/pull/96)

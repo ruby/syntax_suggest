@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   RSpec.describe "ExplainSyntax" do
     it "handles shorthand syntaxes with non-bracket characters" do
       source = <<~EOM

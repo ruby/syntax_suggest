@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Parses and sanitizes source into a lexically aware document
   #
   # Internally the document is represented by an array with each

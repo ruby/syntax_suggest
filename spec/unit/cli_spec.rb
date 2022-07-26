@@ -2,7 +2,7 @@
 
 require_relative "../spec_helper"
 
-module DeadEnd
+module SyntaxSuggest
   class FakeExit
     def initialize
       @called = false
@@ -126,16 +126,16 @@ module DeadEnd
         exit_obj: exit_obj
       ).parser
 
-      expect(parser.version).to include(DeadEnd::VERSION.to_s)
+      expect(parser.version).to include(SyntaxSuggest::VERSION.to_s)
     end
 
-    it "DEAD_END_RECORD_DIR" do
+    it "SYNTAX_SUGGEST_RECORD_DIR" do
       io = StringIO.new
       exit_obj = FakeExit.new
       cli = Cli.new(
         io: io,
         argv: [],
-        env: {"DEAD_END_RECORD_DIR" => "hahaha"},
+        env: {"SYNTAX_SUGGEST_RECORD_DIR" => "hahaha"},
         exit_obj: exit_obj
       ).parse
 
@@ -166,7 +166,7 @@ module DeadEnd
       ).parse
 
       expect(exit_obj.called?).to be_falsey
-      expect(cli.options[:terminal]).to eq(DeadEnd::DEFAULT_VALUE)
+      expect(cli.options[:terminal]).to eq(SyntaxSuggest::DEFAULT_VALUE)
     end
 
     it "--terminal" do
@@ -205,7 +205,7 @@ module DeadEnd
       ).call
 
       expect(exit_obj.called?).to be_truthy
-      expect(io.string).to include("Usage: dead_end <file> [options]")
+      expect(io.string).to include("Usage: syntax_suggest <file> [options]")
     end
 
     it "<empty args> outputs help" do
@@ -218,7 +218,7 @@ module DeadEnd
       ).call
 
       expect(exit_obj.called?).to be_truthy
-      expect(io.string).to include("Usage: dead_end <file> [options]")
+      expect(io.string).to include("Usage: syntax_suggest <file> [options]")
     end
   end
 end

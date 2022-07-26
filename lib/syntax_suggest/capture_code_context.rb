@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Turns a "invalid block(s)" into useful context
   #
   # There are three main phases in the algorithm:
@@ -137,7 +137,7 @@ module DeadEnd
     #       puts "woof" # 3
     #   end             # 4
     #
-    # However due to https://github.com/zombocom/dead_end/issues/32
+    # However due to https://github.com/zombocom/syntax_suggest/issues/32
     # the problem line will be identified as:
     #
     #  ❯ class Dog       # 1

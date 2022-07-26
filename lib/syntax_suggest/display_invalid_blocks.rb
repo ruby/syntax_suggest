@@ -3,7 +3,7 @@
 require_relative "capture_code_context"
 require_relative "display_code_with_line_numbers"
 
-module DeadEnd
+module SyntaxSuggest
   # Used for formatting invalid blocks
   class DisplayInvalidBlocks
     attr_reader :filename

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    dead_end (4.0.0)
+    syntax_suggest (0.0.1)
 
 GEM
   remote: https://rubygems.org/
@@ -56,12 +56,12 @@ PLATFORMS
 
 DEPENDENCIES
   benchmark-ips
-  dead_end!
   rake (~> 12.0)
   rspec (~> 3.0)
   ruby-prof
   stackprof
   standard
+  syntax_suggest!
 
 BUNDLED WITH
    2.3.14

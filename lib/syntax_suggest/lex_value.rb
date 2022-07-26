@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Value object for accessing lex values
   #
   # This lex:

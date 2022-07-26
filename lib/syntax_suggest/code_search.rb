@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module DeadEnd
+module SyntaxSuggest
   # Searches code for a syntax error
   #
   # There are three main phases in the algorithm:
@@ -43,13 +43,13 @@ module DeadEnd
 
     def initialize(source, record_dir: DEFAULT_VALUE)
       record_dir = if record_dir == DEFAULT_VALUE
-        ENV["DEAD_END_RECORD_DIR"] || ENV["DEAD_END_DEBUG"] ? "tmp" : nil
+        ENV["SYNTAX_SUGGEST_RECORD_DIR"] || ENV["SYNTAX_SUGGEST_DEBUG"] ? "tmp" : nil
       else
         record_dir
       end
 
       if record_dir
-        @record_dir = DeadEnd.record_dir(record_dir)
+        @record_dir = SyntaxSuggest.record_dir(record_dir)
         @write_count = 0
       end
 
@@ -70,7 +70,7 @@ module DeadEnd
       return unless @record_dir
       @name_tick[name] += 1
       filename = "#{@write_count += 1}-#{name}-#{@name_tick[name]}-(#{block.starts_at}__#{block.ends_at}).txt"
-      if ENV["DEAD_END_DEBUG"]
+      if ENV["SYNTAX_SUGGEST_DEBUG"]
         puts "\n\n==== #{filename} ===="
         puts "\n```#{block.starts_at}..#{block.ends_at}"
         puts block.to_s
