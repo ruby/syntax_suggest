@@ -11,6 +11,8 @@ Unmatched `end', missing keyword (`do', `def`, `if`, etc.) ?
   5  end
 ```
 
+> This project was previously named `dead_end` as it attempted to find dangling `end` keywords. The name was changed to be more descriptive and welcoming as part of the effort to merge it into [Ruby 3.2](https://bugs.ruby-lang.org/issues/18159#note-29).
+
 ## Installation in your codebase
 
 To automatically annotate errors when they happen, add this to your Gemfile:
