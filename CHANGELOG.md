@@ -6,6 +6,7 @@
 - Debug functionality enabled by `DEBUG=1` env var is now under `SYNTAX_SUGGEST_DEBUG=1`. Note this is not a stable interface or feature. Output content is subject to change without major version change (https://github.com/zombocom/dead_end/pull/149)
 - Enable/Disable dead_end by using the `dead_end` kwarg in `detailed_message` (https://github.com/zombocom/dead_end/pull/147)
 - Respect `highlight` kwarg in Ruby 3.2's `detailed_message` to enable/disable control characters (https://github.com/zombocom/dead_end/pull/147)
+- Added workarounds for running on ruby/ruby repo (https://github.com/ruby/syntax_suggest/pull/156)
 
 ## 4.0.0
 
