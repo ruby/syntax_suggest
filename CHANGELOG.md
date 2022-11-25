@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.0.0 (Library renamed to syntax_suggest )
+
 - [Breaking] Output "Syntax OK" will no longer be output when `syntax_suggest` is fired due to a syntax error. (https://github.com/ruby/syntax_suggest/pull/158)
 - [Breaking] Rename `dead_end` to `syntax_suggest` (https://github.com/zombocom/dead_end/pull/154)
 - [Breaking] Lazy loading moved from `autoload` to manually checking for constants and requiring `dead_end/api`. To manually use any SyntaxSuggest internals you MUST require `dead_end/api`, otherwise it will be lazy loaded on syntax error (https://github.com/zombocom/dead_end/pull/148)
