@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 1.0.1
+
+- Replace `❯` with `>` in error output for compatability with more fonts (https://github.com/ruby/syntax_suggest/pull/161)
+
 ## 1.0.0 (Library renamed to syntax_suggest )
 
 - [Breaking] Output "Syntax OK" will no longer be output when `syntax_suggest` is fired due to a syntax error. (https://github.com/ruby/syntax_suggest/pull/158)

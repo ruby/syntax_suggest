@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    syntax_suggest (1.0.0)
+    syntax_suggest (1.0.1)
 
 GEM
   remote: https://rubygems.org/
