@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 1.0.1
+
 - Replace `❯` with `>` in error output for compatability with more fonts (https://github.com/ruby/syntax_suggest/pull/161)
 
 ## 1.0.0 (Library renamed to syntax_suggest )
