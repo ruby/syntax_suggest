@@ -6,8 +6,8 @@ An error in your code forces you to stop. SyntaxSuggest helps you find those err
 Unmatched `end', missing keyword (`do', `def`, `if`, etc.) ?
 
   1  class Dog
-❯ 2    defbark
-❯ 4    end
+> 2    defbark
+> 4    end
   5  end
 ```
 
@@ -72,9 +72,9 @@ end
 ```
 Unmatched keyword, missing `end' ?
 
-❯ 1  class Dog
-❯ 2    def bark
-❯ 4  end
+> 1  class Dog
+> 2    def bark
+> 4  end
 ```
 
 - Missing keyword
@@ -95,8 +95,8 @@ Unmatched `end', missing keyword (`do', `def`, `if`, etc.) ?
 
   1  class Dog
   2    def speak
-❯ 3      @sounds.each |sound|
-❯ 5      end
+> 3      @sounds.each |sound|
+> 5      end
   6    end
   7  end
 ```
@@ -117,8 +117,8 @@ end
 Unmatched `(', missing `)' ?
 
   1  class Dog
-❯ 2    def speak(sound
-❯ 4    end
+> 2    def speak(sound
+> 4    end
   5  end
 ```
 
@@ -137,7 +137,7 @@ syntax error, unexpected end-of-input
 
   1  class Dog
   2    def meals_last_month
-❯ 3      puts 3 *
+> 3      puts 3 *
   4    end
   5  end
 ```
