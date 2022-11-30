@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Added dependabot for GitHub Actions (https://github.com/ruby/syntax_suggest/pull/160)
+
 ## 1.0.1
 
 - Replace `❯` with `>` in error output for compatability with more fonts (https://github.com/ruby/syntax_suggest/pull/161)
