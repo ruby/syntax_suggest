@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Native support of `SyntaxError#path`, support 3.2.0-preview3 will be dropped with the release of 3.2.0-preview4 ()
 - Added dependabot for GitHub Actions (https://github.com/ruby/syntax_suggest/pull/160)
 
 ## 1.0.1
