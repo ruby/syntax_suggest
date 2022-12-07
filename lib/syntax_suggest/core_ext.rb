@@ -26,18 +26,8 @@ if SyntaxError.method_defined?(:detailed_message)
 
       message = super
 
-      file = if respond_to?(:path)
-        path
-      elsif highlight
-        # This branch will be removed when the next Ruby 3.2 preview is released with
-        # support for SyntaxError#path
-        SyntaxSuggest::PathnameFromMessage.new(super(highlight: false, **kwargs)).call.name
-      else
-        SyntaxSuggest::PathnameFromMessage.new(message).call.name
-      end
-
-      if file
-        file = Pathname.new(file)
+      if path
+        file = Pathname.new(path)
         io = SyntaxSuggest::MiniStringIO.new
 
         SyntaxSuggest.call(
