@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- No longer shows the detail of monkey patch as the document (https://github.com/ruby/syntax_suggest/pull/174)
 - Drop CI for Ruby 3.2.0-rc1, now that 3.2.0 is available (https://github.com/ruby/syntax_suggest/pull/172)
 
 ## 1.0.2
