@@ -186,6 +186,7 @@ Because `syntax_suggest` is a default gem you can get conflicts when working on 
 
 There are some binstubs that already have this done for you. Instead of running `bundle exec rake` you can run `bin/rake`. Binstubs provided:
 
+- `bin/bundle`
 - `bin/rake`
 - `bin/rspec`
 
