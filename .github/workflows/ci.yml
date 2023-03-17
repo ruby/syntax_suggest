@@ -40,5 +40,5 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: test
-        run: RUBYOPT="--disable=syntax_suggest" bundle exec rake test
+        run: bin/rake test
         continue-on-error: ${{ matrix.ruby == 'head' }}

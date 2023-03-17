@@ -180,9 +180,20 @@ Any other entrypoints are subject to change without warning. If you want to use 
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+### Handling conflicts with the default gem
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Because `syntax_suggest` is a default gem you can get conflicts when working on this project with Ruby 3.2+. To fix conflicts you can disable loading `syntax_suggest` as a default gem by using then environment variable `RUBYOPT` with the value `--disable=syntax_suggest`. The `RUBYOPT` environment variable works the same as if we had entered those flags directly in the ruby cli (i.e. `ruby --disable=syntax_suggest` is the same as `RUBYOPT="--disable=syntax_suggest" ruby`). It's needed because we don't always directly execute Ruby and RUBYOPT will be picked up when other commands load ruby (`rspec`, `rake`, or `bundle` etc.).
+
+There are some binstubs that already have this done for you. Instead of running `bundle exec rake` you can run `bin/rake`. Binstubs provided:
+
+- `bin/rake`
+- `bin/rspec`
+
+### Installation
+
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+
+To install this gem onto your local machine, run `bin/rake install`. To release a new version, update the version number in `version.rb`, and then run `bin/rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ### How to debug changes to output display
 
