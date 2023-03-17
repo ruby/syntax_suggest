@@ -25,7 +25,7 @@ module SyntaxSuggest
         debug_display(benchmark)
       end
 
-      expect(io.string).to include(<<~'EOM')
+      expect(io.string).to include(<<~EOM)
              6  class SyntaxTree < Ripper
            170    def self.parse(source)
            174    end
@@ -53,7 +53,7 @@ module SyntaxSuggest
       end
 
       expect(io.string).to_not include("def ruby_install_binstub_path")
-      expect(io.string).to include(<<~'EOM')
+      expect(io.string).to include(<<~EOM)
         > 1067    def add_yarn_binary
         > 1068      return [] if yarn_preinstalled?
         > 1069  |
@@ -71,7 +71,7 @@ module SyntaxSuggest
       )
       debug_display(io.string)
 
-      expect(io.string).to include(<<~'EOM')
+      expect(io.string).to include(<<~EOM)
            1  Rails.application.routes.draw do
         > 113    namespace :admin do
         > 116    match "/foobar(*path)", via: :all, to: redirect { |_params, req|
@@ -90,7 +90,7 @@ module SyntaxSuggest
       )
       debug_display(io.string)
 
-      expect(io.string).to include(<<~'EOM')
+      expect(io.string).to include(<<~EOM)
            1  describe "webmock tests" do
           22    it "body" do
           27      query = Cutlass::FunctionQuery.new(
@@ -112,7 +112,7 @@ module SyntaxSuggest
       )
       debug_display(io.string)
 
-      expect(io.string).to include(<<~'EOM')
+      expect(io.string).to include(<<~EOM)
            5  module DerailedBenchmarks
            6    class RequireTree
            7      REQUIRED_BY = {}
@@ -169,7 +169,7 @@ module SyntaxSuggest
     end
 
     it "ambiguous end" do
-      source = <<~'EOM'
+      source = <<~EOM
         def call          # 0
             print "lol"   # 1
           end # one       # 2
@@ -189,7 +189,7 @@ module SyntaxSuggest
     end
 
     it "simple regression" do
-      source = <<~'EOM'
+      source = <<~EOM
         class Dog
           def bark
             puts "woof"
