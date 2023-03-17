@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 1.0.4
+
+- Fix rendering a file without a newline ending (https://github.com/ruby/syntax_suggest/pull/182)
+
 ## 1.0.3
 
 - Output improvement: Handle methods with only newlines or comments in them (https://github.com/ruby/syntax_suggest/pull/179)
