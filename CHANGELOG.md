@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Reduce line output for increased clarity (https://github.com/ruby/syntax_suggest/pull/190)
+
 ## 1.0.4
 
 - Fix rendering a file without a newline ending (https://github.com/ruby/syntax_suggest/pull/182)
