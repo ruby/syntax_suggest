@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Use `SYNTAX_SUGGEST_DEBUG` instead of `DEBUG` env var value in timeout warning message (https://github.com/ruby/syntax_suggest/pull/194)
 - Reduce line output for increased clarity (https://github.com/ruby/syntax_suggest/pull/190)
 
 ## 1.0.4
