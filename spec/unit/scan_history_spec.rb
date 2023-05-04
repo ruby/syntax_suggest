@@ -25,7 +25,7 @@ module SyntaxSuggest
       block = CodeBlock.new(lines: code_lines[6])
 
       scanner = ScanHistory.new(code_lines: code_lines, block: block)
-      scanner.scan(up: ->(_, _,_ ) { true }, down: ->(_,_,_) { true })
+      scanner.scan(up: ->(_, _, _) { true }, down: ->(_, _, _) { true })
 
       expect(scanner.changed?).to be_truthy
       scanner.commit_if_changed
@@ -40,7 +40,6 @@ module SyntaxSuggest
 
       expect(scanner.lines.join).to eq(code_lines[6].to_s)
     end
-
 
     it "is stashable" do
       source = <<~'EOM'
@@ -63,7 +62,7 @@ module SyntaxSuggest
       block = CodeBlock.new(lines: code_lines[6])
 
       scanner = ScanHistory.new(code_lines: code_lines, block: block)
-      scanner.scan(up: ->(_, _,_ ) { true }, down: ->(_,_,_) { true })
+      scanner.scan(up: ->(_, _, _) { true }, down: ->(_, _, _) { true })
 
       expect(scanner.lines).to eq(code_lines)
       expect(scanner.changed?).to be_truthy
@@ -109,9 +108,7 @@ module SyntaxSuggest
       expect(scanner.stash_changes.lines).to eq(lines)
       expect(scanner.revert_last_commit.lines).to eq(lines)
 
-      expect(scanner.scan(up: ->(_, _, _) { false }, down: ->(_,_,_) { false }).lines).to eq(lines)
+      expect(scanner.scan(up: ->(_, _, _) { false }, down: ->(_, _, _) { false }).lines).to eq(lines)
     end
   end
 end
-
-
