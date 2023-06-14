@@ -13,10 +13,12 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.1
+          ruby-version: ruby
           bundler-cache: true
       - name: Linting
         run: bundle exec standardrb
+        env:
+          RUBYOPT: --disable=syntax_suggest
 
   ruby-versions:
     uses: ruby/actions/.github/workflows/ruby_versions.yml@master
