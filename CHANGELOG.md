@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- No longer supports EOL versions of Ruby.
+
 ## 1.1.0
 
 - Handle if/else with comment or empty line in branch (https://github.com/ruby/syntax_suggest/pull/193)
