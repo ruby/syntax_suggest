@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Handle Ruby 3.3 new eval source location format (https://github.com/ruby/syntax_suggest/pull/200).
+
 ## 1.1.0
 
 - Handle if/else with comment or empty line in branch (https://github.com/ruby/syntax_suggest/pull/193)
