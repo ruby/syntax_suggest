@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- No longer supports EOL versions of Ruby.
 - Handle Ruby 3.3 new eval source location format (https://github.com/ruby/syntax_suggest/pull/200).
 
 ## 1.1.0
