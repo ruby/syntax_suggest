@@ -5,7 +5,20 @@ require_relative "version"
 require "tmpdir"
 require "stringio"
 require "pathname"
-require "ripper"
+
+if ENV["SYNTAX_SUGGEST_DISABLE_PRISM"] # For testing dual ripper/prism support
+  require "ripper"
+else
+  # TODO remove require
+  # Allow both to be loaded to enable more atomic commits
+  require "ripper"
+  begin
+    require "prism"
+  rescue LoadError => e
+    require "ripper"
+  end
+end
+
 require "timeout"
 
 module SyntaxSuggest
@@ -15,6 +28,14 @@ module SyntaxSuggest
 
   class Error < StandardError; end
   TIMEOUT_DEFAULT = ENV.fetch("SYNTAX_SUGGEST_TIMEOUT", 1).to_i
+
+  # SyntaxSuggest.use_prism_parser? [Private]
+  #
+  # Tells us if the prism parser is available for use
+  # or if we should fallback to `Ripper`
+  def self.use_prism_parser?
+    defined?(Prism)
+  end
 
   # SyntaxSuggest.handle_error [Public]
   #
@@ -129,11 +150,20 @@ module SyntaxSuggest
   # SyntaxSuggest.invalid? [Private]
   #
   # Opposite of `SyntaxSuggest.valid?`
-  def self.invalid?(source)
-    source = source.join if source.is_a?(Array)
-    source = source.to_s
+  if defined?(Prism)
+    def self.invalid?(source)
+      source = source.join if source.is_a?(Array)
+      source = source.to_s
 
-    Ripper.new(source).tap(&:parse).error?
+      Prism.parse(source).failure?
+    end
+  else
+    def self.invalid?(source)
+      source = source.join if source.is_a?(Array)
+      source = source.to_s
+
+      Ripper.new(source).tap(&:parse).error?
+    end
   end
 
   # SyntaxSuggest.valid? [Private]
@@ -191,7 +221,9 @@ require_relative "lex_all"
 require_relative "code_line"
 require_relative "code_block"
 require_relative "block_expand"
-require_relative "ripper_errors"
+if !SyntaxSuggest.use_prism_parser?
+  require_relative "ripper_errors"
+end
 require_relative "priority_queue"
 require_relative "unvisited_lines"
 require_relative "around_block_scan"

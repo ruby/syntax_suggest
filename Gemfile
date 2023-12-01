@@ -12,3 +12,4 @@ gem "standard"
 gem "ruby-prof"
 
 gem "benchmark-ips"
+gem "prism"

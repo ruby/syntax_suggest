@@ -12,6 +12,7 @@ GEM
     parallel (1.21.0)
     parser (3.0.2.0)
       ast (~> 2.4.1)
+    prism (0.18.0)
     rainbow (3.0.0)
     rake (12.3.3)
     regexp_parser (2.1.1)
@@ -56,6 +57,7 @@ PLATFORMS
 
 DEPENDENCIES
   benchmark-ips
+  prism
   rake (~> 12.0)
   rspec (~> 3.0)
   ruby-prof
