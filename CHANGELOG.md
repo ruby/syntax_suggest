@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Support prism parser (https://github.com/ruby/syntax_suggest/pull/208).
 - No longer supports EOL versions of Ruby.
 - Handle Ruby 3.3 new eval source location format (https://github.com/ruby/syntax_suggest/pull/200).
 
