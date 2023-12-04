@@ -43,3 +43,24 @@ jobs:
       - name: test
         run: bin/rake test
         continue-on-error: ${{ matrix.ruby == 'head' }}
+
+  test-disable-prism:
+    needs: ruby-versions
+    runs-on: ubuntu-latest
+    env:
+      SYNAX_SUGGEST_DISABLE_PRISM: 1
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.1
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: test
+        run: bin/rake test
+        continue-on-error: ${{ matrix.ruby == 'head' }}
