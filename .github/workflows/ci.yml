@@ -47,8 +47,6 @@ jobs:
   test-disable-prism:
     needs: ruby-versions
     runs-on: ubuntu-latest
-    env:
-      SYNAX_SUGGEST_DISABLE_PRISM: 1
     strategy:
       fail-fast: false
       matrix:
@@ -62,5 +60,5 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - name: test
-        run: bin/rake test
+        run: SYNTAX_SUGGEST_DISABLE_PRISM=1 bin/rake test
         continue-on-error: ${{ matrix.ruby == 'head' }}
