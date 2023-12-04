@@ -6,6 +6,7 @@ require "tmpdir"
 require "stringio"
 require "pathname"
 
+# rubocop:disable Style/IdenticalConditionalBranches
 if ENV["SYNTAX_SUGGEST_DISABLE_PRISM"] # For testing dual ripper/prism support
   require "ripper"
 else
@@ -14,10 +15,11 @@ else
   require "ripper"
   begin
     require "prism"
-  rescue LoadError => e
+  rescue LoadError
     require "ripper"
   end
 end
+# rubocop:enable Style/IdenticalConditionalBranches
 
 require "timeout"
 

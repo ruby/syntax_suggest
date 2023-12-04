@@ -279,7 +279,7 @@ module SyntaxSuggest
         )
 
         # Hide the rest of the lines
-        lines[1..-1].each do |line|
+        lines[1..].each do |line|
           # The above lines already have newlines in them, if add more
           # then there will be double newline, use an empty line instead
           @document[line.index] = CodeLine.new(line: "", index: line.index, lex: [])

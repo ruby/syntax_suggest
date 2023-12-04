@@ -19,7 +19,6 @@ module SyntaxSuggest
       else
         expect(explain.errors.join).to include("unterminated string")
       end
-
     end
 
     it "handles %w[]" do

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module SyntaxSuggest
-
   # Capture parse errors from ripper
   #
   # Example:
