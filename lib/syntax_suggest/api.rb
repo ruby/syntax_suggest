@@ -18,7 +18,9 @@ require "ripper"
 #
 # We also need the ability to control loading of this library
 # so we can test that both modes work correctly in CI.
-if ENV.key?("SYNTAX_SUGGEST_DISABLE_PRISM") == false
+if (value = ENV["SYNTAX_SUGGEST_DISABLE_PRISM"])
+  warn "Skipping loading prism due to SYNTAX_SUGGEST_DISABLE_PRISM=#{value}"
+else
   begin
     require "prism"
   rescue LoadError
