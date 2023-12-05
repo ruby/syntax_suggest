@@ -7,8 +7,8 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
-    benchmark-ips (2.9.2)
-    diff-lcs (1.4.4)
+    benchmark-ips (2.12.0)
+    diff-lcs (1.5.0)
     json (2.7.0)
     language_server-protocol (3.17.0.3)
     lint_roller (1.1.0)
@@ -16,24 +16,25 @@ GEM
     parser (3.2.2.4)
       ast (~> 2.4.1)
       racc
+    prism (0.18.0)
     racc (1.7.3)
     rainbow (3.1.1)
     rake (12.3.3)
     regexp_parser (2.8.3)
     rexml (3.2.6)
-    rspec (3.10.0)
-      rspec-core (~> 3.10.0)
-      rspec-expectations (~> 3.10.0)
-      rspec-mocks (~> 3.10.0)
-    rspec-core (3.10.0)
-      rspec-support (~> 3.10.0)
-    rspec-expectations (3.10.0)
+    rspec (3.12.0)
+      rspec-core (~> 3.12.0)
+      rspec-expectations (~> 3.12.0)
+      rspec-mocks (~> 3.12.0)
+    rspec-core (3.12.2)
+      rspec-support (~> 3.12.0)
+    rspec-expectations (3.12.3)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.10.0)
-    rspec-mocks (3.10.0)
+      rspec-support (~> 3.12.0)
+    rspec-mocks (3.12.6)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.10.0)
-    rspec-support (3.10.0)
+      rspec-support (~> 3.12.0)
+    rspec-support (3.12.1)
     rubocop (1.57.2)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -50,9 +51,9 @@ GEM
     rubocop-performance (1.19.1)
       rubocop (>= 1.7.0, < 2.0)
       rubocop-ast (>= 0.4.0)
-    ruby-prof (1.4.3)
+    ruby-prof (1.6.3)
     ruby-progressbar (1.13.0)
-    stackprof (0.2.16)
+    stackprof (0.2.25)
     standard (1.32.1)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.0)
@@ -72,6 +73,7 @@ PLATFORMS
 
 DEPENDENCIES
   benchmark-ips
+  prism
   rake (~> 12.0)
   rspec (~> 3.0)
   ruby-prof
@@ -80,4 +82,4 @@ DEPENDENCIES
   syntax_suggest!
 
 BUNDLED WITH
-   2.3.14
+   2.4.21

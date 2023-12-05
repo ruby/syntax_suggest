@@ -122,7 +122,7 @@ Unmatched `(', missing `)' ?
   5  end
 ```
 
-- Any ambiguous or unknown errors will be annotated by the original ripper error output:
+- Any ambiguous or unknown errors will be annotated by the original parser error output:
 
 <!--
 class Dog
@@ -133,7 +133,7 @@ end
 -->
 
 ```
-syntax error, unexpected end-of-input
+Expected an expression after the operator
 
   1  class Dog
   2    def meals_last_month
