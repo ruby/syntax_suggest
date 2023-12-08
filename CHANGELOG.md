@@ -1,8 +1,10 @@
 ## HEAD (unreleased)
 
-- Support prism parser (https://github.com/ruby/syntax_suggest/pull/208).
-- No longer supports EOL versions of Ruby. (https://github.com/ruby/syntax_suggest/pull/210)
-- Handle Ruby 3.3 new eval source location format (https://github.com/ruby/syntax_suggest/pull/200).
+## 2.0.0
+
+- Changed: No longer supports EOL versions of Ruby. (https://github.com/ruby/syntax_suggest/pull/210)
+- Added: Support prism parser (https://github.com/ruby/syntax_suggest/pull/208).
+- Added: Handle Ruby 3.3 new eval source location format (https://github.com/ruby/syntax_suggest/pull/200).
 
 ## 1.1.0
 
