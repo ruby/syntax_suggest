@@ -1,5 +1,9 @@
 ## HEAD (unreleased)
 
+## 2.0.1
+
+- Fix CLI failure when shipped with default gems. (https://github.com/ruby/syntax_suggest/pull/226 and https://github.com/ruby/syntax_suggest/pull/227)
+
 ## 2.0.0
 
 - Changed: No longer supports EOL versions of Ruby. (https://github.com/ruby/syntax_suggest/pull/210)
