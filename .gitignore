@@ -7,8 +7,8 @@
 /spec/reports/
 /tmp/
 scratch.rb
+/*.lock
 
 # rspec failure tracking
 .rspec_status
 .DS_Store
-
