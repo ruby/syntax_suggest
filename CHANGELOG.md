@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Fix: Separate multiple parser errors by newline. (https://github.com/ruby/syntax_suggest/pull/232)
+
 ## 2.0.1
 
 - Fix CLI failure when shipped with default gems. (https://github.com/ruby/syntax_suggest/pull/226 and https://github.com/ruby/syntax_suggest/pull/227)
