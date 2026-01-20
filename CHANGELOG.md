@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Fix: Correctly identify trailing slashes when using Prism > 1.8.0. (https://github.com/ruby/syntax_suggest/pull/241)
+
 ## 2.0.2
 
 - Fix: Separate multiple parser errors by newline. (https://github.com/ruby/syntax_suggest/pull/232)
