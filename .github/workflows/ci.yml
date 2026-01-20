@@ -32,6 +32,12 @@ jobs:
       fail-fast: false
       matrix:
         ruby: ${{ fromJson(needs.ruby-versions.outputs.versions) }}
+        prism_version:
+          - 1.2.0 # Shipped with Ruby 3.4 as default parser https://www.ruby-lang.org/en/news/2024/12/25/ruby-3-4-0-released/
+          - 1.8.0
+          - head
+    env:
+      PRISM_VERSION: ${{ matrix.prism_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -40,6 +46,9 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - name: Use latest prism version (head only)
+        if: matrix.prism_version == 'head'
+        run: bundle update prism
       - name: test
         run: bin/rake test
         continue-on-error: ${{ matrix.ruby == 'head' }}

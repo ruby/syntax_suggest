@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Internal: Add tests to multiple versions of prism
+
 ## 2.0.2
 
 - Fix: Separate multiple parser errors by newline. (https://github.com/ruby/syntax_suggest/pull/232)
