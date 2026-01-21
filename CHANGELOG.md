@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+- Added: Support for detecting `if ... do` (accidental `do` after an `if` or `unless`)  (https://github.com/ruby/syntax_suggest/pull/244)
+
 ## 2.0.3
 
 - Fix: Correctly identify trailing slashes when using Prism > 1.8.0. (https://github.com/ruby/syntax_suggest/pull/243)
