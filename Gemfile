@@ -12,4 +12,12 @@ gem "standard"
 gem "ruby-prof"
 
 gem "benchmark-ips"
-gem "prism"
+
+case ENV["PRISM_VERSION"]&.strip&.downcase
+when "head"
+  gem "prism", github: "ruby/prism"
+when nil, ""
+  gem "prism"
+else
+  gem "prism", ENV["PRISM_VERSION"]
+end
