@@ -2,18 +2,10 @@
 
 require_relative "left_right_lex_count"
 
-if !SyntaxSuggest.use_prism_parser?
-  require_relative "ripper_errors"
-end
-
 module SyntaxSuggest
   class GetParseErrors
     def self.errors(source)
-      if SyntaxSuggest.use_prism_parser?
-        Prism.parse(source).errors.map(&:message)
-      else
-        RipperErrors.new(source).call.errors
-      end
+      Prism.parse(source).errors.map(&:message)
     end
   end
 
