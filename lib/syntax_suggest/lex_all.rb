@@ -40,14 +40,8 @@ module SyntaxSuggest
       }
     end
 
-    if SyntaxSuggest.use_prism_parser?
-      def self.lex(source, line_number)
-        Prism.lex_compat(source, line: line_number).value.sort_by { |values| values[0] }
-      end
-    else
-      def self.lex(source, line_number)
-        Ripper::Lexer.new(source, "-", line_number).parse.sort_by(&:pos)
-      end
+    def self.lex(source, line_number)
+      Prism.lex_compat(source, line: line_number).value.sort_by { |values| values[0] }
     end
 
     def to_a
