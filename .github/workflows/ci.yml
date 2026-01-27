@@ -24,6 +24,7 @@ jobs:
     uses: ruby/actions/.github/workflows/ruby_versions.yml@master
     with:
       engine: cruby
+      min_version: 3.3
 
   test:
     needs: ruby-versions

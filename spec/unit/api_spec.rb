@@ -69,8 +69,6 @@ module SyntaxSuggest
     end
 
     it "respects highlight API" do
-      skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2")
-
       core_ext_file = lib_dir.join("syntax_suggest").join("core_ext.rb")
       require_relative core_ext_file
 
@@ -91,8 +89,6 @@ module SyntaxSuggest
     end
 
     it "can be disabled via falsey kwarg" do
-      skip if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2")
-
       core_ext_file = lib_dir.join("syntax_suggest").join("core_ext.rb")
       require_relative core_ext_file
 
