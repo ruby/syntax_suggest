@@ -11,6 +11,7 @@ gem "stackprof"
 gem "standard"
 gem "ruby-prof"
 
+gem "benchmark"
 gem "benchmark-ips"
 
 case ENV["PRISM_VERSION"]&.strip&.downcase
