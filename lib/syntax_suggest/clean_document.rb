@@ -86,7 +86,7 @@ module SyntaxSuggest
   class CleanDocument
     def initialize(source:)
       lines = clean_sweep(source: source)
-      @document = CodeLine.from_source(lines.join, lines: lines)
+      @document = CodeLine.from_source(lines.join)
     end
 
     # Call all of the document "cleaners"

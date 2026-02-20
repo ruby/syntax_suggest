@@ -1,13 +1,7 @@
 # frozen_string_literal: true
 
 module SyntaxSuggest
-  # Ripper.lex is not guaranteed to lex the entire source document
-  #
-  # This class guarantees the whole document is lex-ed by iteratively
-  # lexing the document where ripper stopped.
-  #
-  # Prism likely doesn't have the same problem. Once ripper support is removed
-  # we can likely reduce the complexity here if not remove the whole concept.
+  # Lexes the whole source and wraps the tokens in `LexValue`.
   #
   # Example usage:
   #
@@ -18,22 +12,8 @@ module SyntaxSuggest
   class LexAll
     include Enumerable
 
-    def initialize(source:, source_lines: nil)
+    def initialize(source:)
       @lex = self.class.lex(source, 1)
-      lineno = @lex.last[0][0] + 1
-      source_lines ||= source.lines
-      last_lineno = source_lines.length
-
-      until lineno >= last_lineno
-        lines = source_lines[lineno..]
-
-        @lex.concat(
-          self.class.lex(lines.join, lineno + 1)
-        )
-
-        lineno = @lex.last[0].first + 1
-      end
-
       last_lex = nil
       @lex.map! { |elem|
         last_lex = LexValue.new(elem[0].first, elem[1], elem[2], elem[3], last_lex)
