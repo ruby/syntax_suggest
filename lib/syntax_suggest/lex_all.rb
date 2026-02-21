@@ -1,22 +1,22 @@
 # frozen_string_literal: true
 
 module SyntaxSuggest
-  # Lexes the whole source and wraps the tokens in `LexValue`.
+  # Lexes the whole source and wraps the tokens in `Token`.
   #
   # Example usage:
   #
-  #   lex = LexAll.new(source: source)
-  #   lex.each do |value|
-  #     puts value.line
+  #   tokens = LexAll.new(source: source)
+  #   tokens.each do |token|
+  #     puts token.line
   #   end
   class LexAll
     include Enumerable
 
     def initialize(source:)
-      @lex = self.class.lex(source, 1)
-      last_lex = nil
-      @lex.map! { |elem|
-        last_lex = LexValue.new(elem[0].first, elem[1], elem[2], elem[3], last_lex)
+      @tokens = self.class.lex(source, 1)
+      last_token = nil
+      @tokens.map! { |elem|
+        last_token = Token.new(elem[0].first, elem[1], elem[2], elem[3], last_token)
       }
     end
 
@@ -25,24 +25,24 @@ module SyntaxSuggest
     end
 
     def to_a
-      @lex
+      @tokens
     end
 
     def each
-      return @lex.each unless block_given?
-      @lex.each do |x|
-        yield x
+      return @tokens.each unless block_given?
+      @tokens.each do |token|
+        yield token
       end
     end
 
     def [](index)
-      @lex[index]
+      @tokens[index]
     end
 
     def last
-      @lex.last
+      @tokens.last
     end
   end
 end
 
-require_relative "lex_value"
+require_relative "token"
