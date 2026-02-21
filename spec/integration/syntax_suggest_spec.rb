@@ -203,6 +203,32 @@ module SyntaxSuggest
       EOM
     end
 
+    it "if .. do" do
+      source = <<~EOM
+        describe "something" do
+          if "does something" do
+            print "foo"
+          end
+        end
+      EOM
+
+      io = StringIO.new
+      SyntaxSuggest.call(
+        io: io,
+        source: source
+      )
+      out = io.string
+      expect(out).to include(<<~EOM)
+        Unmatched keyword, missing `end' ?
+        Both `if` and `do` require an `end`.
+
+          1  describe "something" do
+        > 2    if "does something" do
+        > 4    end
+          5  end
+      EOM
+    end
+
     it "empty else" do
       source = <<~EOM
         class Foo
