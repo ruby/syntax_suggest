@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "left_right_lex_count"
+require_relative "left_right_token_count"
 
 if !SyntaxSuggest.use_prism_parser?
   require_relative "ripper_errors"
@@ -53,14 +53,14 @@ module SyntaxSuggest
 
     def initialize(code_lines:)
       @code_lines = code_lines
-      @left_right = LeftRightLexCount.new
+      @left_right = LeftRightTokenCount.new
       @missing = nil
     end
 
     def call
       @code_lines.each do |line|
-        line.lex.each do |lex|
-          @left_right.count_lex(lex)
+        line.tokens.each do |token|
+          @left_right.count_token(token)
         end
       end
 

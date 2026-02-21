@@ -11,32 +11,32 @@ module SyntaxSuggest
   #
   # Example usage:
   #
-  #   lex = LexAll.new(source: source)
-  #   lex.each do |value|
-  #     puts value.line
+  #   tokens = LexAll.new(source: source)
+  #   tokens.each do |token|
+  #     puts token.line
   #   end
   class LexAll
     include Enumerable
 
     def initialize(source:, source_lines: nil)
-      @lex = self.class.lex(source, 1)
-      lineno = @lex.last[0][0] + 1
+      @tokens = self.class.lex(source, 1)
+      lineno = @tokens.last[0][0] + 1
       source_lines ||= source.lines
       last_lineno = source_lines.length
 
       until lineno >= last_lineno
         lines = source_lines[lineno..]
 
-        @lex.concat(
+        @tokens.concat(
           self.class.lex(lines.join, lineno + 1)
         )
 
-        lineno = @lex.last[0].first + 1
+        lineno = @tokens.last[0].first + 1
       end
 
-      last_lex = nil
-      @lex.map! { |elem|
-        last_lex = LexValue.new(elem[0].first, elem[1], elem[2], elem[3], last_lex)
+      last_token = nil
+      @tokens.map! { |elem|
+        last_token = Token.new(elem[0].first, elem[1], elem[2], elem[3], last_token)
       }
     end
 
@@ -51,24 +51,24 @@ module SyntaxSuggest
     end
 
     def to_a
-      @lex
+      @tokens
     end
 
     def each
-      return @lex.each unless block_given?
-      @lex.each do |x|
-        yield x
+      return @tokens.each unless block_given?
+      @tokens.each do |token|
+        yield token
       end
     end
 
     def [](index)
-      @lex[index]
+      @tokens[index]
     end
 
     def last
-      @lex.last
+      @tokens.last
     end
   end
 end
 
-require_relative "lex_value"
+require_relative "token"
