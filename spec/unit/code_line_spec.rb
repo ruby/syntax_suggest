@@ -17,8 +17,6 @@ module SyntaxSuggest
     end
 
     it "supports endless method definitions" do
-      skip("Unsupported ruby version") unless Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3")
-
       line = CodeLine.from_source(<<~EOM).first
         def square(x) = x * x
       EOM
@@ -46,7 +44,7 @@ module SyntaxSuggest
       EOM
 
       # Indicates line 1 can join 2, 2 can join 3, but 3 won't join it's next line
-      expect(code_lines.map(&:ignore_newline_not_beg?)).to eq([true, true, false, false])
+      expect(code_lines.map(&:consecutive?)).to eq([true, true, false, false])
     end
 
     it "trailing if" do

@@ -1,8 +1,11 @@
 ## HEAD (unreleased)
 
+- Changed: Changed: Minimum supported Ruby version is now 3.3. (https://github.com/ruby/syntax_suggest/pull/246)
+
 ## 2.0.3
 
 - Fix: Correctly identify trailing slashes when using Prism > 1.8.0. (https://github.com/ruby/syntax_suggest/pull/243)
+- Fix: Correctly handle `%I` delimiters. (https://github.com/ruby/syntax_suggest/pull/249)
 - Internal: Add tests to multiple versions of prism
 
 ## 2.0.2
