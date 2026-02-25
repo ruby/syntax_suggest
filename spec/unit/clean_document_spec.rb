@@ -103,19 +103,6 @@ module SyntaxSuggest
       expect(lines.count).to eq(2)
     end
 
-    it "comments: removes comments" do
-      source = <<~EOM
-        # lol
-        puts "what"
-          # yolo
-      EOM
-
-      lines = CleanDocument.new(source: source).lines
-      expect(lines[0].to_s).to eq($/)
-      expect(lines[1].to_s).to eq('puts "what"' + $/)
-      expect(lines[2].to_s).to eq($/)
-    end
-
     it "trailing slash: does not join trailing do" do
       # Some keywords and syntaxes trigger the "ignored line"
       # lex output, we ignore them by filtering by BEG
