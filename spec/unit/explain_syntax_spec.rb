@@ -177,6 +177,121 @@ module SyntaxSuggest
       expect(explain.errors).to eq([explain.why("end")])
     end
 
+    # https://github.com/ruby/syntax_suggest/issues/206
+    it "explains `if` with `do` error" do
+      source = <<~EOM
+        describe "something" do
+          if "does something" do
+            print "foo"
+          end
+        end
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq(["end"])
+      expect(explain.errors).to eq([
+        explain.why("end"),
+        "Both `if` and `do` require an `end`."
+      ])
+    end
+
+    it "shows hint for multiple `if`/`unless` with `do` on separate lines" do
+      source = <<~EOM
+        describe "something" do
+          unless "does something" do
+            print "bar"
+          end
+          if "does something" do
+            print "foo"
+          end
+        end
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq(["end"])
+      expect(explain.errors).to eq([
+        explain.why("end"),
+        "Both `unless` and `do` require an `end`.",
+        "Both `if` and `do` require an `end`."
+      ])
+    end
+
+    it "shows hint for innermost unclosed `if` when nested before `do`" do
+      source = <<~EOM
+        describe "something" do
+          unless if "do something" do; end
+            print "bar"
+          end
+        end
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq(["end"])
+      expect(explain.errors).to eq([
+        explain.why("end"),
+        "Both `if` and `do` require an `end`."
+      ])
+    end
+
+    it "shows hint for `unless` when inner `if` is closed before `do`" do
+      source = <<~EOM
+        describe "something" do
+          unless if "do something"; end; do
+            print "bar"
+          end
+        end
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq(["end"])
+      expect(explain.errors).to eq([
+        explain.why("end"),
+        "Both `unless` and `do` require an `end`."
+      ])
+    end
+
+    it "does not show hint if the `do` is after a method call that might accept a block" do
+      source = <<~EOM
+        [1,2,3].map { |x| x * 2 if x > 1 }.each do |y|
+          puts y
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq(["end"])
+      expect(explain.errors).to eq([
+        explain.why("end")
+      ])
+
+      source = <<~EOM
+        [1,2,3].map { |x| if x > 1; x * 2; end }.each do |y|
+          puts y
+      EOM
+
+      explain = ExplainSyntax.new(
+        code_lines: CodeLine.from_source(source)
+      ).call
+
+      expect(explain.missing).to eq(["end"])
+      expect(explain.errors).to eq([
+        explain.why("end")
+      ])
+    end
+
     it "falls back to ripper on unknown errors" do
       source = <<~EOM
         class Cat

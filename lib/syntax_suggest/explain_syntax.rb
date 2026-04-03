@@ -111,7 +111,48 @@ module SyntaxSuggest
         return GetParseErrors.errors(@code_lines.map(&:original).join).uniq
       end
 
-      missing.map { |miss| why(miss) }
+      out = missing.map { |miss| why(miss) }
+      out.concat(keyword_do_block_hints)
+      out
+    end
+
+    # Keywords that do not accept a `do` block
+    # Note: `while` and `until` DO accept `do`, e.g. `while true do; end`
+    KEYWORD_NO_DO_BLOCK = %w[if unless].freeze
+
+    # Detects lines with a conditional keyword followed by `do`
+    # (e.g., `if ... do` instead of `it ... do` (common in rspec syntax)
+    #
+    # Only triggers when `do` appears after `if`/`unless` but before
+    # an `end` that would close it. For example:
+    #
+    #   `if x do; end; end` - triggers (do before if's end)
+    #   `if x; end; foo do; end` - does not trigger (do after if's end)
+    #
+    # Returns an array of hint messages
+    private def keyword_do_block_hints
+      hints = []
+
+      @code_lines.each do |line|
+        # Stack of unclosed if/unless keywords
+        kw_stack = []
+
+        line.lex.each do |lex|
+          next unless lex.type == :on_kw
+
+          if lex.is_kw? && KEYWORD_NO_DO_BLOCK.include?(lex.token)
+            kw_stack << lex.token
+          elsif lex.token == "end" && kw_stack.any?
+            # An `end` closes the most recent keyword
+            kw_stack.pop
+          elsif lex.token == "do" && kw_stack.any?
+            # `do` appeared while there's still an unclosed if/unless
+            hints << "Both `#{kw_stack.last}` and `do` require an `end`."
+          end
+        end
+      end
+
+      hints.uniq
     end
   end
 end
