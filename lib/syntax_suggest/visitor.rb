@@ -1,6 +1,31 @@
 module SyntaxSuggest
-  # A visitor that walks the AST and pulls out information
-  # that is too dificult to discern by just looking at tokens
+  # Walks the Prism AST to extract structural info that cannot be reliably determined from tokens
+  # alone.
+  #
+  # Such as the location of lines that must be logically joined so the search algorithm will
+  # treat them as one. Example:
+  #
+  #   source = <<~RUBY
+  #     User                        # 1
+  #       .where(name: "Earlopain") # 2
+  #       .first                    # 3
+  #   RUBY
+  #   ast, _tokens = Prism.parse_lex(source).value
+  #   visitor = Visitor.new
+  #   visitor.visit(ast)
+  #   visitor.consecutive_lines_hash # => [1, 2]
+  #
+  # This output means that line 1 and line 2 needs to be joined with it's next line.
+  #
+  # And determing the location of "endless" method defintition. For example:
+  #
+  #   source = <<~RUBY
+  #     def square(x) = x * x # 1
+  #   RUBY
+  #
+  #   ast, _tokens = Prism.parse_lex(source).value
+  #   visitor = Visitor.new
+  #   visitor.endless_def_keyword_locs.first.start_line # => 1
   class Visitor < Prism::Visitor
     attr_reader :endless_def_keyword_locs
 
