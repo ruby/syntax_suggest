@@ -62,7 +62,7 @@ module SyntaxSuggest
         # Means it's a string or a symbol `"{"` rather than being
         # part of a data structure (like a hash) `{ a: b }`
         # ignore it.
-      when :on_words_beg, :on_symbos_beg, :on_qwords_beg,
+      when :on_words_beg, :on_symbols_beg, :on_qwords_beg,
            :on_qsymbols_beg, :on_regexp_beg, :on_tstring_beg
         # ^^^
         # Handle shorthand syntaxes like `%Q{ i am a string }`
