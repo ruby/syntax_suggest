@@ -39,9 +39,8 @@ module SyntaxSuggest
       @consecutive_lines.keys.sort
     end
 
-    # Record lines where a method call is logically connected
-    # to subsequent lines. This is the case when a method call
-    # is broken up by a newline
+    # Called by Prism::Visitor for every method-call node in the AST
+    # (e.g. `foo.bar`, `foo.bar.baz`).
     def visit_call_node(node)
       receiver_loc = node.receiver&.location
       call_operator_loc = node.call_operator_loc
@@ -66,10 +65,10 @@ module SyntaxSuggest
       super
     end
 
-    # Endless method definitions like `def foo = 123` are valid without
-    # an `end` keyword. We record their keyword here so that we can later
-    # skip considering them for keywords since they have no coresponding
-    # end
+    # Called by Prism::Visitor for every `def` node in the AST.
+    # Records the keyword location for endless method definitions
+    # like `def foo = 123`. These are valid without a matching `end`,
+    # so Token must exclude them when deciding if a line is a keyword.
     def visit_def_node(node)
       @endless_def_keyword_locs << node.def_keyword_loc if node.equal_loc
       super
