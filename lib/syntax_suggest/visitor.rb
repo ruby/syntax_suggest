@@ -40,7 +40,7 @@ module SyntaxSuggest
     end
 
     def visit(ast)
-      super(ast)
+      super
       @consecutive_lines = @consecutive_lines_hash.keys.sort
       @consecutive_lines_hash.freeze
       @endless_def_offsets.freeze
