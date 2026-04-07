@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SyntaxSuggest
   # Walks the Prism AST to extract structural info that cannot be reliably determined from tokens
   # alone.
