@@ -43,7 +43,7 @@ module SyntaxSuggest
           line: line,
           index: index,
           tokens: tokens_for_line[index + 1],
-          consecutive: visitor.consecutive_lines.include?(index + 1)
+          consecutive: visitor.consecutive_line?(index + 1)
         )
       end
     end

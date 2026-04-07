@@ -34,6 +34,7 @@ module SyntaxSuggest
 
     def initialize
       @endless_def_keyword_locs = []
+      @endless_def_offsets = {}
       @consecutive_lines_hash = {}
       @consecutive_lines = []
     end
@@ -41,7 +42,17 @@ module SyntaxSuggest
     def visit(ast)
       super(ast)
       @consecutive_lines = @consecutive_lines_hash.keys.sort
+      @consecutive_lines_hash.freeze
+      @endless_def_offsets.freeze
       self
+    end
+
+    def consecutive_line?(line)
+      @consecutive_lines_hash.key?(line)
+    end
+
+    def endless_def_loc?(location)
+      @endless_def_offsets.key?(location.start_offset)
     end
 
     # Called by Prism::Visitor for every method-call node in the AST
@@ -77,7 +88,10 @@ module SyntaxSuggest
     # like `def foo = 123`. These are valid without a matching `end`,
     # so Token must exclude them when deciding if a line is a keyword.
     def visit_def_node(node)
-      @endless_def_keyword_locs << node.def_keyword_loc if node.equal_loc
+      if node.equal_loc
+        @endless_def_keyword_locs << node.def_keyword_loc
+        @endless_def_offsets[node.def_keyword_loc.start_offset] = true
+      end
       super
     end
   end

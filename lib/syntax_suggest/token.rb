@@ -29,7 +29,7 @@ module SyntaxSuggest
       # Prism lexes `:module` as SYMBOL_BEGIN, KEYWORD_MODULE
       # https://github.com/ruby/prism/issues/3940
       symbol_content = previous_prism_token&.type == :SYMBOL_BEGIN
-      @is_kw = KW_TYPES.include?(@type) && !symbol_content && !visitor.endless_def_keyword_locs.include?(@location)
+      @is_kw = KW_TYPES.include?(@type) && !symbol_content && !visitor.endless_def_loc?(@location)
       @is_end = @type == :KEYWORD_END
     end
 
