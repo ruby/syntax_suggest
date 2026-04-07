@@ -1,0 +1,9 @@
+require:
+  - rubocop-performance
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Performance:
+  Enabled: true
