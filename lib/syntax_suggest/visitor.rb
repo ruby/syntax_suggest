@@ -45,16 +45,18 @@ module SyntaxSuggest
       call_operator_loc = node.call_operator_loc
       message_loc = node.message_loc
       if receiver_loc && call_operator_loc && message_loc
-        # foo
-        #   .bar
+        # dot-leading (dot on the next line)
+        #   foo        # line 1 — consecutive
+        #     .bar     # line 2
         if receiver_loc.end_line != call_operator_loc.start_line && call_operator_loc.start_line == message_loc.start_line
           (receiver_loc.end_line..call_operator_loc.start_line - 1).each do |line|
             @consecutive_lines[line] = true
           end
         end
 
-        # foo.
-        #   bar
+        # dot-trailing (dot on the same line as the receiver)
+        #   foo.       # line 1 — consecutive
+        #     bar      # line 2
         if receiver_loc.end_line == call_operator_loc.start_line && call_operator_loc.start_line != message_loc.start_line
           (call_operator_loc.start_line..message_loc.start_line - 1).each do |line|
             @consecutive_lines[line] = true
