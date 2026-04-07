@@ -28,15 +28,18 @@ module SyntaxSuggest
   #   visitor.visit(ast)
   #   visitor.endless_def_keyword_locs.first.start_line # => 1
   class Visitor < Prism::Visitor
-    attr_reader :endless_def_keyword_locs
+    attr_reader :endless_def_keyword_locs, :consecutive_lines
 
     def initialize
       @endless_def_keyword_locs = []
-      @consecutive_lines = {}
+      @consecutive_lines_hash = {}
+      @consecutive_lines = []
     end
 
-    def consecutive_lines
-      @consecutive_lines.keys.sort
+    def visit(ast)
+      super(ast)
+      @consecutive_lines = @consecutive_lines_hash.keys.sort
+      self
     end
 
     # Called by Prism::Visitor for every method-call node in the AST
@@ -51,7 +54,7 @@ module SyntaxSuggest
         #     .bar     # line 2
         if receiver_loc.end_line != call_operator_loc.start_line && call_operator_loc.start_line == message_loc.start_line
           (receiver_loc.end_line..call_operator_loc.start_line - 1).each do |line|
-            @consecutive_lines[line] = true
+            @consecutive_lines_hash[line] = true
           end
         end
 
@@ -60,7 +63,7 @@ module SyntaxSuggest
         #     bar      # line 2
         if receiver_loc.end_line == call_operator_loc.start_line && call_operator_loc.start_line != message_loc.start_line
           (call_operator_loc.start_line..message_loc.start_line - 1).each do |line|
-            @consecutive_lines[line] = true
+            @consecutive_lines_hash[line] = true
           end
         end
       end
