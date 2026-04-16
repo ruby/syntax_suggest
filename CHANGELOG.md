@@ -1,5 +1,7 @@
 ## HEAD (unreleased)
 
+## 3.0.0
+
 - Changed: Minimum supported Ruby version is now 3.3. (https://github.com/ruby/syntax_suggest/pull/246)
 - Changed: Use native prism to analyse. (https://github.com/ruby/syntax_suggest/pull/251)
 
