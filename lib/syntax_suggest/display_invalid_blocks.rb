@@ -66,6 +66,5 @@ module SyntaxSuggest
       # Output code
       @io.puts(document)
     end
-
   end
 end
