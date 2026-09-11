@@ -1,7 +1,6 @@
 ## HEAD (unreleased)
 
 - Fix: `SYNTAX_SUGGEST_DEBUG` no longer raises `NoMethodError`. Previously this code path called `$stderr.warn` which is a private method. Now it uses `warn` instead.
-- Internal: Fix the `SYNTAX_SUGGEST_DEBUG` integration spec on Windows.
 
 ## 3.0.0
 

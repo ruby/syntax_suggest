@@ -7,9 +7,9 @@ gemspec
 
 gem "rake", "~> 13.0"
 gem "rspec", "~> 3.0"
-gem "stackprof"
 gem "standard"
-gem "ruby-prof"
+gem "stackprof" unless Gem.win_platform?
+gem "ruby-prof" unless Gem.win_platform?
 
 gem "benchmark"
 gem "benchmark-ips"
