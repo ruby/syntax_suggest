@@ -29,6 +29,12 @@ jobs:
   test:
     needs: ruby-versions
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        # bin/rake is a bash script; windows-latest defaults to PowerShell,
+        # which silently no-ops it (green with zero tests). Force bash (Git
+        # Bash ships on the Windows runner); bash is already the default on Ubuntu.
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
