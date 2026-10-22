@@ -1,5 +1,6 @@
 ## HEAD (unreleased)
 
+- Changed: Prefer `Ruby::Prism`, the parser built into the interpreter, when available (Ruby 4.1+).
 - Fix: `SYNTAX_SUGGEST_DEBUG` no longer raises `NoMethodError`. Previously this code path called `$stderr.warn` which is a private method. Now it uses `warn` instead.
 
 ## 3.0.0
