@@ -8,7 +8,7 @@ require "pathname"
 require "timeout"
 
 module SyntaxSuggest # :nodoc: all
-  # Prefer Ruby::Prism, the parser built into the interpreter (Ruby 4.1+); 
+  # Prefer Ruby::Prism, the parser built into the interpreter (Ruby 4.1+);
   # fall back to the prism gem on older Rubies.
   if defined?(Ruby::Prism)
     Prism = Ruby::Prism
